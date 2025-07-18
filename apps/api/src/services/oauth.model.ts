@@ -1,42 +1,84 @@
 import { Request } from 'express'
 import { Token, Client, User } from 'oauth2-server'
-
-const clients = [
-  {
-    id: 'client1',
-    clientId: 'client1',
-    clientSecret: 'secret',
-    grants: ['password', 'client_credentials'],
-    redirectUris: []
-  }
-]
-
-const users = [{ id: 1, username: 'user', password: 'pass' }]
-
-let tokens: any[] = []
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 export default {
-  getClient: (clientId: string, clientSecret: string) => {
-    console.log('getClient', clientId, clientSecret)
-    return Promise.resolve(
-      clients.find((c) => c.clientId === clientId && c.clientSecret === clientSecret) || null
-    )
+  getClient: async (clientId: string, clientSecret: string) => {
+    const client = await prisma.oAuthClient.findUnique({
+      where: { clientId }
+    })
+    if (!client || client.clientSecret !== clientSecret) return null
+    // Map DB client to oauth2-server client format
+    return {
+      id: String(client.id), // Convert id to string
+      clientId: client.clientId,
+      clientSecret: client.clientSecret,
+      grants: client.grants.split(','),
+      redirectUris: client.redirectUris.split(',')
+    }
   },
-  getUser: (username: string, password: string) => {
-    return Promise.resolve(
-      users.find((u) => u.username === username && u.password === password) || null
-    )
+  getUser: async (username: string, password: string) => {
+    const user = await prisma.user.findUnique({ where: { username } })
+    if (!user) return null
+    // Password check should be done outside or here if plain text (not recommended)
+    // For demo, compare directly
+    if (user.password !== password) return null
+    return user
   },
-  saveToken: (token: Token, client: Client, user: User) => {
-    const t = { ...token, client, user }
-    tokens.push(t)
-    return Promise.resolve(t)
+  saveToken: async (token: Token, client: Client, user: User) => {
+    const dbToken = await prisma.oAuthToken.create({
+      data: {
+        accessToken: token.accessToken,
+        accessTokenExpiresAt: token.accessTokenExpiresAt,
+        refreshToken: token.refreshToken,
+        refreshTokenExpiresAt: token.refreshTokenExpiresAt,
+        scope: Array.isArray(token.scope) ? token.scope.join(' ') : token.scope,
+        client: { connect: { clientId: client.clientId } },
+        user: { connect: { id: user.id } }
+      },
+      include: { client: true, user: true }
+    })
+    // Map DB token to oauth2-server token format
+    return {
+      accessToken: dbToken.accessToken,
+      accessTokenExpiresAt: dbToken.accessTokenExpiresAt,
+      refreshToken: dbToken.refreshToken,
+      refreshTokenExpiresAt: dbToken.refreshTokenExpiresAt,
+      scope: dbToken.scope,
+      client: {
+        ...dbToken.client,
+        id: String(dbToken.client.id),
+        grants: dbToken.client.grants.split(','),
+        redirectUris: dbToken.client.redirectUris.split(',')
+      },
+      user: dbToken.user
+    }
   },
-  getAccessToken: (accessToken: string) => {
-    return Promise.resolve(tokens.find((t) => t.accessToken === accessToken) || null)
+  getAccessToken: async (accessToken: string) => {
+    const dbToken = await prisma.oAuthToken.findUnique({
+      where: { accessToken },
+      include: { client: true, user: true }
+    })
+    if (!dbToken) return null
+    return {
+      accessToken: dbToken.accessToken,
+      accessTokenExpiresAt: dbToken.accessTokenExpiresAt,
+      refreshToken: dbToken.refreshToken,
+      refreshTokenExpiresAt: dbToken.refreshTokenExpiresAt,
+      scope: dbToken.scope,
+      client: {
+        ...dbToken.client,
+        id: String(dbToken.client.id),
+        grants: dbToken.client.grants.split(','),
+        redirectUris: dbToken.client.redirectUris.split(',')
+      },
+      user: dbToken.user
+    }
   },
-  verifyScope: (token: any, scope: string | string[]) => {
-    return Promise.resolve(true)
+  verifyScope: async (token: any, scope: string | string[]) => {
+    // Implement scope verification if needed
+    return true
   }
   // Add other required methods as needed for your grant types
 }

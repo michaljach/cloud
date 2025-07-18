@@ -97,6 +97,69 @@ npm run start    # Start compiled app
 
 ---
 
+## Database & Prisma Setup
+
+This monorepo uses **Prisma** as the ORM for the API service, with a PostgreSQL database. All OAuth2 data (users, clients, tokens) is stored in the database.
+
+### 1. Configure the Database Connection
+
+Create a `.env` file in `apps/api/` with your database URL:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
+```
+
+### 2. Run Migrations
+
+From the root or `apps/api` directory, run:
+
+```sh
+cd apps/api
+npx prisma migrate dev
+```
+
+This will apply all migrations and create the necessary tables for `User`, `OAuthClient`, and `OAuthToken`.
+
+### 3. Generate the Prisma Client
+
+After changing the schema or running migrations, always regenerate the client:
+
+```sh
+npx prisma generate
+```
+
+### 4. (Optional) Seed Initial Data
+
+You can manually insert an OAuth client and user for testing (e.g., via `psql` or a seed script). Example:
+
+```sql
+INSERT INTO "User" (username, password) VALUES ('user', 'pass');
+INSERT INTO "OAuthClient" (clientId, clientSecret, grants, redirectUris) VALUES ('client1', 'secret', 'password,client_credentials', '');
+```
+
+### 5. Prisma Model Summary
+
+- **User**: Stores API users (id, username, password)
+- **OAuthClient**: Stores OAuth2 clients (id, clientId, clientSecret, grants, redirectUris)
+- **OAuthToken**: Stores issued tokens (accessToken, refreshToken, expiry, scope, clientId, userId)
+
+### 6. Useful Prisma Commands
+
+- Open Prisma Studio (GUI):
+  ```sh
+  npx prisma studio
+  ```
+- Create a new migration:
+  ```sh
+  npx prisma migrate dev --name <migration_name>
+  ```
+- Apply migrations in production:
+  ```sh
+  npx prisma migrate deploy
+  ```
+
+---
+
 ## Adding More Packages/Apps
 
 - Add a new folder in `apps/` or `packages/`
