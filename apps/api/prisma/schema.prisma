@@ -7,18 +7,6 @@
 // Seed configuration
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["seed"]
-}
-
-// Add this block at the end of the file:
-// prisma seed configuration
-// See: https://www.prisma.io/docs/guides/database/seed-database
-// This tells Prisma how to run the seed script
-//
-// In package.json, the script is: "ts-node prisma/seed.ts"
-//
-seed = {
-  "ts-node": "ts-node --transpile-only prisma/seed.ts"
 }
 
 datasource db {
