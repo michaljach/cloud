@@ -1,58 +1,110 @@
-# Turborepo Tailwind CSS starter
+# Turborepo Monorepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+A modern monorepo powered by [Turborepo](https://turbo.build/), featuring Next.js apps, a modular Express API with OAuth2, shared UI components, and unified linting, formatting, and TypeScript configuration.
 
-## Using this example
+---
 
-Run the following command:
+## Project Structure
+
+```
+.
+├── apps/
+│   ├── api/           # Express + TypeScript + OAuth2 REST API
+│   ├── web/           # Next.js web app
+│   └── docs/          # Next.js documentation app
+├── packages/
+│   ├── ui/            # Shared React UI components
+│   ├── typescript-config/  # Shared tsconfig base
+│   ├── eslint-config/      # Shared ESLint config
+│   └── prettier-config/    # Shared Prettier config
+├── package.json
+├── turbo.json
+├── README.md
+└── ...
+```
+
+---
+
+## Features
+
+- Multiple apps and packages managed in a single repo
+- Unified linting, formatting, and TypeScript config
+- Modular, enterprise-ready Express API with self-hosted OAuth2
+- Shared UI library for React apps
+- Fast builds and dev with Turborepo
+
+---
+
+## Setup & Commands
+
+### Install dependencies (from root)
 
 ```sh
-npx create-turbo@latest -e with-tailwind
+npm install
 ```
 
-## What's inside?
+### Build all apps and packages
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `web`: another [Next.js](https://nextjs.org/) app with [Tailwind CSS](https://tailwindcss.com/)
-- `ui`: a stub React component library with [Tailwind CSS](https://tailwindcss.com/) shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Building packages/ui
-
-This example is set up to produce compiled styles for `ui` components into the `dist` directory. The component `.tsx` files are consumed by the Next.js apps directly using `transpilePackages` in `next.config.ts`. This was chosen for several reasons:
-
-- Make sharing one `tailwind.config.ts` to apps and packages as easy as possible.
-- Make package compilation simple by only depending on the Next.js Compiler and `tailwindcss`.
-- Ensure Tailwind classes do not overwrite each other. The `ui` package uses a `ui-` prefix for it's classes.
-- Maintain clear package export boundaries.
-
-Another option is to consume `packages/ui` directly from source without building. If using this option, you will need to update the `tailwind.config.ts` in your apps to be aware of your package locations, so it can find all usages of the `tailwindcss` class names for CSS compilation.
-
-For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts):
-
-```js
-  content: [
-    // app content
-    `src/**/*.{js,ts,jsx,tsx}`,
-    // include packages if not transpiling
-    "../../packages/ui/*.{js,ts,jsx,tsx}",
-  ],
+```sh
+npm run build
 ```
 
-If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
+### Develop all apps (concurrently, with hot reload)
 
-### Utilities
+```sh
+npm run dev
+```
 
-This Turborepo has some additional tools already setup for you:
+### Lint all code
 
-- [Tailwind CSS](https://tailwindcss.com/) for styles
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+```sh
+npm run lint
+```
+
+### Format all code
+
+```sh
+npm run format
+```
+
+### Check types
+
+```sh
+npm run check-types
+```
+
+---
+
+## App-specific Commands
+
+### API (Express)
+
+```sh
+cd apps/api
+npm run dev      # Start API in dev mode
+npm run build    # Build API
+npm run serve    # Start compiled API
+```
+
+### Web (Next.js)
+
+```sh
+cd apps/web
+npm run dev      # Start Next.js app
+npm run build    # Build Next.js app
+npm run start    # Start compiled app
+```
+
+---
+
+## Adding More Packages/Apps
+
+- Add a new folder in `apps/` or `packages/`
+- Register it in the root `package.json` workspaces if needed
+- Use shared configs for consistency
+
+---
+
+## License
+
+MIT
