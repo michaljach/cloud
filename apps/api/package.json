@@ -16,8 +16,11 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/multer": "^2.0.0",
+    "@types/oauth2-server": "^3.0.5",
+    "dotenv": "^16.0.0",
     "express": "^5.1.0",
-    "oauth2-server": "^3.1.1",
-    "@types/oauth2-server": "^3.0.5"
+    "multer": "^2.0.2",
+    "oauth2-server": "^3.1.1"
   }
 }
