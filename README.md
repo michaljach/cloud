@@ -158,6 +158,18 @@ INSERT INTO "OAuthClient" (clientId, clientSecret, grants, redirectUris) VALUES 
   npx prisma migrate deploy
   ```
 
+### 7. Database Seeding
+
+- The seed script is located at `apps/api/prisma/seed.ts`.
+- It creates a default admin user and OAuth client if they do not exist.
+- **To run the seed manually:**
+  ```sh
+  cd apps/api
+  npm run seed
+  ```
+- **Docker:** The API Docker container will automatically run the seed script on first start (if the admin user does not exist).
+- To customize the seed data, edit `apps/api/prisma/seed.ts`.
+
 ---
 
 ## Docker Setup & Development

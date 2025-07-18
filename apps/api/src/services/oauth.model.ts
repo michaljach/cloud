@@ -1,6 +1,7 @@
 import { Request } from 'express'
 import { Token, Client, User } from 'oauth2-server'
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 export default {
@@ -21,9 +22,8 @@ export default {
   getUser: async (username: string, password: string) => {
     const user = await prisma.user.findUnique({ where: { username } })
     if (!user) return null
-    // Password check should be done outside or here if plain text (not recommended)
-    // For demo, compare directly
-    if (user.password !== password) return null
+    const valid = await bcrypt.compare(password, user.password)
+    if (!valid) return null
     return user
   },
   saveToken: async (token: Token, client: Client, user: User) => {

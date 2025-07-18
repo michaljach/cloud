@@ -7,7 +7,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "serve": "node dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "seed": "ts-node prisma/seed.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -23,6 +24,7 @@
     "@types/multer": "^2.0.0",
     "@types/oauth2-server": "^3.0.5",
     "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^5.1.0",
     "multer": "^2.0.2",
