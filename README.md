@@ -160,6 +160,73 @@ INSERT INTO "OAuthClient" (clientId, clientSecret, grants, redirectUris) VALUES 
 
 ---
 
+## Docker Setup & Development
+
+This project includes a `docker-compose.yml` for local development with Docker. It runs both the PostgreSQL database and the API service in containers.
+
+### 1. Start the Stack
+
+From the project root, run:
+
+```sh
+docker-compose up --build
+```
+
+- This will start:
+  - **Postgres** (port 5432, data persisted in `postgres_data` volume)
+  - **API** (port 8000, code in `apps/api`)
+
+### 2. Stopping and Rebuilding
+
+- Stop all containers:
+  ```sh
+  docker-compose down
+  ```
+- Rebuild after code or dependency changes:
+  ```sh
+  docker-compose up --build
+  ```
+
+### 3. Viewing Logs
+
+- View logs for all services:
+  ```sh
+  docker-compose logs -f
+  ```
+- View logs for a specific service (e.g., API):
+  ```sh
+  docker-compose logs -f api
+  ```
+
+### 4. Database Access
+
+- The database is available at `localhost:5432` (user: `postgres`, password: `postgres`, db: `myapp`).
+- You can connect using any Postgres client or via:
+  ```sh
+  docker exec -it myapp-postgres psql -U postgres -d myapp
+  ```
+
+### 5. Data Persistence
+
+- Database data is stored in the `postgres_data` Docker volume and will persist across container restarts.
+- Uploaded files (if any) are stored in the `storage_data` volume.
+
+### 6. Environment Variables
+
+- The API service uses environment variables defined in `docker-compose.yml` (see the `environment:` section for `api`).
+- You can override or extend these in your own `.env` file if needed.
+
+### 7. Developing with Docker
+
+- Code changes in `apps/api` will **not** hot-reload by default in the container. For live reload, you can modify the Dockerfile to use `npm run dev` and mount the source code as a volume.
+- For most development, run the API locally (with `npm run dev`) and use Docker only for the database:
+  ```sh
+  docker-compose up postgres
+  # Then run the API locally with your preferred dev workflow
+  ```
+
+---
+
 ## Adding More Packages/Apps
 
 - Add a new folder in `apps/` or `packages/`
