@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { loginWithPassword } from '@/lib/auth'
 import { useUser } from '@/context/UserContext'
 
 export default function LoginForm() {
@@ -9,15 +8,14 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { accessToken, logout, loading: userLoading } = useUser()
+  const { accessToken, logout, loading: userLoading, login } = useUser()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
-      const accessToken = await loginWithPassword(username, password)
-      localStorage.setItem('accessToken', accessToken)
+      await login(username, password)
       window.location.href = '/'
     } catch (err: unknown) {
       let message = 'Login failed'

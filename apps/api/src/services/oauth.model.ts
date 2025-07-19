@@ -6,28 +6,44 @@ import { User as SharedUser } from '@repo/types'
 const prisma = new PrismaClient()
 
 export default {
+  /**
+   * Get an OAuth client by clientId and clientSecret
+   * @param clientId OAuth client ID
+   * @param clientSecret OAuth client secret
+   * @returns OAuth2 client object or null if not found/invalid
+   */
   getClient: async (clientId: string, clientSecret: string) => {
-    const client = await prisma.oAuthClient.findUnique({
-      where: { clientId }
-    })
+    const client = await prisma.oAuthClient.findUnique({ where: { clientId } })
     if (!client || client.clientSecret !== clientSecret) return null
-    // Map DB client to oauth2-server client format
+    const { id, grants, redirectUris, ...rest } = client
     return {
-      id: String(client.id), // Convert id to string
-      clientId: client.clientId,
-      clientSecret: client.clientSecret,
-      grants: client.grants.split(','),
-      redirectUris: client.redirectUris.split(',')
+      id: String(id),
+      grants: grants.split(','),
+      redirectUris: redirectUris.split(','),
+      ...rest
     }
   },
+  /**
+   * Get a user by username and password (verifies password)
+   * @param username Username
+   * @param password Plaintext password
+   * @returns SharedUser object or null if not found/invalid
+   */
   getUser: async (username: string, password: string): Promise<SharedUser | null> => {
     const user = await prisma.user.findUnique({ where: { username } })
     if (!user) return null
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) return null
-    // Return only the shared User fields
-    return { id: user.id, username: user.username }
+    const { id, username: uname } = user
+    return { id, username: uname }
   },
+  /**
+   * Save a new OAuth token to the database
+   * @param token OAuth2 token object
+   * @param client OAuth2 client object
+   * @param user OAuth2 user object
+   * @returns Saved token object in OAuth2-server format
+   */
   saveToken: async (token: Token, client: Client, user: OAuthUser) => {
     const dbToken = await prisma.oAuthToken.create({
       data: {
@@ -41,43 +57,75 @@ export default {
       },
       include: { client: true, user: true }
     })
-    // Map DB token to oauth2-server token format
+    const {
+      accessToken,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      scope,
+      client: dbClient,
+      user: dbUser
+    } = dbToken
+    const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
+    const { id: userId, username } = dbUser
     return {
-      accessToken: dbToken.accessToken,
-      accessTokenExpiresAt: dbToken.accessTokenExpiresAt,
-      refreshToken: dbToken.refreshToken,
-      refreshTokenExpiresAt: dbToken.refreshTokenExpiresAt,
-      scope: dbToken.scope,
+      accessToken,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      scope,
       client: {
-        ...dbToken.client,
-        id: String(dbToken.client.id),
-        grants: dbToken.client.grants.split(','),
-        redirectUris: dbToken.client.redirectUris.split(',')
+        ...clientRest,
+        id: String(clientId),
+        grants: grants.split(','),
+        redirectUris: redirectUris.split(',')
       },
-      user: { id: dbToken.user.id, username: dbToken.user.username } as SharedUser
+      user: { id: userId, username } as SharedUser
     }
   },
+  /**
+   * Get an access token and associated client/user by accessToken string
+   * @param accessToken Access token string
+   * @returns Token object or null if not found
+   */
   getAccessToken: async (accessToken: string) => {
     const dbToken = await prisma.oAuthToken.findUnique({
       where: { accessToken },
       include: { client: true, user: true }
     })
     if (!dbToken) return null
+    const {
+      accessToken: at,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      scope,
+      client: dbClient,
+      user: dbUser
+    } = dbToken
+    const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
+    const { id: userId, username } = dbUser
     return {
-      accessToken: dbToken.accessToken,
-      accessTokenExpiresAt: dbToken.accessTokenExpiresAt,
-      refreshToken: dbToken.refreshToken,
-      refreshTokenExpiresAt: dbToken.refreshTokenExpiresAt,
-      scope: dbToken.scope,
+      accessToken: at,
+      accessTokenExpiresAt,
+      refreshToken,
+      refreshTokenExpiresAt,
+      scope,
       client: {
-        ...dbToken.client,
-        id: String(dbToken.client.id),
-        grants: dbToken.client.grants.split(','),
-        redirectUris: dbToken.client.redirectUris.split(',')
+        ...clientRest,
+        id: String(clientId),
+        grants: grants.split(','),
+        redirectUris: redirectUris.split(',')
       },
-      user: { id: dbToken.user.id, username: dbToken.user.username } as SharedUser
+      user: { id: userId, username } as SharedUser
     }
   },
+  /**
+   * Verify the scope of a token (always returns true in this implementation)
+   * @param token Token object
+   * @param scope Scope string or array
+   * @returns true
+   */
   verifyScope: async (token: any, scope: string | string[]) => {
     // Implement scope verification if needed
     return true

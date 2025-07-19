@@ -6,7 +6,7 @@ import filesRoutes from './files.routes'
 const router = Router()
 
 router.use('/users', usersRoutes)
-router.use(authRoutes)
+router.use('/auth', authRoutes)
 router.use('/files', filesRoutes)
 
 export default router

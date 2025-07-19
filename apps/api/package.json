@@ -20,8 +20,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@repo/types": "*",
     "@prisma/client": "^6.12.0",
+    "@repo/types": "*",
     "@types/multer": "^2.0.0",
     "@types/oauth2-server": "^3.0.5",
     "bcryptjs": "^3.0.2",
@@ -30,6 +30,7 @@
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "oauth2-server": "^3.1.1",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "zod": "^4.0.5"
   }
 }
