@@ -44,8 +44,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       try {
         setLoading(true)
         setError(null)
-        const userData = await getCurrentUser(accessToken)
-        setUser(userData)
+        const { data } = await getCurrentUser(accessToken)
+        setUser(data)
       } catch (e: unknown) {
         setUser(null)
         setError(e instanceof Error ? e.message : 'Unknown error')

@@ -2,15 +2,19 @@ import { User } from '@repo/types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
+interface ApiResponse<T> {
+  success: boolean
+  data: T
+  error: string | null
+}
+
 export async function getCurrentUser(accessToken: string): Promise<User> {
   const res = await fetch(`${API_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  if (res.status === 401 || res.status === 400) {
-    throw new Error('Unauthorized')
-  }
-  if (!res.ok) throw new Error('Failed to fetch user info')
-  return res.json()
+  const json: ApiResponse<User> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch user info')
+  return json.data
 }
 
 export async function registerUser(username: string, password: string): Promise<User> {
@@ -19,9 +23,9 @@ export async function registerUser(username: string, password: string): Promise<
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Registration failed')
-  return data
+  const json: ApiResponse<User> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Registration failed')
+  return json.data
 }
 
 export async function loginUser(
@@ -33,9 +37,9 @@ export async function loginUser(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'password', username, password })
   })
-  const { data } = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Login failed')
-  return { accessToken: data.accessToken, refreshToken: data.refreshToken }
+  const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Login failed')
+  return json.data
 }
 
 export async function refreshToken(
@@ -46,15 +50,17 @@ export async function refreshToken(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken })
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Refresh failed')
-  return { accessToken: data.accessToken, refreshToken: data.refreshToken }
+  const json: ApiResponse<{ accessToken: string; refreshToken: string }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Refresh failed')
+  return json.data
 }
 
 export async function logoutUser(token: string): Promise<void> {
-  await fetch(`${API_URL}/api/auth/logout`, {
+  const res = await fetch(`${API_URL}/api/auth/logout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token })
   })
+  const json: ApiResponse<null> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Logout failed')
 }

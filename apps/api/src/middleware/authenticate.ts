@@ -14,6 +14,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       next()
     })
     .catch((err) => {
-      res.status(err.code || 401).json({ error: err.message })
+      res.status(err.code || 401).json({ success: false, data: null, error: err.message })
     })
 }

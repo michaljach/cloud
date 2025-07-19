@@ -13,7 +13,6 @@ describe('Auth API', () => {
       .post('/api/auth/token')
       .type('form')
       .send({ grant_type: 'password' })
-    console.log(res.body)
     expect(res.status).not.toBe(200)
     expect(res.body).toHaveProperty('error')
     expect(res.body.success).toBe(false)

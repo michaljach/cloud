@@ -14,7 +14,9 @@ app.use('/api', apiRouter)
 
 // Catch-all error handler for consistent JSON errors
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' })
+  res
+    .status(err.status || 500)
+    .json({ success: false, data: null, error: err.message || 'Internal Server Error' })
 })
 
 if (process.env.NODE_ENV !== 'test') {
