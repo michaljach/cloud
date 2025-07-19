@@ -33,7 +33,7 @@ export async function loginUser(
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'password', username, password })
   })
-  const data = await res.json()
+  const { data } = await res.json()
   if (!res.ok) throw new Error(data.error || 'Login failed')
   return { accessToken: data.accessToken, refreshToken: data.refreshToken }
 }

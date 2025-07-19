@@ -80,7 +80,6 @@ export const register = async (req: Request, res: Response) => {
  * @param res Express response
  */
 export const me = async (req: Request, res: Response) => {
-  console.log(req)
   const user = (req as any).oauth?.user as User | undefined
   if (!user) return handleError(res, 'Not authenticated', 401)
   res.json({ success: true, data: user, error: null })
