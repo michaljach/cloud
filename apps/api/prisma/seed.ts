@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+const OAUTH_CLIENT_ID = process.env.OAUTH_CLIENT_ID
+const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET
+const OAUTH_CLIENT_GRANTS = process.env.OAUTH_CLIENT_GRANTS
+const OAUTH_CLIENT_REDIRECT_URIS = process.env.OAUTH_CLIENT_REDIRECT_URIS
+
 async function main() {
   // Create default user
   const passwordHash = await bcrypt.hash('admin', 10)
@@ -17,13 +22,13 @@ async function main() {
 
   // Create default OAuth client
   await prisma.oAuthClient.upsert({
-    where: { clientId: 'client1' },
+    where: { clientId: OAUTH_CLIENT_ID },
     update: {},
     create: {
-      clientId: 'client1',
-      clientSecret: 'secret',
-      grants: 'password,client_credentials',
-      redirectUris: ''
+      clientId: OAUTH_CLIENT_ID,
+      clientSecret: OAUTH_CLIENT_SECRET,
+      grants: OAUTH_CLIENT_GRANTS,
+      redirectUris: OAUTH_CLIENT_REDIRECT_URIS
     }
   })
 

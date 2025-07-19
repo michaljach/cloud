@@ -1,7 +1,8 @@
 import { Request } from 'express'
-import { Token, Client, User } from 'oauth2-server'
+import { Token, Client, User as OAuthUser } from 'oauth2-server'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { User as SharedUser } from '@repo/types'
 const prisma = new PrismaClient()
 
 export default {
@@ -19,14 +20,15 @@ export default {
       redirectUris: client.redirectUris.split(',')
     }
   },
-  getUser: async (username: string, password: string) => {
+  getUser: async (username: string, password: string): Promise<SharedUser | null> => {
     const user = await prisma.user.findUnique({ where: { username } })
     if (!user) return null
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) return null
-    return user
+    // Return only the shared User fields
+    return { id: user.id, username: user.username }
   },
-  saveToken: async (token: Token, client: Client, user: User) => {
+  saveToken: async (token: Token, client: Client, user: OAuthUser) => {
     const dbToken = await prisma.oAuthToken.create({
       data: {
         accessToken: token.accessToken,
@@ -35,7 +37,7 @@ export default {
         refreshTokenExpiresAt: token.refreshTokenExpiresAt,
         scope: Array.isArray(token.scope) ? token.scope.join(' ') : token.scope,
         client: { connect: { clientId: client.clientId } },
-        user: { connect: { id: user.id } }
+        user: { connect: { id: (user as any).id } }
       },
       include: { client: true, user: true }
     })
@@ -52,7 +54,7 @@ export default {
         grants: dbToken.client.grants.split(','),
         redirectUris: dbToken.client.redirectUris.split(',')
       },
-      user: dbToken.user
+      user: { id: dbToken.user.id, username: dbToken.user.username } as SharedUser
     }
   },
   getAccessToken: async (accessToken: string) => {
@@ -73,7 +75,7 @@ export default {
         grants: dbToken.client.grants.split(','),
         redirectUris: dbToken.client.redirectUris.split(',')
       },
-      user: dbToken.user
+      user: { id: dbToken.user.id, username: dbToken.user.username } as SharedUser
     }
   },
   verifyScope: async (token: any, scope: string | string[]) => {
