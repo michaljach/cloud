@@ -1,5 +1,5 @@
 import OAuth2Server from 'oauth2-server'
-import oauthModel from '../services/oauth.model'
+import oauthModel from '@services/oauth.model'
 import { Request, Response, NextFunction } from 'express'
 
 const oauth = new OAuth2Server({ model: oauthModel })

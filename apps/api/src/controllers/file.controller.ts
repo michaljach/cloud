@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { encryptAndSave, decryptAndRead } from '../services/fileStorage.service'
+import { encryptAndSave, decryptAndRead } from '@services/fileStorage.service'
 
 /**
  * POST /api/files/upload - Upload and encrypt a file

@@ -30,12 +30,14 @@ export default {
    * @returns SharedUser object or null if not found/invalid
    */
   getUser: async (username: string, password: string): Promise<SharedUser | null> => {
-    const user = await prisma.user.findUnique({ where: { username } })
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true, username: true, password: true, fullName: true }
+    })
     if (!user) return null
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) return null
-    const { id, username: uname } = user
-    return { id, username: uname }
+    return { id: user.id, username: user.username, fullName: user.fullName }
   },
   /**
    * Save a new OAuth token to the database
@@ -91,7 +93,7 @@ export default {
   getAccessToken: async (accessToken: string) => {
     const dbToken = await prisma.oAuthToken.findUnique({
       where: { accessToken },
-      include: { client: true, user: true }
+      include: { client: true, user: { select: { id: true, username: true, fullName: true } } }
     })
     if (!dbToken) return null
     const {
@@ -104,7 +106,7 @@ export default {
       user: dbUser
     } = dbToken
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
-    const { id: userId, username } = dbUser
+    const { id: userId, username, fullName } = dbUser
     return {
       accessToken: at,
       accessTokenExpiresAt,
@@ -117,7 +119,7 @@ export default {
         grants: grants.split(','),
         redirectUris: redirectUris.split(',')
       },
-      user: { id: userId, username } as SharedUser
+      user: { id: userId, username, fullName } as SharedUser
     }
   },
   /**

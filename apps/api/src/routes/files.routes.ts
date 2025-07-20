@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import multer from 'multer'
-import * as fileController from '../controllers/file.controller'
-import { authenticate } from '../middleware/authenticate'
+import * as fileController from '@controllers/file.controller'
+import { authenticate } from '@middleware/authenticate'
 
 const upload = multer({ storage: multer.memoryStorage() })
 const router = Router()

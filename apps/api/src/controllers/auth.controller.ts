@@ -1,11 +1,11 @@
 import { Request, Response } from 'express'
 import OAuth2Server from 'oauth2-server'
-import oauthModel from '../services/oauth.model'
+import oauthModel from '@services/oauth.model'
 import bcrypt from 'bcryptjs'
-import * as usersService from '../services/users.service'
+import * as usersService from '@services/users.service'
 import { PrismaClient } from '@prisma/client'
 import { User } from '@repo/types'
-import { handleError } from '../utils/handleError'
+import { handleError } from '@utils/handleError'
 import { z } from 'zod'
 
 const oauth = new OAuth2Server({ model: oauthModel })
@@ -83,6 +83,35 @@ export const me = async (req: Request, res: Response) => {
   const user = (req as any).oauth?.user as User | undefined
   if (!user) return handleError(res, 'Not authenticated', 401)
   res.json({ success: true, data: user, error: null })
+}
+
+/**
+ * PATCH /api/auth/me - Update current user info (requires authentication)
+ * @param req Express request
+ * @param res Express response
+ */
+export const updateMe = async (req: Request, res: Response) => {
+  const user = (req as any).oauth?.user as User | undefined
+  if (!user) return handleError(res, 'Not authenticated', 401)
+  const schema = z.object({ fullName: z.string().min(1).optional() })
+  const parse = schema.safeParse(req.body)
+  if (!parse.success) {
+    return handleError(res, 'Invalid input', 400)
+  }
+  try {
+    const prismaUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { fullName: parse.data.fullName }
+    })
+    const safeUser: User = {
+      id: prismaUser.id,
+      username: prismaUser.username,
+      fullName: prismaUser.fullName
+    }
+    res.json({ success: true, data: safeUser, error: null })
+  } catch (err) {
+    handleError(res, err, 500)
+  }
 }
 
 /**

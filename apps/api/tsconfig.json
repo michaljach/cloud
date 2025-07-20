@@ -6,7 +6,16 @@
     "esModuleInterop": true,
     "target": "ES2022",
     "module": "nodenext",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@controllers/*": ["controllers/*"],
+      "@services/*": ["services/*"],
+      "@utils/*": ["utils/*"],
+      "@middleware/*": ["middleware/*"],
+      "@routes/*": ["routes/*"],
+      "@generated/*": ["generated/prisma/*"]
+    }
   },
   "include": ["./src/**/*"],
   "exclude": ["./src/__tests__/**/*"]
