@@ -37,11 +37,11 @@ A modern monorepo with Next.js (dashboard), Express API (OAuth2), and shared Pos
    ```
 3. Run database migrations:
    ```sh
-   cd apps/api && npx prisma migrate dev
+   cd apps/api && npm run prisma:migrate:dev
    ```
 4. Generate Prisma client:
    ```sh
-   cd apps/api && npx prisma generate
+   cd apps/api && npm run prisma:generate
    ```
 5. Seed the database:
    ```sh

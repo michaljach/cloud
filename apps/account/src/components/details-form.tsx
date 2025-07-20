@@ -55,6 +55,12 @@ export function DetailsForm() {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-4 max-w-sm">
+        <FormItem>
+          <FormLabel>Username</FormLabel>
+          <FormControl>
+            <Input value={user?.username ?? ''} disabled />
+          </FormControl>
+        </FormItem>
         <FormField
           control={form.control}
           name="fullName"

@@ -8,7 +8,9 @@
     "build": "tsc",
     "serve": "node dist/index.js",
     "test": "jest",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
