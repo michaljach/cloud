@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { Editor } from '@/components/editor'
-import { AppSidebar } from '@/components/app-sidebar'
 import { useUser } from '@repo/auth'
 import { downloadEncryptedNote } from '@repo/api'
 import { useParams } from 'next/navigation'
