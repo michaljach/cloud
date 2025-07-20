@@ -1,6 +1,6 @@
 import { User } from '@repo/types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!
+export const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
 interface ApiResponse<T> {
   success: boolean
@@ -85,4 +85,122 @@ export async function updateCurrentUser(accessToken: string, fullName: string): 
   const json: ApiResponse<User> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to update user')
   return json.data
+}
+
+export async function uploadEncryptedFile(
+  file: Blob | Uint8Array,
+  filename: string,
+  accessToken: string
+): Promise<any> {
+  const formData = new FormData()
+  formData.append('file', file instanceof Blob ? file : new Blob([file]), filename)
+  const res = await fetch(`${API_URL}/api/files/upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}
+
+export async function uploadEncryptedNote(
+  file: Blob | Uint8Array,
+  filename: string,
+  accessToken: string
+): Promise<any> {
+  const formData = new FormData()
+  formData.append('file', file instanceof Blob ? file : new Blob([file]), filename)
+  const res = await fetch(`${API_URL}/api/notes`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}
+
+export async function uploadEncryptedPhoto(
+  file: Blob | Uint8Array,
+  filename: string,
+  accessToken: string
+): Promise<any> {
+  const formData = new FormData()
+  formData.append('file', file instanceof Blob ? file : new Blob([file]), filename)
+  const res = await fetch(`${API_URL}/api/photos`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}
+
+export async function uploadEncryptedUserFile(
+  file: Blob | Uint8Array,
+  filename: string,
+  accessToken: string
+): Promise<any> {
+  const formData = new FormData()
+  formData.append('file', file instanceof Blob ? file : new Blob([file]), filename)
+  const res = await fetch(`${API_URL}/api/files`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}
+
+export async function listUserNotes(accessToken: string): Promise<string[]> {
+  const res = await fetch(`${API_URL}/api/notes`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<string[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list notes')
+  return json.data
+}
+
+export async function downloadEncryptedNote(
+  filename: string,
+  accessToken: string
+): Promise<Uint8Array> {
+  const res = await fetch(`${API_URL}/api/notes/${encodeURIComponent(filename)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Download failed')
+  return new Uint8Array(await res.arrayBuffer())
+}
+
+export async function downloadEncryptedPhoto(
+  filename: string,
+  accessToken: string
+): Promise<Uint8Array> {
+  const res = await fetch(`${API_URL}/api/photos/${encodeURIComponent(filename)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Download failed')
+  return new Uint8Array(await res.arrayBuffer())
+}
+
+export async function downloadEncryptedUserFile(
+  filename: string,
+  accessToken: string
+): Promise<Uint8Array> {
+  const res = await fetch(`${API_URL}/api/files/${encodeURIComponent(filename)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Download failed')
+  return new Uint8Array(await res.arrayBuffer())
 }

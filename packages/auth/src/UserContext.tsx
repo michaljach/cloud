@@ -119,27 +119,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Login method
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, passwordInput: string) => {
     setLoading(true)
     setError(null)
     try {
-      const result = await loginUser(username, password)
+      const result = await loginUser(username, passwordInput)
       setAccessToken(result.accessToken)
       setRefreshTokenState(result.refreshToken)
       let cookieOptions: any = { path: '/' }
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)
-        // Removed localStorage.setItem('accessTokenExpiresAt', String(exp))
         cookieOptions.expires = new Date(exp)
       }
       if (result.refreshTokenExpiresAt) {
         const exp = new Date(result.refreshTokenExpiresAt).getTime()
         setRefreshTokenExpiresAt(exp)
-        // Removed localStorage.setItem('refreshTokenExpiresAt', String(exp))
       }
-      // Removed localStorage.setItem('accessToken', result.accessToken)
-      // Removed localStorage.setItem('refreshToken', result.refreshToken)
       Cookies.set('accessToken', result.accessToken, cookieOptions)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
@@ -167,7 +163,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setAccessTokenExpiresAt(null)
       setRefreshTokenExpiresAt(null)
       setUser(null)
-      // Removed localStorage.removeItem calls
+      // Do not remove password cookie (no longer set)
       Cookies.remove('accessToken', { path: '/' })
       clearRefreshTimeout()
       setLoading(false)

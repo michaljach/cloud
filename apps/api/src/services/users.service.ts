@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { User } from '@repo/types'
+import crypto from 'crypto'
 const prisma = new PrismaClient()
 
 /**

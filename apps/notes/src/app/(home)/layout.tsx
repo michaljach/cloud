@@ -22,7 +22,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <NavUser />
           </div>
         </header>
-        <main className="p-4">{children}</main>
+        <main className="h-[calc(100vh-4rem)] overflow-x-auto max-w-full break-all">
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
