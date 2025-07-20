@@ -33,7 +33,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [accessTokenExpiresAt, setAccessTokenExpiresAt] = useState<number | null>(null)
   const [refreshTokenExpiresAt, setRefreshTokenExpiresAt] = useState<number | null>(null)
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const refreshTimeout = React.useRef<NodeJS.Timeout | null>(null)

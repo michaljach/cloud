@@ -14,7 +14,22 @@ import { SidebarMenuButton } from '@repo/ui/components/base/sidebar'
 import { Bell, CreditCard, LogOut, MoreVertical, UserCircle } from 'lucide-react'
 import { User } from '@repo/types'
 
-export function UserDropdown({ user }: { user: User | null }) {
+export function UserDropdown({ user, onLogout }: { user: User | null; onLogout?: () => void }) {
+  // Helper to get initials from fullName or username
+  function getInitials() {
+    if (user?.fullName) {
+      return user.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (user?.username) {
+      return user.username.slice(0, 2).toUpperCase()
+    }
+    return 'CN'
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,8 +38,8 @@ export function UserDropdown({ user }: { user: User | null }) {
           className="w-auto min-w-48 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <Avatar className="h-8 w-8 rounded-lg grayscale">
-            <AvatarImage src={user?.avatar} alt={user?.username} />
-            <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+            {/* No avatar property, fallback to initials */}
+            <AvatarFallback className="rounded-lg">{getInitials()}</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{user?.fullName}</span>
@@ -42,8 +57,7 @@ export function UserDropdown({ user }: { user: User | null }) {
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarImage src={user?.avatar} alt={user?.username} />
-              <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              <AvatarFallback className="rounded-lg">{getInitials()}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user?.fullName}</span>
@@ -67,7 +81,7 @@ export function UserDropdown({ user }: { user: User | null }) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={onLogout}>
           <LogOut />
           Log out
         </DropdownMenuItem>

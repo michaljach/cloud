@@ -38,113 +38,29 @@ const data = {
   },
   navMain: [
     {
-      title: 'Dashboard',
-      url: '#',
+      title: 'Home',
+      url: '/',
       icon: LayoutDashboard
     },
     {
-      title: 'Lifecycle',
-      url: '#',
-      icon: ListOrdered
-    },
-    {
-      title: 'Analytics',
-      url: '#',
-      icon: ChartBar
-    },
-    {
-      title: 'Projects',
-      url: '#',
-      icon: Folder
+      title: 'Account settings',
+      url: '/account',
+      icon: Settings
     },
     {
       title: 'Team',
       url: '#',
       icon: Users
-    }
-  ],
-  navClouds: [
-    {
-      title: 'Capture',
-      icon: Camera,
-      isActive: true,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#'
-        },
-        {
-          title: 'Archived',
-          url: '#'
-        }
-      ]
     },
     {
-      title: 'Proposal',
-      icon: File,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#'
-        },
-        {
-          title: 'Archived',
-          url: '#'
-        }
-      ]
-    },
-    {
-      title: 'Prompts',
-      icon: FileArchive,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#'
-        },
-        {
-          title: 'Archived',
-          url: '#'
-        }
-      ]
-    }
-  ],
-  navSecondary: [
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings
-    },
-    {
-      title: 'Get Help',
+      title: 'Help',
       url: '#',
       icon: HelpCircle
-    },
-    {
-      title: 'Search',
-      url: '#',
-      icon: Search
     }
   ],
-  documents: [
-    {
-      name: 'Data Library',
-      url: '#',
-      icon: Database
-    },
-    {
-      name: 'Reports',
-      url: '#',
-      icon: FileAudioIcon
-    },
-    {
-      name: 'Word Assistant',
-      url: '#',
-      icon: Text
-    }
-  ]
+  navClouds: [],
+  navSecondary: [],
+  documents: []
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

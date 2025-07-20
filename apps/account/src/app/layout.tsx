@@ -28,13 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 />
                 <h3 className="font-medium">Files</h3>
                 <div className="flex justify-end flex-1">
-                  <NavUser
-                    user={{
-                      name: 'shadcn',
-                      email: 'm@example.com',
-                      avatar: '/avatars/shadcn.jpg'
-                    }}
-                  />
+                  <NavUser />
                 </div>
               </header>
               <main className="p-4">{children}</main>
