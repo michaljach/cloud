@@ -22,6 +22,7 @@ export default async function AccountPage() {
       <p className="text-muted-foreground mb-8">
         Update your personal information and account preferences.
       </p>
+      <h2 className="text-lg font-semibold mb-4">Personal details</h2>
       <DetailsForm user={user} />
     </div>
   )

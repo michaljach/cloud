@@ -62,18 +62,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Load tokens and expirations from localStorage on mount
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    const refresh = localStorage.getItem('refreshToken')
-    const accessExp = localStorage.getItem('accessTokenExpiresAt')
-    const refreshExp = localStorage.getItem('refreshTokenExpiresAt')
-    if (token) setAccessToken(token)
-    if (refresh) setRefreshTokenState(refresh)
-    if (accessExp) setAccessTokenExpiresAt(Number(accessExp))
-    if (refreshExp) setRefreshTokenExpiresAt(Number(refreshExp))
-  }, [])
-
   // Schedule refresh when accessTokenExpiresAt changes
   useEffect(() => {
     scheduleRefresh(accessTokenExpiresAt)
@@ -90,6 +78,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [accessTokenExpiresAt, refreshTokenState])
+
+  // Load tokens from cookies on mount
+  useEffect(() => {
+    const token = Cookies.get('accessToken')
+    if (token) setAccessToken(token)
+    // If you store refreshToken in cookies, load it here as well
+    const refresh = Cookies.get('refreshToken')
+    if (refresh) setRefreshTokenState(refresh)
+  }, [])
 
   // Fetch user info when accessToken changes
   useEffect(() => {
@@ -133,16 +130,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)
-        localStorage.setItem('accessTokenExpiresAt', String(exp))
+        // Removed localStorage.setItem('accessTokenExpiresAt', String(exp))
         cookieOptions.expires = new Date(exp)
       }
       if (result.refreshTokenExpiresAt) {
         const exp = new Date(result.refreshTokenExpiresAt).getTime()
         setRefreshTokenExpiresAt(exp)
-        localStorage.setItem('refreshTokenExpiresAt', String(exp))
+        // Removed localStorage.setItem('refreshTokenExpiresAt', String(exp))
       }
-      localStorage.setItem('accessToken', result.accessToken)
-      localStorage.setItem('refreshToken', result.refreshToken)
+      // Removed localStorage.setItem('accessToken', result.accessToken)
+      // Removed localStorage.setItem('refreshToken', result.refreshToken)
       Cookies.set('accessToken', result.accessToken, cookieOptions)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
@@ -170,10 +167,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setAccessTokenExpiresAt(null)
       setRefreshTokenExpiresAt(null)
       setUser(null)
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      localStorage.removeItem('accessTokenExpiresAt')
-      localStorage.removeItem('refreshTokenExpiresAt')
+      // Removed localStorage.removeItem calls
       Cookies.remove('accessToken', { path: '/' })
       clearRefreshTimeout()
       setLoading(false)
@@ -195,15 +189,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)
-        localStorage.setItem('accessTokenExpiresAt', String(exp))
+        // Removed localStorage.setItem('accessTokenExpiresAt', String(exp))
       }
       if (result.refreshTokenExpiresAt) {
         const exp = new Date(result.refreshTokenExpiresAt).getTime()
         setRefreshTokenExpiresAt(exp)
-        localStorage.setItem('refreshTokenExpiresAt', String(exp))
+        // Removed localStorage.setItem('refreshTokenExpiresAt', String(exp))
       }
-      localStorage.setItem('accessToken', result.accessToken)
-      localStorage.setItem('refreshToken', result.refreshToken)
+      // Removed localStorage.setItem('accessToken', result.accessToken)
+      // Removed localStorage.setItem('refreshToken', result.refreshToken)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
       await logout()
