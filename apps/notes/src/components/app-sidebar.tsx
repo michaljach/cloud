@@ -46,6 +46,7 @@ import { listUserNotes } from '@repo/api'
 import { useUser } from '@repo/auth'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { base64urlEncode } from '../utils/base64'
 
 const data = {
   user: {
@@ -57,13 +58,6 @@ const data = {
   navClouds: [],
   navSecondary: [],
   documents: []
-}
-
-function base64urlEncode(str: string) {
-  return btoa(unescape(encodeURIComponent(str)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
 }
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {

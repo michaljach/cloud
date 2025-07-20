@@ -12,6 +12,7 @@ import {
 } from '@repo/ui/components/base/dropdown-menu'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { formatCurrencyUSD } from './utils'
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -63,10 +64,7 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue('amount'))
       // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      }).format(amount)
+      const formatted = formatCurrencyUSD(amount)
       return <div className="text-right font-medium">{formatted}</div>
     }
   },

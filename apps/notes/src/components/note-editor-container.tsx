@@ -5,25 +5,10 @@ import { Editor } from '@/components/editor'
 import { useUser } from '@repo/auth'
 import { downloadEncryptedNote } from '@repo/api'
 import { useParams } from 'next/navigation'
+import { decryptFile } from '../utils/crypto'
+import { base64urlDecode } from '../utils/base64'
 
 const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-
-async function decryptFile(encrypted: Uint8Array, key: Uint8Array): Promise<string> {
-  const iv = encrypted.slice(0, 12)
-  const data = encrypted.slice(12) // WebCrypto expects tag appended to ciphertext
-  const cryptoKey = await window.crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, [
-    'decrypt'
-  ])
-  const decrypted = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, data)
-  return new TextDecoder().decode(decrypted)
-}
-
-function base64urlDecode(str: string) {
-  // Pad string to length multiple of 4
-  str = str.replace(/-/g, '+').replace(/_/g, '/')
-  while (str.length % 4) str += '='
-  return decodeURIComponent(escape(atob(str)))
-}
 
 export function NoteEditorContainer() {
   const { accessToken } = useUser()
