@@ -6,13 +6,17 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@repo/ui/componen
 import { AppSidebar } from '@/components/app-sidebar'
 import { Separator } from '@repo/ui/components/base/separator'
 import { NavUser } from '@/components/nav-user'
+import { getServerUser } from '@repo/auth'
+import { cookies } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
   description: 'Cloud dashboard'
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookiesStore = await cookies()
+  const user = await getServerUser({ cookies: () => cookiesStore })
   return (
     <html lang="en">
       <body>
@@ -28,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 />
                 <h3 className="font-medium">Files</h3>
                 <div className="flex justify-end flex-1">
-                  <NavUser />
+                  <NavUser user={user} />
                 </div>
               </header>
               <main className="p-4">{children}</main>

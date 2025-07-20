@@ -12,6 +12,7 @@ import React, {
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, loginUser, logoutUser, refreshToken } from '@repo/api'
 import { User } from '@repo/types'
+import Cookies from 'js-cookie'
 
 interface UserContextType {
   accessToken: string | null
@@ -128,10 +129,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const result = await loginUser(username, password)
       setAccessToken(result.accessToken)
       setRefreshTokenState(result.refreshToken)
+      let cookieOptions: any = { path: '/' }
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)
         localStorage.setItem('accessTokenExpiresAt', String(exp))
+        cookieOptions.expires = new Date(exp)
       }
       if (result.refreshTokenExpiresAt) {
         const exp = new Date(result.refreshTokenExpiresAt).getTime()
@@ -140,6 +143,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
       localStorage.setItem('accessToken', result.accessToken)
       localStorage.setItem('refreshToken', result.refreshToken)
+      Cookies.set('accessToken', result.accessToken, cookieOptions)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
       throw e
@@ -170,6 +174,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('accessTokenExpiresAt')
       localStorage.removeItem('refreshTokenExpiresAt')
+      Cookies.remove('accessToken', { path: '/' })
       clearRefreshTimeout()
       setLoading(false)
     }

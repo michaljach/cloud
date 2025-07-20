@@ -3,11 +3,15 @@
 import { useUser } from '@repo/auth'
 import { UserDropdown } from '@repo/ui/components/user-dropdown'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
+import type { User } from '@repo/types'
+import { useRouter } from 'next/navigation'
 
-export function NavUser() {
+export function NavUser({ user: userProp }: { user?: User | null }) {
   const { user, loading, logout } = useUser()
+  const hydratedUser = userProp ?? user
+  const router = useRouter()
 
-  if (loading) {
+  if (loading && !userProp) {
     return (
       <div className="flex items-center gap-3 min-w-48">
         <Skeleton className="h-8 w-8 rounded-lg" />
@@ -20,9 +24,14 @@ export function NavUser() {
     )
   }
 
-  if (!user) {
+  if (!hydratedUser) {
     return null
   }
 
-  return <UserDropdown user={user} onLogout={logout} />
+  async function handleLogout() {
+    await logout()
+    router.push('/login')
+  }
+
+  return <UserDropdown user={hydratedUser} onLogout={handleLogout} />
 }
