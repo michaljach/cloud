@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/base/avatar'
+import { Avatar, AvatarFallback } from '@repo/ui/components/base/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,18 @@ import {
   DropdownMenuTrigger
 } from '@repo/ui/components/base/dropdown-menu'
 import { SidebarMenuButton } from '@repo/ui/components/base/sidebar'
-import { Bell, CreditCard, LogOut, MoreVertical, UserCircle } from 'lucide-react'
+import { Bell, CreditCard, LogOut, MoreVertical, Settings } from 'lucide-react'
 import { User } from '@repo/types'
 
-export function UserDropdown({ user, onLogout }: { user: User | null; onLogout?: () => void }) {
+export function UserDropdown({
+  user,
+  onLogout,
+  onAccountClick
+}: {
+  user: User | null
+  onLogout?: () => void
+  onAccountClick?: () => void
+}) {
   // Helper to get initials from fullName or username
   function getInitials() {
     if (user?.fullName) {
@@ -67,9 +75,9 @@ export function UserDropdown({ user, onLogout }: { user: User | null; onLogout?:
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserCircle />
-            Account
+          <DropdownMenuItem onClick={onAccountClick}>
+            <Settings />
+            Account settings
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CreditCard />

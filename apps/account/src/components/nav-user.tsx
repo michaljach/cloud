@@ -33,5 +33,11 @@ export function NavUser({ user: userProp }: { user?: User | null }) {
     router.push('/login')
   }
 
-  return <UserDropdown user={hydratedUser} onLogout={handleLogout} />
+  function handleAccountClick() {
+    router.push('/account')
+  }
+
+  return (
+    <UserDropdown user={hydratedUser} onLogout={handleLogout} onAccountClick={handleAccountClick} />
+  )
 }

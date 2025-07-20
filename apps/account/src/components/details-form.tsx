@@ -14,9 +14,10 @@ import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'
 import { useUser } from '@repo/auth'
 import { updateCurrentUser } from '@repo/api'
+import type { User } from '@repo/types'
 
-export function DetailsForm() {
-  const { accessToken, user, updateUser } = useUser()
+export function DetailsForm({ user }: { user: User }) {
+  const { accessToken, updateUser } = useUser()
   const form = useForm<{ fullName: string }>({
     defaultValues: { fullName: user?.fullName ?? '' }
   })
@@ -27,8 +28,6 @@ export function DetailsForm() {
     reset
   } = form
   const [success, setSuccess] = React.useState(false)
-
-  const [_, setUser] = React.useState(user) // for context update
 
   useEffect(() => {
     reset({ fullName: user?.fullName ?? '' })
