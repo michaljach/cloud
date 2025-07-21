@@ -137,6 +137,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setRefreshTokenExpiresAt(exp)
       }
       Cookies.set('accessToken', result.accessToken, cookieOptions)
+      // Also store refresh token in cookie with its own expiry
+      if (result.refreshTokenExpiresAt) {
+        Cookies.set('refreshToken', result.refreshToken, {
+          path: '/',
+          expires: new Date(result.refreshTokenExpiresAt)
+        })
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
       throw e
@@ -163,8 +170,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setAccessTokenExpiresAt(null)
       setRefreshTokenExpiresAt(null)
       setUser(null)
-      // Do not remove password cookie (no longer set)
       Cookies.remove('accessToken', { path: '/' })
+      Cookies.remove('refreshToken', { path: '/' })
       clearRefreshTimeout()
       setLoading(false)
     }
@@ -185,15 +192,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)
-        // Removed localStorage.setItem('accessTokenExpiresAt', String(exp))
+        Cookies.set('accessToken', result.accessToken, {
+          path: '/',
+          expires: new Date(exp)
+        })
       }
       if (result.refreshTokenExpiresAt) {
         const exp = new Date(result.refreshTokenExpiresAt).getTime()
         setRefreshTokenExpiresAt(exp)
-        // Removed localStorage.setItem('refreshTokenExpiresAt', String(exp))
+        Cookies.set('refreshToken', result.refreshToken, {
+          path: '/',
+          expires: new Date(exp)
+        })
       }
-      // Removed localStorage.setItem('accessToken', result.accessToken)
-      // Removed localStorage.setItem('refreshToken', result.refreshToken)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
       await logout()
