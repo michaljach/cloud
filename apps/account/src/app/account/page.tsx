@@ -13,7 +13,7 @@ export default async function AccountPage() {
   const user = await getServerUser({ cookies: () => cookiesStore })
 
   if (!user) {
-    redirect('/login')
+    redirect(`/login?redirect=/account`)
   }
 
   return (

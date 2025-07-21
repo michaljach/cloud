@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getServerUser } from '@repo/auth'
 
+const ACCOUNT_APP_URL = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL!
+
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, href } = request.nextUrl
 
   // Allow static files, _next, favicon, etc.
   if (
@@ -15,17 +17,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Allow login page
-  if (pathname === '/login') {
-    return NextResponse.next()
-  }
-
   // Check user
   const user = await getServerUser({ cookies: () => request.cookies })
   if (!user) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    return NextResponse.redirect(loginUrl)
+    // Redirect to account app login if env var is set
+    const redirectUrl = `${ACCOUNT_APP_URL}/login?redirect=${encodeURIComponent(href)}`
+    return NextResponse.redirect(redirectUrl)
   }
 
   return NextResponse.next()

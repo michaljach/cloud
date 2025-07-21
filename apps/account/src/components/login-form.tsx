@@ -22,7 +22,11 @@ import {
 } from '@repo/ui/components/base/form'
 import React from 'react'
 
-export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+export function LoginForm({
+  className,
+  redirect = '/',
+  ...props
+}: React.ComponentProps<'div'> & { redirect?: string }) {
   const { login } = useUser()
   const form = useForm<{ email: string; password: string }>({
     defaultValues: { email: '', password: '' }
@@ -36,7 +40,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   async function onSubmit(values: { email: string; password: string }) {
     try {
       await login(values.email, values.password)
-      window.location.href = '/'
+      window.location.href = redirect
     } catch (err: unknown) {
       let message = 'Login failed'
       if (err instanceof Error) message = err.message
@@ -46,7 +50,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   }
 
   return (
-    <div className={cn('flex flex-col gap-6', className)} {...props}>
+    <div className={cn('flex flex-col gap-6 flex-1 max-w-sm', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>

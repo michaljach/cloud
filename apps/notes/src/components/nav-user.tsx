@@ -6,6 +6,8 @@ import { Skeleton } from '@repo/ui/components/base/skeleton'
 import type { User } from '@repo/types'
 import { useRouter } from 'next/navigation'
 
+const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
+
 export function NavUser({ user: userProp }: { user?: User | null }) {
   const { user, loading, logout } = useUser()
   const hydratedUser = userProp ?? user
@@ -30,11 +32,20 @@ export function NavUser({ user: userProp }: { user?: User | null }) {
 
   async function handleLogout() {
     await logout()
-    router.push('/login')
+
+    if (accountUrl) {
+      router.push(`${accountUrl}/login`)
+    } else {
+      router.push('/login')
+    }
   }
 
   function handleAccountClick() {
-    router.push('/account')
+    if (accountUrl) {
+      router.push(`${accountUrl}/account`)
+    } else {
+      router.push('/account')
+    }
   }
 
   return (
