@@ -172,6 +172,17 @@ export async function listUserNotes(accessToken: string): Promise<string[]> {
   return json.data
 }
 
+export async function listUserFiles(
+  accessToken: string
+): Promise<{ filename: string; size: number }[]> {
+  const res = await fetch(`${API_URL}/api/files`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<{ filename: string; size: number }[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list files')
+  return json.data
+}
+
 export async function downloadEncryptedNote(
   filename: string,
   accessToken: string

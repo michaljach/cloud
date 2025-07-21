@@ -1,6 +1,9 @@
 'use client'
 
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { useUser } from '@repo/auth'
+import { listUserFiles } from '@repo/api'
+import { useEffect, useState } from 'react'
 
 import {
   Table,
@@ -10,13 +13,30 @@ import {
   TableHeader,
   TableRow
 } from '@repo/ui/components/base/table'
+import { formatFileSize } from '@/utils/fileSize'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns }: DataTableProps<TData, TValue>) {
+  const { accessToken } = useUser()
+  const [data, setData] = useState<any[]>([])
+  useEffect(() => {
+    if (!accessToken) return
+    listUserFiles(accessToken)
+      .then((files) => {
+        setData(
+          files.map((file) => ({
+            id: file.filename,
+            filename: file.filename,
+            size: formatFileSize(file.size)
+          }))
+        )
+      })
+      .catch(() => setData([]))
+  }, [accessToken])
+
   const table = useReactTable({
     data,
     columns,

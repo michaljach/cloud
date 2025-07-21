@@ -16,7 +16,8 @@ import {
   Search,
   FileAudioIcon,
   Text,
-  Box
+  Box,
+  PlusCircle
 } from 'lucide-react'
 
 import {
@@ -29,6 +30,9 @@ import {
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
 import { NavMain } from './nav-main'
+import { Dialog, DialogTrigger, DialogContent } from '@repo/ui/components/base/dialog'
+import { Button } from '@repo/ui/components/base/button'
+import { FileUpload } from './file-upload'
 
 const data = {
   user: {
@@ -148,6 +152,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [open, setOpen] = React.useState(false)
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -163,7 +168,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <div className="px-2">
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm" className="w-full" onClick={() => setOpen(true)}>
+                <PlusCircle />
+                <span>Upload files</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent showCloseButton>
+              <FileUpload onUploaded={() => setOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </SidebarContent>
       <SidebarFooter>v0.1</SidebarFooter>
     </Sidebar>

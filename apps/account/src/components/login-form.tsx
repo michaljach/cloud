@@ -21,12 +21,14 @@ import {
   FormMessage
 } from '@repo/ui/components/base/form'
 import React from 'react'
+import { useSearchParams } from 'next/navigation'
 
 export function LoginForm({
   className,
-  redirect = '/',
   ...props
 }: React.ComponentProps<'div'> & { redirect?: string }) {
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
   const { login } = useUser()
   const form = useForm<{ email: string; password: string }>({
     defaultValues: { email: '', password: '' }

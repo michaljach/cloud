@@ -7,6 +7,7 @@ const upload = multer({ storage: multer.memoryStorage() })
 const router = Router()
 
 router.post('/', authenticate, upload.single('file'), filesController.uploadUserFile)
+router.get('/', authenticate, filesController.listUserFiles)
 router.get('/:filename', authenticate, filesController.downloadUserFile)
 
 export default router
