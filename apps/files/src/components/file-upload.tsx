@@ -7,21 +7,7 @@ import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'
 import { Label } from '@repo/ui/components/base/label'
 import { uploadEncryptedUserFile } from '@repo/api'
-
-const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-
-async function encryptFile(file: File, key: Uint8Array): Promise<Uint8Array> {
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, [
-    'encrypt'
-  ])
-  const fileBuffer = await file.arrayBuffer()
-  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, fileBuffer)
-  const result = new Uint8Array(iv.length + encrypted.byteLength)
-  result.set(iv, 0)
-  result.set(new Uint8Array(encrypted), iv.length)
-  return result
-}
+import { encryptFile } from '@repo/utils'
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [file, setFile] = useState<File | null>(null)
@@ -36,6 +22,7 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
     }
     setStatus('Encrypting...')
     try {
+      const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
       const encrypted = await encryptFile(file, HARDCODED_KEY)
       setStatus('Uploading...')
       await uploadEncryptedUserFile(encrypted, file.name, accessToken)

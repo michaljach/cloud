@@ -21,7 +21,7 @@ import { NavMain } from './nav-main'
 import { listUserNotes } from '@repo/api'
 import { useUser } from '@repo/auth'
 import Link from 'next/link'
-import { base64urlEncode } from '../utils/base64'
+import { base64urlEncode } from '@repo/utils'
 
 const data = {
   user: {

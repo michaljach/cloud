@@ -5,8 +5,8 @@ import { Editor } from '@/components/editor'
 import { useUser } from '@repo/auth'
 import { downloadEncryptedNote } from '@repo/api'
 import { useParams } from 'next/navigation'
-import { decryptFile } from '../utils/crypto'
-import { base64urlDecode } from '../utils/base64'
+import { decryptFile } from '@repo/utils'
+import { base64urlDecode } from '@repo/utils'
 
 const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
 

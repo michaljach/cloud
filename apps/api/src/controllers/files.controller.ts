@@ -47,7 +47,14 @@ export const listUserFiles = (req: Request, res: Response) => {
     const files = fs
       .readdirSync(userDir)
       .filter((f) => fs.statSync(path.join(userDir, f)).isFile())
-      .map((f) => ({ filename: f, size: fs.statSync(path.join(userDir, f)).size }))
+      .map((f) => {
+        const stat = fs.statSync(path.join(userDir, f))
+        return {
+          filename: f,
+          size: stat.size,
+          modified: stat.mtime
+        }
+      })
     res.json({ success: true, data: files, error: null })
   } catch (e) {
     res.status(500).json({ success: false, data: null, error: 'Failed to list files' })

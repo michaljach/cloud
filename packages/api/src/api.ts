@@ -174,11 +174,11 @@ export async function listUserNotes(accessToken: string): Promise<string[]> {
 
 export async function listUserFiles(
   accessToken: string
-): Promise<{ filename: string; size: number }[]> {
+): Promise<{ filename: string; size: number; modified: string }[]> {
   const res = await fetch(`${API_URL}/api/files`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  const json: ApiResponse<{ filename: string; size: number }[]> = await res.json()
+  const json: ApiResponse<{ filename: string; size: number; modified: string }[]> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to list files')
   return json.data
 }

@@ -15,11 +15,13 @@ import { Download, MoreHorizontal } from 'lucide-react'
 import { useUser } from '@repo/auth'
 import { downloadEncryptedUserFile } from '@repo/api'
 import { decryptFile } from '@repo/utils'
+import { formatDate } from '@repo/utils'
 
 export type FileRow = {
   id: string
   filename: string
   size: string
+  modified: string
 }
 
 export const columns: ColumnDef<FileRow>[] = [
@@ -53,6 +55,22 @@ export const columns: ColumnDef<FileRow>[] = [
     accessorKey: 'size',
     header: 'File Size',
     cell: ({ row }) => <div>{row.original.size || '—'}</div>
+  },
+  {
+    accessorKey: 'modified',
+    header: 'Date Modified',
+    cell: ({ row }) => {
+      const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
+      return (
+        <div>
+          {formatDate(row.original.modified, locale, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
+        </div>
+      )
+    }
   },
   {
     id: 'download',

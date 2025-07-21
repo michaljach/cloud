@@ -7,7 +7,7 @@ import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'
 import { Label } from '@repo/ui/components/base/label'
 import { uploadEncryptedNote } from '@repo/api/src/api'
-import { encryptFile } from '../utils/crypto'
+import { encryptFile } from '@repo/utils'
 
 const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
 

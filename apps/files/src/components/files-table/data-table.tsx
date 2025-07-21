@@ -4,7 +4,7 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack
 import { useUser } from '@repo/auth'
 import { useEffect, useState } from 'react'
 import { listUserFiles } from '@repo/api'
-import { formatFileSize } from '@/utils/fileSize'
+import { formatFileSize } from '@repo/utils'
 
 import {
   Table,
@@ -39,7 +39,8 @@ export function DataTable<TData, TValue>({ columns }: DataTableProps<TData, TVal
           files.map((file) => ({
             id: file.filename,
             filename: file.filename,
-            size: formatFileSize(file.size)
+            size: formatFileSize(file.size),
+            modified: file.modified
           }))
         )
       })
