@@ -4,7 +4,6 @@ import { useUser } from '@repo/auth'
 import { UserDropdown } from '@repo/ui/components/user-dropdown'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
 import type { User } from '@repo/types'
-import { useRouter } from 'next/navigation'
 import { useLogoutAndRedirect, useAccountRedirect } from './utils'
 
 export function NavUser({ user: userProp }: { user?: User | null }) {

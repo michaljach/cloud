@@ -1,24 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  Camera,
-  ChartBar,
-  LayoutDashboard,
-  Database,
-  Folder,
-  Users,
-  ListOrdered,
-  File,
-  FileArchive,
-  Settings,
-  HelpCircle,
-  Search,
-  FileAudioIcon,
-  Text,
-  Box,
-  ChevronDown
-} from 'lucide-react'
+import { Settings, Box } from 'lucide-react'
 
 import {
   Sidebar,
@@ -28,23 +11,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
   useSidebar
 } from '@repo/ui/components/base/sidebar'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '@repo/ui/components/base/collapsible'
+
 import { NavMain } from './nav-main'
 import { listUserNotes } from '@repo/api'
 import { useUser } from '@repo/auth'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { base64urlEncode } from '../utils/base64'
 
@@ -62,8 +37,7 @@ const data = {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { accessToken } = useUser()
-  const { selectedNote, setSelectedNote } = useSidebar()
-  const router = useRouter()
+  const { selectedNote } = useSidebar()
   const [notes, setNotes] = React.useState<string[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)

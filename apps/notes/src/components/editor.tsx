@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { SidebarClose, SidebarOpenIcon } from 'lucide-react'
 import { Toggle } from '@repo/ui/components/base/toggle'
-import { parseMarkdown, parseInline } from '../utils/markdown'
+import { parseMarkdown } from '../utils/markdown'
 
 export function Editor({
   value: controlledValue,

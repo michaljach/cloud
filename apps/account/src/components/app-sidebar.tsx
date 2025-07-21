@@ -1,23 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  Camera,
-  ChartBar,
-  LayoutDashboard,
-  Database,
-  Folder,
-  Users,
-  ListOrdered,
-  File,
-  FileArchive,
-  Settings,
-  HelpCircle,
-  Search,
-  FileAudioIcon,
-  Text,
-  Box
-} from 'lucide-react'
+import { LayoutDashboard, Users, Settings, HelpCircle, Box } from 'lucide-react'
 
 import {
   Sidebar,

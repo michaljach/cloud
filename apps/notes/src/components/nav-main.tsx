@@ -1,8 +1,7 @@
 'use client'
 
-import { Mail, PlusCircle } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 
-import { Button } from '@repo/ui/components/base/button'
 import {
   SidebarGroup,
   SidebarGroupContent,

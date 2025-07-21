@@ -15,7 +15,7 @@ COPY apps/account ./apps/account
 
 # Build the app
 WORKDIR /app/apps/account
-RUN npm run build
+# RUN npm run build
 
 # Production image
 FROM node:22-alpine AS runner
@@ -28,4 +28,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ../packages
 
 EXPOSE 3000
-CMD ["npm", "run", "start"] 
+CMD ["npm", "run", "dev"] 

@@ -23,7 +23,7 @@ export function DetailsForm({ user }: { user: User }) {
   })
   const {
     handleSubmit,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
     setError,
     reset
   } = form
