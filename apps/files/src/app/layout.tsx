@@ -6,6 +6,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@repo/ui/componen
 import { AppSidebar } from '@/components/app-sidebar'
 import { Separator } from '@repo/ui/components/base/separator'
 import { NavUser } from '@/components/nav-user'
+import { SearchClient } from '@/components/search-client'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -27,14 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="mr-2 data-[orientation=vertical]:h-4"
                 />
                 <h3 className="font-medium">Files</h3>
+                <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
                 <div className="flex justify-end flex-1">
-                  <NavUser
-                    user={{
-                      name: 'shadcn',
-                      email: 'm@example.com',
-                      avatar: '/avatars/shadcn.jpg'
-                    }}
-                  />
+                  <NavUser />
                 </div>
               </header>
               <main className="p-4">{children}</main>

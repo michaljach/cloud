@@ -12,13 +12,13 @@ if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR, { recursive: true })
 export function encryptAndSaveUserFile(
   fileBuffer: Buffer,
   filename: string,
-  userId: number
+  userId: string
 ): string {
   const userDir = path.join(STORAGE_DIR, String(userId), 'files')
   return encryptAndSaveFile({ fileBuffer, filename, dir: userDir })
 }
 
-export function decryptAndReadUserFile(filename: string, userId: number): Buffer {
+export function decryptAndReadUserFile(filename: string, userId: string): Buffer {
   const userDir = path.join(STORAGE_DIR, String(userId), 'files')
   return decryptAndReadFile({ filename, dir: userDir })
 }

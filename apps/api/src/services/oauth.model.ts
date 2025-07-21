@@ -108,7 +108,7 @@ export default {
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
     const { id: userId, username, fullName } = dbUser
     return {
-      accessToken: at,
+      accessToken,
       accessTokenExpiresAt,
       refreshToken,
       refreshTokenExpiresAt,

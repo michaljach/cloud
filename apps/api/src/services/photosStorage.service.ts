@@ -9,12 +9,12 @@ const KEY = Buffer.from('12345678901234567890123456789012') // 32 bytes
 
 if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR, { recursive: true })
 
-export function encryptAndSavePhoto(fileBuffer: Buffer, filename: string, userId: number): string {
+export function encryptAndSavePhoto(fileBuffer: Buffer, filename: string, userId: string): string {
   const userDir = path.join(STORAGE_DIR, String(userId), 'photos')
   return encryptAndSaveFile({ fileBuffer, filename, dir: userDir })
 }
 
-export function decryptAndReadPhoto(filename: string, userId: number): Buffer {
+export function decryptAndReadPhoto(filename: string, userId: string): Buffer {
   const userDir = path.join(STORAGE_DIR, String(userId), 'photos')
   return decryptAndReadFile({ filename, dir: userDir })
 }
