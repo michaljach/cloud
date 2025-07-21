@@ -14,6 +14,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal } from 'lucide-react'
 import { useUser } from '@repo/auth'
 import { downloadEncryptedUserFile } from '@repo/api'
+import { decryptFile } from '@repo/utils'
 
 export type FileRow = {
   id: string
@@ -60,23 +61,6 @@ export const columns: ColumnDef<FileRow>[] = [
       const file = row.original
       const { accessToken } = useUser()
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-      async function decryptFile(encrypted: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
-        const iv = encrypted.slice(0, 12)
-        const data = encrypted.slice(12)
-        const cryptoKey = await window.crypto.subtle.importKey(
-          'raw',
-          key,
-          { name: 'AES-GCM' },
-          false,
-          ['decrypt']
-        )
-        const decrypted = await window.crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv },
-          cryptoKey,
-          data
-        )
-        return new Uint8Array(decrypted)
-      }
       const handleDownload = async () => {
         if (!accessToken) return
         const encrypted = await downloadEncryptedUserFile(file.filename, accessToken)
@@ -111,24 +95,6 @@ export const columns: ColumnDef<FileRow>[] = [
       const file = row.original
       const { accessToken } = useUser()
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-
-      async function decryptFile(encrypted: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
-        const iv = encrypted.slice(0, 12)
-        const data = encrypted.slice(12)
-        const cryptoKey = await window.crypto.subtle.importKey(
-          'raw',
-          key,
-          { name: 'AES-GCM' },
-          false,
-          ['decrypt']
-        )
-        const decrypted = await window.crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv },
-          cryptoKey,
-          data
-        )
-        return new Uint8Array(decrypted)
-      }
 
       const handleDownload = async () => {
         if (!accessToken) return

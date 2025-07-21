@@ -4,13 +4,21 @@ import { useUser } from '@repo/auth'
 import { UserDropdown } from '@repo/ui/components/user-dropdown'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
 import type { User } from '@repo/types'
-import { useLogoutAndRedirect, useAccountRedirect } from './utils'
+import { useRouter } from 'next/navigation'
 
 export function NavUser({ user: userProp }: { user?: User | null }) {
+  const router = useRouter()
   const { user, loading, logout } = useUser()
   const hydratedUser = userProp ?? user
-  const handleLogout = useLogoutAndRedirect(logout)
-  const handleAccountClick = useAccountRedirect()
+
+  async function handleLogout() {
+    await logout()
+    router.push('/login')
+  }
+
+  function handleAccountClick() {
+    router.push('/account')
+  }
 
   if (loading && !userProp) {
     return (

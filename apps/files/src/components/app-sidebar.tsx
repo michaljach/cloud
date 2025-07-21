@@ -1,12 +1,15 @@
 'use client'
 
 import * as React from 'react'
-import { Box, PlusCircle } from 'lucide-react'
+import { Box, HardDrive, PlusCircle, Settings, Trash } from 'lucide-react'
 
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -15,6 +18,7 @@ import {
 import { Dialog, DialogTrigger, DialogContent } from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
 import { FileUpload } from './file-upload'
+import Link from 'next/link'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [open, setOpen] = React.useState(false)
@@ -46,6 +50,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </DialogContent>
           </Dialog>
         </div>
+        <SidebarGroup>
+          <SidebarGroupLabel>Files</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenuButton asChild className="flex items-center gap-2 px-2 w-full">
+              <Link href="/">
+                <HardDrive className="w-4 h-4" />
+                <span>Home</span>
+              </Link>
+            </SidebarMenuButton>
+            <SidebarMenuButton asChild className="flex items-center gap-2 px-2 w-full">
+              <Link href="/trash">
+                <Trash className="w-4 h-4" />
+                <span>Trash</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenuButton asChild className="flex items-center gap-2 px-2 w-full">
+              <Link href="/settings">
+                <Settings className="w-4 h-4" />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>v0.1</SidebarFooter>
     </Sidebar>
