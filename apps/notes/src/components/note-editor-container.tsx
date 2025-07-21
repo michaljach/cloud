@@ -25,18 +25,19 @@ export function NoteEditorContainer() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!filename || !accessToken) return
+    if (!encoded || !accessToken) return
     setLoading(true)
     setError(null)
-    downloadEncryptedNote(filename, accessToken)
+    downloadEncryptedNote(encoded, accessToken)
       .then((encrypted) => decryptFile(encrypted, HARDCODED_KEY))
+      .then((decrypted) => new TextDecoder().decode(decrypted))
       .then(setNoteContent)
       .catch((e) => {
         setError(e.message)
         setNoteContent('')
       })
       .finally(() => setLoading(false))
-  }, [filename, accessToken])
+  }, [encoded, accessToken])
 
   return (
     <div className="w-full h-full flex">

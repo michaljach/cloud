@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { encryptAndSaveNote, decryptAndReadNote } from '@services/notesStorage.service'
 import fs from 'fs'
 import path from 'path'
+import { base64urlDecode } from '@repo/utils'
 
 export const uploadNote = (req: Request, res: Response) => {
   if (!req.file)
@@ -18,15 +19,16 @@ export const uploadNote = (req: Request, res: Response) => {
 }
 
 export const downloadNote = (req: Request, res: Response) => {
-  const filename = req.params.filename
-  if (!filename)
+  const encodedFilename = req.params.filename
+  if (!encodedFilename)
     return res.status(400).json({ success: false, data: null, error: 'Filename is required' })
   const userId = (req as any).oauth?.user?.id
   if (!userId)
     return res.status(401).json({ success: false, data: null, error: 'Not authenticated' })
   try {
+    const filename = base64urlDecode(encodedFilename)
     const data = decryptAndReadNote(filename, userId)
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"`)
     res.send(data)
   } catch (e) {
     res

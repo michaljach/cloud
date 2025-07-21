@@ -77,7 +77,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 key={file}
                 asChild
                 className={`flex items-center gap-2 px-2 w-full${selectedNote === file ? ' bg-primary text-primary-foreground' : ''}`}
-                isActive={selectedNote === file}
               >
                 <Link href={`/note/${base64urlEncode(file)}`}>{file}</Link>
               </SidebarMenuButton>

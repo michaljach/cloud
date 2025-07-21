@@ -15,7 +15,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
-import { Dialog, DialogTrigger, DialogContent } from '@repo/ui/components/base/dialog'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription
+} from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
 import { FileUpload } from './file-upload'
 import Link from 'next/link'
@@ -46,6 +52,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </Button>
             </DialogTrigger>
             <DialogContent showCloseButton>
+              <DialogTitle>Upload file</DialogTitle>
+              <DialogDescription>All uploaded files are securely encrypted.</DialogDescription>
               <FileUpload onUploaded={() => setOpen(false)} />
             </DialogContent>
           </Dialog>

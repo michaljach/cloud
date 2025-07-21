@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { useUser } from '@repo/auth'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@repo/ui/components/base/card'
 import { Input } from '@repo/ui/components/base/input'
@@ -8,11 +8,13 @@ import { Button } from '@repo/ui/components/base/button'
 import { Label } from '@repo/ui/components/base/label'
 import { uploadEncryptedUserFile } from '@repo/api'
 import { encryptFile } from '@repo/utils'
+import { FilesContext } from './files-context'
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<string | null>(null)
   const { accessToken } = useUser()
+  const { refreshFiles } = useContext(FilesContext)
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +30,7 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       await uploadEncryptedUserFile(encrypted, file.name, accessToken)
       setStatus('Upload successful!')
       setFile(null)
+      refreshFiles()
       if (onUploaded) onUploaded()
     } catch (err: any) {
       setStatus('Error: ' + err.message)
@@ -35,25 +38,17 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   }
 
   return (
-    <Card className="max-w-xl w-full mx-auto mb-4">
-      <CardHeader>
-        <CardTitle>Upload Encrypted File</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <form onSubmit={handleUpload} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="file-upload">File</Label>
-            <Input
-              id="file-upload"
-              type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-            />
-          </div>
-          <Button type="submit">Upload File</Button>
-          {status && <div className="text-sm text-muted-foreground">{status}</div>}
-        </form>
-      </CardContent>
-      <CardFooter />
-    </Card>
+    <form onSubmit={handleUpload} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="file-upload">File</Label>
+        <Input
+          id="file-upload"
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
+      </div>
+      <Button type="submit">Upload File</Button>
+      {status && <div className="text-sm text-muted-foreground">{status}</div>}
+    </form>
   )
 }
