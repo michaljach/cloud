@@ -8,6 +8,8 @@
     "module": "nodenext",
     "isolatedModules": true,
     "baseUrl": "./src",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "paths": {
       "@controllers/*": ["controllers/*"],
       "@services/*": ["services/*"],

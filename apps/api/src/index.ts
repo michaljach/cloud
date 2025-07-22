@@ -1,7 +1,9 @@
-import 'dotenv/config'
+import 'reflect-metadata'
 import express from 'express'
 import cors from 'cors'
-import apiRouter from './routes'
+import { useExpressServer } from 'routing-controllers'
+import FilesController from './controllers/files.controller'
+import AuthController from './controllers/auth.controller'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -15,7 +17,10 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use('/api', apiRouter)
+useExpressServer(app, {
+  routePrefix: '/api',
+  controllers: [FilesController, AuthController] // TODO: Add other controllers here
+})
 
 // Catch-all error handler for consistent JSON errors
 app.use((err, req, res, next) => {
