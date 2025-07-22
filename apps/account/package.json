@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.6",
+    "@repo/api": "*",
+    "@repo/auth": "*",
     "@repo/types": "*",
     "@repo/ui": "*",
     "next": "15.4.1",
