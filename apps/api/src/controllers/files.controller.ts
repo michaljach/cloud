@@ -32,7 +32,6 @@ export default class FilesController {
     if (!req.file) {
       return res.status(400).json({ success: false, data: null, error: 'No file uploaded' })
     }
-    // req.file is now validated by Zod
     encryptAndSaveUserFile(req.file.buffer, req.file.originalname, user.id)
     return res.json({
       success: true,

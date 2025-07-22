@@ -31,18 +31,15 @@ export default class AuthController {
       z.object({
         grant_type: z.string().optional(),
         username: z.string().optional(),
-        password: z.string().optional(),
-        refresh_token: z.string().optional(),
-        client_id: z.string().optional(),
-        client_secret: z.string().optional()
+        password: z.string().optional()
       })
     )
   )
   async token(@Req() req: Request, @Res() res: Response) {
     const mergedBody = {
       ...req.body,
-      client_id: req.body.client_id || client_id,
-      client_secret: req.body.client_secret || client_secret
+      client_id: client_id,
+      client_secret: client_secret
     }
     const request = new OAuth2Server.Request({
       method: 'POST',

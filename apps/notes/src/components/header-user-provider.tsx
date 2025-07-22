@@ -17,20 +17,12 @@ export function HeaderUserProvider({ title, children }: HeaderUserProviderProps)
   const router = useRouter()
 
   function handleAccountClick() {
-    if (accountUrl) {
-      router.push(`${accountUrl}/account`)
-    } else {
-      router.push('/account')
-    }
+    router.push(`${accountUrl}/account`)
   }
 
-  async function handleLogout() {
-    await logout()
-    if (accountUrl) {
-      router.push(`${accountUrl}/login`)
-    } else {
-      router.push('/login')
-    }
+  function handleLogoutClick() {
+    logout()
+    router.push(`${accountUrl}/login`)
   }
 
   if (!user && !loading) {
@@ -42,7 +34,7 @@ export function HeaderUserProvider({ title, children }: HeaderUserProviderProps)
       title={title}
       user={user}
       loading={loading}
-      onLogout={handleLogout}
+      onLogout={handleLogoutClick}
       onAccountClick={handleAccountClick}
     >
       {children}

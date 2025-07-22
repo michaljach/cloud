@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <HeaderUserProvider title="Files" />
+        <HeaderUserProvider title="Account" />
         <main className="p-4">{children}</main>
       </SidebarInset>
     </SidebarProvider>
