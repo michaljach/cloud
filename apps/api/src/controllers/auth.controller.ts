@@ -13,6 +13,9 @@ import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
 import { CurrentUser } from '../decorators/currentUser'
 
+const client_id = process.env.OAUTH_CLIENT_ID
+const client_secret = process.env.OAUTH_CLIENT_SECRET
+
 const oauth = new OAuth2Server({ model: oauthModel })
 const prisma = new PrismaClient()
 
@@ -36,8 +39,6 @@ export default class AuthController {
     )
   )
   async token(@Req() req: Request, @Res() res: Response) {
-    const client_id = process.env.OAUTH_CLIENT_ID
-    const client_secret = process.env.OAUTH_CLIENT_SECRET
     const mergedBody = {
       ...req.body,
       client_id: req.body.client_id || client_id,
