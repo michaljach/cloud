@@ -2,9 +2,12 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { encryptAndSaveUserFile, decryptAndReadUserFile } from '@services/filesStorage.service'
-import fs from 'fs'
-import path from 'path'
+import {
+  encryptAndSaveUserFile,
+  decryptAndReadUserFile,
+  listUserFiles
+} from '@services/filesStorage.service'
+
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
@@ -48,21 +51,7 @@ export default class FilesController {
   @UseBefore(authenticate)
   async listUserFiles(@CurrentUser() user: User, @Res() res: Response) {
     try {
-      const userDir = path.resolve(__dirname, '../../storage', String(user.id), 'files')
-      if (!fs.existsSync(userDir)) {
-        return res.json({ success: true, data: [], error: null })
-      }
-      const files = fs
-        .readdirSync(userDir)
-        .filter((f) => fs.statSync(path.join(userDir, f)).isFile())
-        .map((f) => {
-          const stat = fs.statSync(path.join(userDir, f))
-          return {
-            filename: f,
-            size: stat.size,
-            modified: stat.mtime
-          }
-        })
+      const files = listUserFiles(user.id)
       return res.json({ success: true, data: files, error: null })
     } catch (e) {
       return res.status(500).json({ success: false, data: null, error: 'Failed to list files' })

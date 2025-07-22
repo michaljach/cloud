@@ -1,5 +1,5 @@
 import request from 'supertest'
-import app from '../index'
+import app from '../../index'
 
 jest.mock('@prisma/client')
 jest.mock('bcryptjs', () => ({

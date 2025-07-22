@@ -1,20 +1,57 @@
-import fs from 'fs'
-import path from 'path'
-import crypto from 'crypto'
-import { encryptAndSaveFile, decryptAndReadFile } from '../utils/cryptoStorageUtils'
+import {
+  encryptAndSaveFile,
+  decryptAndReadFile,
+  ensureUserStorageDir,
+  getUserStorageDir,
+  userStorageDirExists,
+  listUserFiles,
+  userFileExists as checkUserFileExists,
+  getUserFilePath as getStorageFilePath,
+  deleteUserFile as deleteStorageFile,
+  getUserFileMetadata as getStorageFileMetadata,
+  type FileInfo
+} from '../utils'
 
-const STORAGE_DIR = path.resolve(__dirname, '../../storage')
-const ALGORITHM = 'aes-256-gcm'
-const KEY = Buffer.from('12345678901234567890123456789012') // 32 bytes
+const STORAGE_TYPE = 'photos'
 
-if (!fs.existsSync(STORAGE_DIR)) fs.mkdirSync(STORAGE_DIR, { recursive: true })
+export function getUserPhotosDir(userId: string): string {
+  return getUserStorageDir(userId, STORAGE_TYPE)
+}
+
+export function ensureUserPhotosDir(userId: string): string {
+  return ensureUserStorageDir(userId, STORAGE_TYPE)
+}
+
+export function userPhotosDirExists(userId: string): boolean {
+  return userStorageDirExists(userId, STORAGE_TYPE)
+}
+
+export function listUserPhotos(userId: string): string[] {
+  return listUserFiles(userId, STORAGE_TYPE)
+}
+
+export function userPhotoExists(userId: string, filename: string): boolean {
+  return checkUserFileExists(userId, STORAGE_TYPE, filename)
+}
+
+export function getUserPhotoPath(userId: string, filename: string): string {
+  return getStorageFilePath(userId, STORAGE_TYPE, filename)
+}
+
+export function deleteUserPhoto(userId: string, filename: string): boolean {
+  return deleteStorageFile(userId, STORAGE_TYPE, filename)
+}
+
+export function getUserPhotoMetadata(userId: string, filename: string): FileInfo | null {
+  return getStorageFileMetadata(userId, STORAGE_TYPE, filename)
+}
 
 export function encryptAndSavePhoto(fileBuffer: Buffer, filename: string, userId: string): string {
-  const userDir = path.join(STORAGE_DIR, String(userId), 'photos')
+  const userDir = ensureUserPhotosDir(userId)
   return encryptAndSaveFile({ fileBuffer, filename, dir: userDir })
 }
 
 export function decryptAndReadPhoto(filename: string, userId: string): Buffer {
-  const userDir = path.join(STORAGE_DIR, String(userId), 'photos')
+  const userDir = getUserPhotosDir(userId)
   return decryptAndReadFile({ filename, dir: userDir })
 }

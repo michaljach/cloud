@@ -2,9 +2,12 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { encryptAndSaveNote, decryptAndReadNote } from '@services/notesStorage.service'
-import fs from 'fs'
-import path from 'path'
+import {
+  encryptAndSaveNote,
+  decryptAndReadNote,
+  listUserNotes
+} from '@services/notesStorage.service'
+
 import { base64urlDecode } from '@repo/utils'
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
@@ -77,13 +80,7 @@ export default class NotesController {
   @UseBefore(authenticate)
   async listNotes(@CurrentUser() user: User, @Res() res: Response) {
     try {
-      const userDir = path.resolve(__dirname, '../../storage', String(user.id), 'notes')
-      if (!fs.existsSync(userDir)) {
-        return res.json({ success: true, data: [], error: null })
-      }
-      const files = fs
-        .readdirSync(userDir)
-        .filter((f) => fs.statSync(path.join(userDir, f)).isFile())
+      const files = listUserNotes(user.id)
       return res.json({ success: true, data: files, error: null })
     } catch (e) {
       return res.status(500).json({ success: false, data: null, error: 'Failed to list notes' })
