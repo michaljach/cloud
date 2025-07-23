@@ -104,45 +104,6 @@ export const columns: ColumnDef<FileRow>[] = [
     }
   },
   {
-    id: 'download',
-    header: () => <div className="text-right" />,
-    cell: ({ row }) => {
-      const file = row.original
-      const { accessToken } = useUser()
-      const { currentPath } = useContext(FilesContext)
-      const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-      const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
-      const handleDownload = async () => {
-        if (!accessToken) return
-        if (file.type === 'file') {
-          const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
-          const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
-          const blob = new Blob([decrypted])
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = file.filename
-          document.body.appendChild(a)
-          a.click()
-          setTimeout(() => {
-            document.body.removeChild(a)
-            URL.revokeObjectURL(url)
-          }, 100)
-        } else if (file.type === 'folder') {
-          await downloadUserFolder(accessToken, fullPath)
-        }
-      }
-      return (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download">
-            <Download />
-          </Button>
-        </div>
-      )
-    },
-    enableHiding: false
-  },
-  {
     id: 'actions',
     enableHiding: false,
     header: () => <div className="text-right" />,
@@ -174,7 +135,10 @@ export const columns: ColumnDef<FileRow>[] = [
         }
       }
       return (
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center">
+          <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download">
+            <Download />
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

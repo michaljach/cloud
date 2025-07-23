@@ -4,6 +4,10 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack
 import { useContext, useMemo } from 'react'
 import { FilesContext } from '../files-context'
 import { Folder, File as FileIcon, ArrowLeft } from 'lucide-react'
+import React from 'react'
+import { useUser } from '@repo/auth'
+import { uploadEncryptedUserFile } from '@repo/api'
+import { encryptFile } from '@repo/utils'
 
 import {
   Table,
@@ -31,6 +35,9 @@ interface DataTableProps<TData, TValue> {
 
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const { files, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
+  const { accessToken } = useUser()
+  const [dragActive, setDragActive] = React.useState(false)
+  const [status, setStatus] = React.useState<string | null>(null)
 
   // Use provided data if available, otherwise use files from context
   const table = useReactTable({
@@ -61,8 +68,53 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
   const isRoot = !currentPath
 
+  // Drag and drop handlers for table
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+  }
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0]
+      if (!accessToken) {
+        setStatus('Login required to upload')
+        return
+      }
+      setStatus('Encrypting...')
+      try {
+        const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+        const encrypted = await encryptFile(file, HARDCODED_KEY)
+        setStatus('Uploading...')
+        await uploadEncryptedUserFile(encrypted, file.name, accessToken)
+        setStatus('Upload successful!')
+        refreshFiles()
+      } catch (err: any) {
+        setStatus('Error: ' + err.message)
+      }
+    }
+  }
+
   return (
-    <>
+    <div
+      className={`relative ${dragActive ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {dragActive && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-blue-100/80 pointer-events-none">
+          <span className="text-lg font-semibold text-blue-700">Drop files to upload</span>
+        </div>
+      )}
       <div className="flex items-center gap-2 justify-between py-2">
         <div className="flex items-center gap-1">
           <Link
@@ -143,7 +195,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onDoubleClick={() => handleRowDoubleClick(row)}
-                  className={row.original.type === 'folder' ? 'cursor-pointer hover:bg-accent' : ''}
+                  className={row.original.type === 'folder' ? 'cursor-pointer' : ''}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -162,6 +214,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           </TableBody>
         </Table>
       </div>
-    </>
+      {status && <div className="text-sm text-muted-foreground mt-2">{status}</div>}
+    </div>
   )
 }
