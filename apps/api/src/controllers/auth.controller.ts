@@ -77,7 +77,7 @@ export default class AuthController {
       if (existing) return handleError(res, 'Username already exists', 409)
       const hash = await bcrypt.hash(password, 10)
       const user = await usersService.createUser(username, hash)
-      const safeUser: User = { id: user.id, username: user.username }
+      const safeUser: User = { id: user.id, username: user.username, role: user.role }
       return res.status(201).json({ success: true, data: safeUser, error: null })
     } catch (err) {
       return handleError(res, err, 500)
@@ -110,7 +110,8 @@ export default class AuthController {
       const safeUser: User = {
         id: prismaUser.id,
         username: prismaUser.username,
-        fullName: prismaUser.fullName
+        fullName: prismaUser.fullName,
+        role: prismaUser.role
       }
       return res.json({ success: true, data: safeUser, error: null })
     } catch (err) {

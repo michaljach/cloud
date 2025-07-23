@@ -286,3 +286,15 @@ export async function deleteUserFileFromTrash(filename: string, accessToken: str
   if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
   return json.data
 }
+
+/**
+ * Fetch all users (admin/root_admin only)
+ */
+export async function getUsers(accessToken: string): Promise<User[]> {
+  const res = await fetch(`${API_URL}/api/users`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<User[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch users')
+  return json.data
+}

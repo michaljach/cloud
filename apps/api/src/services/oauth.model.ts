@@ -32,12 +32,17 @@ export default {
   getUser: async (username: string, password: string): Promise<SharedUser | null> => {
     const user = await prisma.user.findUnique({
       where: { username },
-      select: { id: true, username: true, password: true, fullName: true }
+      select: { id: true, username: true, password: true, fullName: true, role: true }
     })
     if (!user) return null
     const valid = await bcrypt.compare(password, user.password)
     if (!valid) return null
-    return { id: user.id, username: user.username, fullName: user.fullName }
+    return {
+      id: user.id,
+      username: user.username,
+      fullName: user.fullName,
+      role: user.role as 'root_admin' | 'admin' | 'user'
+    }
   },
   /**
    * Save a new OAuth token to the database
@@ -82,7 +87,7 @@ export default {
         grants: grants.split(','),
         redirectUris: redirectUris.split(',')
       },
-      user: { id: userId, username } as SharedUser
+      user: { id: userId, username, role: user.role } as SharedUser
     }
   },
   /**
@@ -93,7 +98,10 @@ export default {
   getAccessToken: async (accessToken: string) => {
     const dbToken = await prisma.oAuthToken.findUnique({
       where: { accessToken },
-      include: { client: true, user: { select: { id: true, username: true, fullName: true } } }
+      include: {
+        client: true,
+        user: { select: { id: true, username: true, fullName: true, role: true } }
+      }
     })
     if (!dbToken) return null
     const {
@@ -106,7 +114,7 @@ export default {
       user: dbUser
     } = dbToken
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
-    const { id: userId, username, fullName } = dbUser
+    const { id: userId, username, fullName, role } = dbUser
     return {
       accessToken,
       accessTokenExpiresAt,
@@ -119,7 +127,7 @@ export default {
         grants: grants.split(','),
         redirectUris: redirectUris.split(',')
       },
-      user: { id: userId, username, fullName } as SharedUser
+      user: { id: userId, username, fullName, role } as SharedUser
     }
   },
   /**

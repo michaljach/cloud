@@ -1,15 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 
 const prisma = new PrismaClient()
 
-const OAUTH_CLIENT_ID = process.env.OAUTH_CLIENT_ID
-const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET
-const OAUTH_CLIENT_GRANTS = process.env.OAUTH_CLIENT_GRANTS
-const OAUTH_CLIENT_REDIRECT_URIS = process.env.OAUTH_CLIENT_REDIRECT_URIS
+const OAUTH_CLIENT_ID = process.env.OAUTH_CLIENT_ID!
+const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET!
+const OAUTH_CLIENT_GRANTS = process.env.OAUTH_CLIENT_GRANTS!
+const OAUTH_CLIENT_REDIRECT_URIS = process.env.OAUTH_CLIENT_REDIRECT_URIS!
 
 async function main() {
+  // Create default workspace
+  const defaultWorkspace = await prisma.workspace.upsert({
+    where: { name: 'Default Workspace' },
+    update: {},
+    create: { name: 'Default Workspace' }
+  })
+
   // Create default user
   const passwordHash = await bcrypt.hash('admin', 10)
   await prisma.user.upsert({
@@ -17,7 +23,9 @@ async function main() {
     update: {},
     create: {
       username: 'admin',
-      password: passwordHash
+      password: passwordHash,
+      role: 'root_admin',
+      workspaceId: defaultWorkspace.id
     }
   })
 
