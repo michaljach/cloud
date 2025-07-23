@@ -14,6 +14,13 @@ export interface FileInfo {
   modified: Date
 }
 
+export interface FolderOrFileInfo {
+  name: string
+  type: 'file' | 'folder'
+  size?: number
+  modified: Date
+}
+
 /**
  * Get the main storage directory path
  */
@@ -80,6 +87,40 @@ export function listUserFilesWithMetadata(userId: string, type: string): FileInf
         modified: stat.mtime
       }
     })
+}
+
+/**
+ * List all files and folders in a user's storage directory for a given type and subPath
+ * Returns array of FolderOrFileInfo objects
+ */
+export function listUserFolderContentsWithMetadata(
+  userId: string,
+  type: string,
+  subPath: string = ''
+): FolderOrFileInfo[] {
+  const baseDir = getUserStorageDir(userId, type)
+  const targetDir = subPath ? path.join(baseDir, subPath) : baseDir
+  if (!fs.existsSync(targetDir)) {
+    return []
+  }
+  return fs.readdirSync(targetDir).map((entry) => {
+    const entryPath = path.join(targetDir, entry)
+    const stat = fs.statSync(entryPath)
+    if (stat.isDirectory()) {
+      return {
+        name: entry,
+        type: 'folder',
+        modified: stat.mtime
+      }
+    } else {
+      return {
+        name: entry,
+        type: 'file',
+        size: stat.size,
+        modified: stat.mtime
+      }
+    }
+  })
 }
 
 /**

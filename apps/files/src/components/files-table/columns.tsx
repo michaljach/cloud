@@ -11,17 +11,20 @@ import {
   DropdownMenuTrigger
 } from '@repo/ui/components/base/dropdown-menu'
 import { ColumnDef } from '@tanstack/react-table'
-import { Download, MoreHorizontal } from 'lucide-react'
+import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
 import { useUser } from '@repo/auth'
-import { downloadEncryptedUserFile } from '@repo/api'
+import { downloadEncryptedUserFile, downloadUserFolder } from '@repo/api'
 import { decryptFile } from '@repo/utils'
-import { formatDate } from '@repo/utils'
+import { formatDate, formatFileSize } from '@repo/utils'
+import { useContext } from 'react'
+import { FilesContext } from '../files-context'
 
 export type FileRow = {
   id: string
   filename: string
-  size: string
+  size?: string | number
   modified: string
+  type: 'file' | 'folder'
 }
 
 export const columns: ColumnDef<FileRow>[] = [
@@ -49,12 +52,30 @@ export const columns: ColumnDef<FileRow>[] = [
   {
     accessorKey: 'filename',
     header: 'Filename',
-    cell: ({ row }) => <div>{row.original.filename}</div>
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        {row.original.type === 'folder' ? (
+          <FolderIcon className="w-4 h-4 text-yellow-600" />
+        ) : (
+          <FileIcon className="w-4 h-4 text-blue-600" />
+        )}
+        <span>{row.original.filename}</span>
+      </div>
+    )
   },
   {
     accessorKey: 'size',
     header: 'File Size',
-    cell: ({ row }) => <div>{row.original.size || '—'}</div>
+    cell: ({ row }) => {
+      if (row.original.type !== 'file') return <div>—</div>
+      const size = row.original.size
+      if (typeof size === 'number') {
+        return <div>{formatFileSize(size)}</div>
+      }
+      // fallback for string or missing
+      const parsed = Number(size)
+      return <div>{!isNaN(parsed) && parsed > 0 ? formatFileSize(parsed) : '—'}</div>
+    }
   },
   {
     accessorKey: 'modified',
@@ -63,11 +84,13 @@ export const columns: ColumnDef<FileRow>[] = [
       const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US'
       return (
         <div>
-          {formatDate(row.original.modified, locale, {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          })}
+          {row.original.modified
+            ? formatDate(row.original.modified, locale, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })
+            : '—'}
         </div>
       )
     }
@@ -78,26 +101,32 @@ export const columns: ColumnDef<FileRow>[] = [
     cell: ({ row }) => {
       const file = row.original
       const { accessToken } = useUser()
+      const { currentPath } = useContext(FilesContext)
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+      const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
       const handleDownload = async () => {
         if (!accessToken) return
-        const encrypted = await downloadEncryptedUserFile(file.filename, accessToken)
-        const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
-        const blob = new Blob([decrypted])
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = file.filename
-        document.body.appendChild(a)
-        a.click()
-        setTimeout(() => {
-          document.body.removeChild(a)
-          URL.revokeObjectURL(url)
-        }, 100)
+        if (file.type === 'file') {
+          const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
+          const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
+          const blob = new Blob([decrypted])
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = file.filename
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(() => {
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+          }, 100)
+        } else if (file.type === 'folder') {
+          await downloadUserFolder(accessToken, fullPath)
+        }
       }
       return (
         <div className="flex justify-end">
-          <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download file">
+          <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download">
             <Download />
           </Button>
         </div>
@@ -112,23 +141,28 @@ export const columns: ColumnDef<FileRow>[] = [
     cell: ({ row }) => {
       const file = row.original
       const { accessToken } = useUser()
+      const { currentPath } = useContext(FilesContext)
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
-
+      const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
       const handleDownload = async () => {
         if (!accessToken) return
-        const encrypted = await downloadEncryptedUserFile(file.filename, accessToken)
-        const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
-        const blob = new Blob([decrypted])
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = file.filename
-        document.body.appendChild(a)
-        a.click()
-        setTimeout(() => {
-          document.body.removeChild(a)
-          URL.revokeObjectURL(url)
-        }, 100)
+        if (file.type === 'file') {
+          const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
+          const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
+          const blob = new Blob([decrypted])
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = file.filename
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(() => {
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+          }, 100)
+        } else if (file.type === 'folder') {
+          await downloadUserFolder(accessToken, fullPath)
+        }
       }
       return (
         <div className="flex justify-end">
@@ -141,7 +175,7 @@ export const columns: ColumnDef<FileRow>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(file.filename)}>
+              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(fullPath)}>
                 Copy filename
               </DropdownMenuItem>
               <DropdownMenuSeparator />

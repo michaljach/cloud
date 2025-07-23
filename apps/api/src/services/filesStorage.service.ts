@@ -9,7 +9,9 @@ import {
   getUserFilePath as getStorageFilePath,
   deleteUserFile as deleteStorageFile,
   getUserFileMetadata as getStorageFileMetadata,
-  type FileInfo
+  listUserFolderContentsWithMetadata,
+  type FileInfo,
+  type FolderOrFileInfo
 } from '../utils'
 
 const STORAGE_TYPE = 'files'
@@ -44,6 +46,10 @@ export function deleteUserFile(userId: string, filename: string): boolean {
 
 export function getUserFileMetadata(userId: string, filename: string): FileInfo | null {
   return getStorageFileMetadata(userId, STORAGE_TYPE, filename)
+}
+
+export function listUserFolderContents(userId: string, path: string = ''): FolderOrFileInfo[] {
+  return listUserFolderContentsWithMetadata(userId, STORAGE_TYPE, path)
 }
 
 export function encryptAndSaveUserFile(

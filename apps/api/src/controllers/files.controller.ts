@@ -5,7 +5,8 @@ import type { User } from '@repo/types'
 import {
   encryptAndSaveUserFile,
   decryptAndReadUserFile,
-  listUserFiles
+  listUserFiles,
+  listUserFolderContents
 } from '@services/filesStorage.service'
 
 import { z } from 'zod'
@@ -13,6 +14,9 @@ import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
 import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
+import archiver from 'archiver'
+import fs from 'fs'
+import path from 'path'
 
 const upload = multer({ storage: multer.memoryStorage() })
 
@@ -30,10 +34,14 @@ export default class FilesController {
   @Post('/')
   @UseBefore(authenticate)
   @UseBefore(upload.single('file'))
-  @UseBefore(validate(fileSchema))
   async uploadUserFile(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     if (!req.file) {
       return res.status(400).json({ success: false, data: null, error: 'No file uploaded' })
+    }
+    // Validate file using Zod schema
+    const result = fileSchema.safeParse(req.file)
+    if (!result.success) {
+      return res.status(400).json({ success: false, data: null, error: result.error.message })
     }
     encryptAndSaveUserFile(req.file.buffer, req.file.originalname, user.id)
     return res.json({
@@ -45,16 +53,52 @@ export default class FilesController {
 
   /**
    * GET /api/files
-   * List all files for the authenticated user
+   * List all files and folders for the authenticated user at a given path
    */
   @Get('/')
   @UseBefore(authenticate)
-  async listUserFiles(@CurrentUser() user: User, @Res() res: Response) {
+  async listUserFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     try {
-      const files = listUserFiles(user.id)
-      return res.json({ success: true, data: files, error: null })
+      const path = typeof req.query.path === 'string' ? req.query.path : ''
+      const items = listUserFolderContents(user.id, path)
+      return res.json({ success: true, data: items, error: null })
     } catch (e) {
-      return res.status(500).json({ success: false, data: null, error: 'Failed to list files' })
+      return res
+        .status(500)
+        .json({ success: false, data: null, error: 'Failed to list files/folders' })
+    }
+  }
+
+  /**
+   * GET /api/files/download-folder
+   * Download a folder as a zip file for the authenticated user
+   * Query: path=folder1/folder2
+   */
+  @Get('/download-folder')
+  @UseBefore(authenticate)
+  async downloadFolder(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    try {
+      const folderPath = typeof req.query.path === 'string' ? req.query.path : ''
+      // Get the absolute path to the user's folder
+      const baseDir = path.join(__dirname, '../../../storage', String(user.id), 'files')
+      const targetDir = folderPath ? path.join(baseDir, folderPath) : baseDir
+      console.log('Zipping folder:', targetDir)
+      if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
+        return res.status(404).json({ success: false, data: null, error: 'Folder not found' })
+      }
+      res.setHeader('Content-Type', 'application/zip')
+      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(targetDir)}.zip"`)
+      const archive = archiver('zip', { zlib: { level: 9 } })
+      archive.on('error', (err) => {
+        res.status(500).end()
+      })
+      archive.pipe(res)
+      archive.directory(targetDir, false)
+      archive.finalize()
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ success: false, data: null, error: 'Failed to download folder' })
     }
   }
 

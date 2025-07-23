@@ -173,12 +173,15 @@ export async function listUserNotes(accessToken: string): Promise<string[]> {
 }
 
 export async function listUserFiles(
-  accessToken: string
-): Promise<{ filename: string; size: number; modified: string }[]> {
-  const res = await fetch(`${API_URL}/api/files`, {
+  accessToken: string,
+  path?: string
+): Promise<{ name: string; size?: number; modified: string; type: 'file' | 'folder' }[]> {
+  const url = new URL(`${API_URL}/api/files`)
+  if (path) url.searchParams.set('path', path)
+  const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  const json: ApiResponse<{ filename: string; size: number; modified: string }[]> = await res.json()
+  const json = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to list files')
   return json.data
 }
@@ -214,4 +217,24 @@ export async function downloadEncryptedUserFile(
   })
   if (!res.ok) throw new Error('Download failed')
   return new Uint8Array(await res.arrayBuffer())
+}
+
+export async function downloadUserFolder(accessToken: string, path: string) {
+  const url = new URL(`${API_URL}/api/files/download-folder`)
+  if (path) url.searchParams.set('path', path)
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Failed to download folder')
+  const blob = await res.blob()
+  const downloadUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = downloadUrl
+  a.download = (path ? path.split('/').pop() : 'folder') + '.zip'
+  document.body.appendChild(a)
+  a.click()
+  setTimeout(() => {
+    document.body.removeChild(a)
+    URL.revokeObjectURL(downloadUrl)
+  }, 100)
 }
