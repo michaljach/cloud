@@ -170,3 +170,72 @@ export function getUserFileMetadata(
   }
   return null
 }
+
+/**
+ * Move a file to the user's trash folder (soft delete)
+ */
+export function moveUserFileToTrash(userId: string, type: string, filename: string): boolean {
+  const userDir = getUserStorageDir(userId, type)
+  const trashDir = path.join(userDir, '.trash')
+  if (!fs.existsSync(trashDir)) {
+    fs.mkdirSync(trashDir, { recursive: true })
+  }
+  const filePath = path.join(userDir, filename)
+  const trashPath = path.join(trashDir, filename)
+  if (fs.existsSync(filePath)) {
+    fs.renameSync(filePath, trashPath)
+    return true
+  }
+  return false
+}
+
+/**
+ * List all files in the user's trash folder
+ */
+export function listUserTrashedFiles(userId: string, type: string): FileInfo[] {
+  const userDir = getUserStorageDir(userId, type)
+  const trashDir = path.join(userDir, '.trash')
+  if (!fs.existsSync(trashDir)) {
+    return []
+  }
+  return fs
+    .readdirSync(trashDir)
+    .filter((f) => fs.statSync(path.join(trashDir, f)).isFile())
+    .map((f) => {
+      const stat = fs.statSync(path.join(trashDir, f))
+      return {
+        filename: f,
+        size: stat.size,
+        modified: stat.mtime
+      }
+    })
+}
+
+/**
+ * Restore a file from the user's trash folder
+ */
+export function restoreUserFileFromTrash(userId: string, type: string, filename: string): boolean {
+  const userDir = getUserStorageDir(userId, type)
+  const trashDir = path.join(userDir, '.trash')
+  const trashPath = path.join(trashDir, filename)
+  const restorePath = path.join(userDir, filename)
+  if (fs.existsSync(trashPath)) {
+    fs.renameSync(trashPath, restorePath)
+    return true
+  }
+  return false
+}
+
+/**
+ * Permanently delete a file from the user's trash folder
+ */
+export function deleteUserFileFromTrash(userId: string, type: string, filename: string): boolean {
+  const userDir = getUserStorageDir(userId, type)
+  const trashDir = path.join(userDir, '.trash')
+  const trashPath = path.join(trashDir, filename)
+  if (fs.existsSync(trashPath)) {
+    fs.unlinkSync(trashPath)
+    return true
+  }
+  return false
+}

@@ -10,14 +10,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@repo/ui/components/base/dropdown-menu'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription
+} from '@repo/ui/components/base/dialog'
 import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
 import { useUser } from '@repo/auth'
-import { downloadEncryptedUserFile, downloadUserFolder } from '@repo/api'
+import { downloadEncryptedUserFile, downloadUserFolder, moveUserFileToTrash } from '@repo/api'
 import { decryptFile } from '@repo/utils'
 import { formatDate, formatFileSize } from '@repo/utils'
 import { useContext } from 'react'
 import { FilesContext } from '../files-context'
+import React from 'react'
 
 export type FileRow = {
   id: string
@@ -141,7 +149,8 @@ export const columns: ColumnDef<FileRow>[] = [
     cell: ({ row }) => {
       const file = row.original
       const { accessToken } = useUser()
-      const { currentPath } = useContext(FilesContext)
+      const { currentPath, refreshFiles } = useContext(FilesContext)
+      const [dialogOpen, setDialogOpen] = React.useState(false)
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
       const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
       const handleDownload = async () => {
@@ -180,9 +189,36 @@ export const columns: ColumnDef<FileRow>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDownload}>Download</DropdownMenuItem>
-              <DropdownMenuItem>Delete</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+                <span className="text-red-500">Delete</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent showCloseButton>
+              <DialogTitle>Move to Trash</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to move <b>{file.filename}</b> to Trash? You can restore it
+                from Trash later.
+              </DialogDescription>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!accessToken) return
+                    await moveUserFileToTrash(fullPath, accessToken)
+                    setDialogOpen(false)
+                    if (typeof refreshFiles === 'function') refreshFiles()
+                  }}
+                >
+                  Move to Trash
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )
     }

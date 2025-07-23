@@ -1,12 +1,16 @@
 import 'reflect-metadata'
-import { JsonController, Get, Post, Param, Req, Res, UseBefore } from 'routing-controllers'
+import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
 import {
   encryptAndSaveUserFile,
   decryptAndReadUserFile,
   listUserFiles,
-  listUserFolderContents
+  listUserFolderContents,
+  moveUserFileToTrash,
+  listUserTrashedFiles,
+  restoreUserFileFromTrash,
+  deleteUserFileFromTrash
 } from '@services/filesStorage.service'
 
 import { z } from 'zod'
@@ -126,6 +130,81 @@ export default class FilesController {
       return res
         .status(404)
         .json({ success: false, data: null, error: 'File not found or decryption failed' })
+    }
+  }
+
+  /**
+   * DELETE /api/files/:filename
+   * Move a file to trash (soft delete)
+   */
+  @Delete('/:filename')
+  @UseBefore(authenticate)
+  async moveToTrash(
+    @CurrentUser() user: User,
+    @Param('filename') filename: string,
+    @Res() res: Response
+  ) {
+    if (!filename) {
+      return res.status(400).json({ success: false, data: null, error: 'Filename required' })
+    }
+    const ok = moveUserFileToTrash(user.id, filename)
+    if (ok) {
+      return res.json({ success: true, data: { filename }, error: null })
+    } else {
+      return res.status(404).json({ success: false, data: null, error: 'File not found' })
+    }
+  }
+
+  /**
+   * GET /api/files/trash
+   * List all trashed files for the authenticated user
+   */
+  @Get('/trash')
+  @UseBefore(authenticate)
+  async listTrash(@CurrentUser() user: User, @Res() res: Response) {
+    const files = listUserTrashedFiles(user.id)
+    return res.json({ success: true, data: files, error: null })
+  }
+
+  /**
+   * POST /api/files/trash/restore
+   * Restore a file from trash
+   * Body: { filename: string }
+   */
+  @Post('/trash/restore')
+  @UseBefore(authenticate)
+  async restoreFromTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    const { filename } = req.body
+    if (!filename) {
+      return res.status(400).json({ success: false, data: null, error: 'Filename required' })
+    }
+    const ok = restoreUserFileFromTrash(user.id, filename)
+    if (ok) {
+      return res.json({ success: true, data: { filename }, error: null })
+    } else {
+      return res.status(404).json({ success: false, data: null, error: 'File not found in trash' })
+    }
+  }
+
+  /**
+   * DELETE /api/files/trash/:filename
+   * Permanently delete a file from trash
+   */
+  @Delete('/trash/:filename')
+  @UseBefore(authenticate)
+  async deleteFromTrash(
+    @CurrentUser() user: User,
+    @Param('filename') filename: string,
+    @Res() res: Response
+  ) {
+    if (!filename) {
+      return res.status(400).json({ success: false, data: null, error: 'Filename required' })
+    }
+    const ok = deleteUserFileFromTrash(user.id, filename)
+    if (ok) {
+      return res.json({ success: true, data: { filename }, error: null })
+    } else {
+      return res.status(404).json({ success: false, data: null, error: 'File not found in trash' })
     }
   }
 }

@@ -26,14 +26,15 @@ import Link from 'next/link'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
+  data?: TData[]
 }
 
-export function DataTable<TData, TValue>({ columns }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const { files, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
 
-  // Table instance uses files directly
+  // Use provided data if available, otherwise use files from context
   const table = useReactTable({
-    data: files,
+    data: data ?? files,
     columns,
     getCoreRowModel: getCoreRowModel()
   })

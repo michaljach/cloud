@@ -11,7 +11,11 @@ import {
   getUserFileMetadata as getStorageFileMetadata,
   listUserFolderContentsWithMetadata,
   type FileInfo,
-  type FolderOrFileInfo
+  type FolderOrFileInfo,
+  moveUserFileToTrash as moveFileToTrash,
+  listUserTrashedFiles as listTrashedFiles,
+  restoreUserFileFromTrash as restoreFileFromTrash,
+  deleteUserFileFromTrash as deleteFileFromTrash
 } from '../utils'
 
 const STORAGE_TYPE = 'files'
@@ -64,4 +68,20 @@ export function encryptAndSaveUserFile(
 export function decryptAndReadUserFile(filename: string, userId: string): Buffer {
   const userDir = getUserFilesDir(userId)
   return decryptAndReadFile({ filename, dir: userDir })
+}
+
+export function moveUserFileToTrash(userId: string, filename: string): boolean {
+  return moveFileToTrash(userId, STORAGE_TYPE, filename)
+}
+
+export function listUserTrashedFiles(userId: string): FileInfo[] {
+  return listTrashedFiles(userId, STORAGE_TYPE)
+}
+
+export function restoreUserFileFromTrash(userId: string, filename: string): boolean {
+  return restoreFileFromTrash(userId, STORAGE_TYPE, filename)
+}
+
+export function deleteUserFileFromTrash(userId: string, filename: string): boolean {
+  return deleteFileFromTrash(userId, STORAGE_TYPE, filename)
 }

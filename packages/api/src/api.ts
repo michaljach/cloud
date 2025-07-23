@@ -238,3 +238,51 @@ export async function downloadUserFolder(accessToken: string, path: string) {
     URL.revokeObjectURL(downloadUrl)
   }, 100)
 }
+
+export async function moveUserFileToTrash(filename: string, accessToken: string): Promise<any> {
+  const res = await fetch(`${API_URL}/api/files/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to move file to trash')
+  return json.data
+}
+
+export async function listUserTrashedFiles(
+  accessToken: string
+): Promise<{ filename: string; size: number; modified: string }[]> {
+  const res = await fetch(`${API_URL}/api/files?path=.trash`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list trashed files')
+  return json.data
+}
+
+export async function restoreUserFileFromTrash(
+  filename: string,
+  accessToken: string
+): Promise<any> {
+  const res = await fetch(`${API_URL}/api/files/trash/restore`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ filename })
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to restore file from trash')
+  return json.data
+}
+
+export async function deleteUserFileFromTrash(filename: string, accessToken: string): Promise<any> {
+  const res = await fetch(`${API_URL}/api/files/trash/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
+  return json.data
+}
