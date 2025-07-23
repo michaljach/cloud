@@ -15,8 +15,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Allow login page
-  if (pathname === '/login') {
+  // Allow login and signup pages
+  if (pathname === '/login' || pathname === '/signup') {
     return NextResponse.next()
   }
 

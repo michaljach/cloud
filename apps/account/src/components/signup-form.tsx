@@ -23,31 +23,55 @@ import {
 import React from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { registerUser } from '@repo/api'
 
-export function LoginForm({
+export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<'div'> & { redirect?: string }) {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
   const { login } = useUser()
-  const form = useForm<{ email: string; password: string }>({
-    defaultValues: { email: '', password: '' }
+  const form = useForm<{
+    username: string
+    password: string
+    confirmPassword: string
+  }>({
+    defaultValues: {
+      username: '',
+      password: '',
+      confirmPassword: ''
+    }
   })
   const {
     handleSubmit,
     formState: { isSubmitting },
-    setError
+    setError,
+    watch
   } = form
 
-  async function onSubmit(values: { email: string; password: string }) {
+  const password = watch('password')
+  const confirmPassword = watch('confirmPassword')
+
+  async function onSubmit(values: { username: string; password: string; confirmPassword: string }) {
+    // Validate password confirmation
+    if (values.password !== values.confirmPassword) {
+      setError('confirmPassword', { message: 'Passwords do not match' })
+      return
+    }
+
     try {
-      await login(values.email, values.password)
+      // Register the user
+      await registerUser(values.username, values.password)
+
+      // Automatically log in the user after successful registration
+      await login(values.username, values.password)
+
       window.location.href = redirect
     } catch (err: unknown) {
-      let message = 'Login failed'
+      let message = 'Registration failed'
       if (err instanceof Error) message = err.message
-      setError('email', { message })
+      setError('username', { message })
       setError('password', { message })
     }
   }
@@ -56,8 +80,8 @@ export function LoginForm({
     <div className={cn('flex flex-col gap-6 flex-1 max-w-sm', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardTitle>Create your account</CardTitle>
+          <CardDescription>Enter your details below to create your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -65,14 +89,14 @@ export function LoginForm({
               <div className="flex flex-col gap-6">
                 <FormField
                   control={form.control}
-                  name="email"
+                  name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Username</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="m@example.com"
+                          placeholder="johndoe"
                           required
                           {...field}
                           disabled={isSubmitting}
@@ -95,9 +119,22 @@ export function LoginForm({
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" required {...field} disabled={isSubmitting} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="flex flex-col gap-3">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Logging in...' : 'Login'}
+                    {isSubmitting ? 'Creating account...' : 'Create account'}
                   </Button>
                   <Button
                     variant="outline"
@@ -105,14 +142,14 @@ export function LoginForm({
                     type="button"
                     disabled={isSubmitting}
                   >
-                    Login with Google
+                    Sign up with Google
                   </Button>
                 </div>
               </div>
               <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="underline underline-offset-4">
-                  Sign up
+                Already have an account?{' '}
+                <Link href="/login" className="underline underline-offset-4">
+                  Login
                 </Link>
               </div>
             </form>

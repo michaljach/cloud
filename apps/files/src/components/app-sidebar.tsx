@@ -46,7 +46,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="px-2">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button variant="default" size="sm" className="w-full" onClick={() => setOpen(true)}>
+              <Button variant="default" className="w-full" onClick={() => setOpen(true)}>
                 <PlusCircle />
                 <span>Upload files</span>
               </Button>

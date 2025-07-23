@@ -8,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 export type FilesContextType = {
   files: any[]
+  loading: boolean
   refreshFiles: () => void
   currentPath: string
   setCurrentPath: (path: string) => void
@@ -17,6 +18,7 @@ export type FilesContextType = {
 
 export const FilesContext = createContext<FilesContextType>({
   files: [],
+  loading: true,
   refreshFiles: () => {},
   currentPath: '',
   setCurrentPath: () => {},
@@ -27,6 +29,7 @@ export const FilesContext = createContext<FilesContextType>({
 export function FilesProvider({ children }: { children: React.ReactNode }) {
   const { accessToken } = useUser()
   const [files, setFiles] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [trashedFiles, setTrashedFiles] = useState<any[]>([])
   const pathname = usePathname()
   const router = useRouter()
@@ -45,6 +48,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
 
   const fetchFiles = useCallback(() => {
     if (!accessToken) return
+    setLoading(true)
     listUserFiles(accessToken, currentPath)
       .then((items) => {
         setFiles(
@@ -60,6 +64,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
         )
       })
       .catch(() => setFiles([]))
+      .finally(() => setLoading(false))
   }, [accessToken, currentPath])
 
   const fetchTrash = useCallback(() => {
@@ -93,6 +98,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
     <FilesContext.Provider
       value={{
         files,
+        loading,
         refreshFiles: fetchFiles,
         currentPath,
         setCurrentPath,

@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow
 } from '@repo/ui/components/base/table'
+import { Skeleton } from '@repo/ui/components/base/skeleton'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,7 +35,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-  const { files, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
+  const { files, loading, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
   const { accessToken } = useUser()
   const [dragActive, setDragActive] = React.useState(false)
   const [status, setStatus] = React.useState<string | null>(null)
@@ -57,16 +58,22 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     }
   }
 
-  // Go up one level
-  function goUp() {
-    if (!currentPath) return
-    const parts = currentPath.split('/')
-    parts.pop()
-    setCurrentPath(parts.join('/'))
-    setTimeout(() => refreshFiles(), 0)
-  }
-
   const isRoot = !currentPath
+
+  // Skeleton loading component for table rows
+  const TableSkeleton = () => (
+    <>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <TableRow key={`skeleton-${index}`}>
+          {Array.from({ length: columns.length }).map((_, cellIndex) => (
+            <TableCell key={`skeleton-cell-${index}-${cellIndex}`}>
+              <Skeleton className="h-8 w-full" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
+  )
 
   // Drag and drop handlers for table
   const handleDragOver = (e: React.DragEvent) => {
@@ -189,7 +196,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+              <TableSkeleton />
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

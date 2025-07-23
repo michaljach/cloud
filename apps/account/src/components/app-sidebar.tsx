@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 import {
   LayoutDashboard,
@@ -11,6 +9,8 @@ import {
   Mail,
   ShieldUser
 } from 'lucide-react'
+import { getServerUser } from '@repo/auth'
+import { cookies } from 'next/headers'
 
 import {
   Sidebar,
@@ -29,7 +29,11 @@ import {
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const cookiesStore = await cookies()
+  const user = await getServerUser({ cookies: () => cookiesStore })
+  const isAdmin = user?.role === 'admin' || user?.role === 'root_admin'
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -83,33 +87,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Administration console">
-                  <Link href="/admin-console">
-                    <ShieldUser />
-                    <span className="font-medium">Administration console</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/admin-console/users">Users</Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/admin-console/roles">Roles</Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/admin-console/settings">Settings</Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            {isAdmin && (
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="Administration console">
+                    <Link href="/admin-console">
+                      <ShieldUser />
+                      <span className="font-medium">Administration console</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild>
+                        <Link href="/admin-console/users">Users</Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild>
+                        <Link href="/admin-console/roles">Roles</Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild>
+                        <Link href="/admin-console/settings">Settings</Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            )}
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
