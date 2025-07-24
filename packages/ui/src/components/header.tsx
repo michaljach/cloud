@@ -5,6 +5,13 @@ import { cn } from '../lib/utils'
 import { UserDropdown } from './user-dropdown'
 import { Skeleton } from './base/skeleton'
 import type { User } from '@repo/types'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem
+} from './base/dropdown-menu'
+import { AppWindow, GripHorizontal } from 'lucide-react'
 
 interface HeaderProps {
   title: React.ReactNode
@@ -14,6 +21,11 @@ interface HeaderProps {
   onAccountClick?: () => void
   className?: string
   loading?: boolean
+  appsLinks?: Array<{
+    label: string
+    href: string
+    icon?: React.ReactNode
+  }>
 }
 
 export function Header({
@@ -23,7 +35,8 @@ export function Header({
   onLogout,
   onAccountClick,
   className,
-  loading
+  loading,
+  appsLinks = []
 }: HeaderProps) {
   return (
     <header className={cn('flex h-16 shrink-0 items-center gap-2 border-b px-4', className)}>
@@ -31,7 +44,31 @@ export function Header({
       <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
       <h3 className="font-medium">{title}</h3>
       {children}
-      <div className="flex justify-end flex-1">
+      <div className="flex justify-end flex-1 items-center">
+        {appsLinks.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center gap-2 px-2 py-2 rounded hover:bg-accent focus:outline-none focus:ring-2 focus:ring-accent"
+                aria-label="Open apps menu"
+                type="button"
+              >
+                <GripHorizontal />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={4} className="min-w-40">
+              {appsLinks.map((link) => (
+                <DropdownMenuItem asChild key={link.href}>
+                  <a href={link.href} className="flex items-center gap-2">
+                    {link.icon}
+                    {link.label}
+                  </a>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         {loading ? (
           <div className="flex items-center gap-3 min-w-48">
             <Skeleton className="h-8 w-8 rounded-lg" />

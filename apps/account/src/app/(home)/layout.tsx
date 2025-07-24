@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Cloud dashboard'
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />

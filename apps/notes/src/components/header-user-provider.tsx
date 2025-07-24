@@ -36,6 +36,11 @@ export function HeaderUserProvider({ title, children }: HeaderUserProviderProps)
       loading={loading}
       onLogout={handleLogoutClick}
       onAccountClick={handleAccountClick}
+      appsLinks={[
+        { label: 'Notes', href: process.env.NEXT_PUBLIC_NOTES_APP_URL || '/notes' },
+        { label: 'Files', href: process.env.NEXT_PUBLIC_FILES_APP_URL || '/files' },
+        { label: 'Account', href: accountUrl || '/account' }
+      ]}
     >
       {children}
     </Header>
