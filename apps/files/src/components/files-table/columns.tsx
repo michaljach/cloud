@@ -20,7 +20,7 @@ import {
 import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
 import { useUser } from '@repo/auth'
-import { downloadEncryptedUserFile, downloadUserFolder, moveUserFileToTrash } from '@repo/api'
+import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
 import { decryptFile } from '@repo/utils'
 import { formatDate, formatFileSize } from '@repo/utils'
 import { useContext } from 'react'
@@ -130,15 +130,15 @@ export const columns: ColumnDef<FileRow>[] = [
             document.body.removeChild(a)
             URL.revokeObjectURL(url)
           }, 100)
-        } else if (file.type === 'folder') {
-          await downloadUserFolder(accessToken, fullPath)
         }
       }
       return (
         <div className="flex justify-end items-center">
-          <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download">
-            <Download />
-          </Button>
+          {file.type === 'file' && (
+            <Button variant="ghost" size="icon" onClick={handleDownload} aria-label="Download">
+              <Download />
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -152,7 +152,9 @@ export const columns: ColumnDef<FileRow>[] = [
                 Copy filename
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDownload}>Download</DropdownMenuItem>
+              {file.type === 'file' && (
+                <DropdownMenuItem onClick={handleDownload}>Download</DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => setDialogOpen(true)}>
                 <span className="text-red-500">Delete</span>
               </DropdownMenuItem>
@@ -173,7 +175,7 @@ export const columns: ColumnDef<FileRow>[] = [
                   variant="destructive"
                   onClick={async () => {
                     if (!accessToken) return
-                    await moveUserFileToTrash(fullPath, accessToken)
+                    await batchMoveUserFilesToTrash([fullPath], accessToken)
                     setDialogOpen(false)
                     if (typeof refreshFiles === 'function') refreshFiles()
                   }}

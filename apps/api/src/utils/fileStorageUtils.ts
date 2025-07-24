@@ -172,43 +172,26 @@ export function getUserFileMetadata(
 }
 
 /**
- * Move a file to the user's trash folder (soft delete)
- */
-export function moveUserFileToTrash(userId: string, type: string, filename: string): boolean {
-  const userDir = getUserStorageDir(userId, type)
-  const trashDir = path.join(userDir, '.trash')
-  if (!fs.existsSync(trashDir)) {
-    fs.mkdirSync(trashDir, { recursive: true })
-  }
-  const filePath = path.join(userDir, filename)
-  const trashPath = path.join(trashDir, filename)
-  if (fs.existsSync(filePath)) {
-    fs.renameSync(filePath, trashPath)
-    return true
-  }
-  return false
-}
-
-/**
  * List all files in the user's trash folder
  */
-export function listUserTrashedFiles(userId: string, type: string): FileInfo[] {
+export function listUserTrashedFiles(
+  userId: string,
+  type: string
+): (FileInfo & { type: 'file' | 'folder' })[] {
   const userDir = getUserStorageDir(userId, type)
   const trashDir = path.join(userDir, '.trash')
   if (!fs.existsSync(trashDir)) {
     return []
   }
-  return fs
-    .readdirSync(trashDir)
-    .filter((f) => fs.statSync(path.join(trashDir, f)).isFile())
-    .map((f) => {
-      const stat = fs.statSync(path.join(trashDir, f))
-      return {
-        filename: f,
-        size: stat.size,
-        modified: stat.mtime
-      }
-    })
+  return fs.readdirSync(trashDir).map((f) => {
+    const stat = fs.statSync(path.join(trashDir, f))
+    return {
+      filename: f,
+      size: stat.isFile() ? stat.size : undefined,
+      modified: stat.mtime,
+      type: stat.isDirectory() ? 'folder' : 'file'
+    }
+  })
 }
 
 /**

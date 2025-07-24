@@ -144,14 +144,15 @@ export async function uploadEncryptedPhoto(
   return json.data
 }
 
-export async function uploadEncryptedUserFile(
-  file: Blob | Uint8Array,
-  filename: string,
+export async function uploadEncryptedUserFilesBatch(
+  files: Array<{ file: Blob | Uint8Array; filename: string }>,
   accessToken: string
-): Promise<any> {
+): Promise<any[]> {
   const formData = new FormData()
-  formData.append('file', file instanceof Blob ? file : new Blob([file]), filename)
-  const res = await fetch(`${API_URL}/api/files`, {
+  for (const { file, filename } of files) {
+    formData.append('files', file instanceof Blob ? file : new Blob([file]), filename)
+  }
+  const res = await fetch(`${API_URL}/api/files/batch`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`
@@ -159,7 +160,7 @@ export async function uploadEncryptedUserFile(
     body: formData
   })
   const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Upload failed')
+  if (!json.success) throw new Error(json.error || 'Batch upload failed')
   return json.data
 }
 
@@ -219,36 +220,6 @@ export async function downloadEncryptedUserFile(
   return new Uint8Array(await res.arrayBuffer())
 }
 
-export async function downloadUserFolder(accessToken: string, path: string) {
-  const url = new URL(`${API_URL}/api/files/download-folder`)
-  if (path) url.searchParams.set('path', path)
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  if (!res.ok) throw new Error('Failed to download folder')
-  const blob = await res.blob()
-  const downloadUrl = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = downloadUrl
-  a.download = (path ? path.split('/').pop() : 'folder') + '.zip'
-  document.body.appendChild(a)
-  a.click()
-  setTimeout(() => {
-    document.body.removeChild(a)
-    URL.revokeObjectURL(downloadUrl)
-  }, 100)
-}
-
-export async function moveUserFileToTrash(filename: string, accessToken: string): Promise<any> {
-  const res = await fetch(`${API_URL}/api/files/${encodeURIComponent(filename)}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to move file to trash')
-  return json.data
-}
-
 export async function listUserTrashedFiles(
   accessToken: string
 ): Promise<{ filename: string; size: number; modified: string }[]> {
@@ -284,6 +255,23 @@ export async function deleteUserFileFromTrash(filename: string, accessToken: str
   })
   const json = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
+  return json.data
+}
+
+export async function batchMoveUserFilesToTrash(
+  filenames: string[],
+  accessToken: string
+): Promise<any[]> {
+  const res = await fetch(`${API_URL}/api/files/batch-delete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ filenames })
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Batch delete failed')
   return json.data
 }
 

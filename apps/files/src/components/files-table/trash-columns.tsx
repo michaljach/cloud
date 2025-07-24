@@ -10,13 +10,23 @@ import {
   DialogTitle,
   DialogDescription
 } from '@repo/ui/components/base/dialog'
+import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
 
 export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
   return [
     {
       accessorKey: 'filename',
       header: 'Filename',
-      cell: ({ row }) => row.original.filename
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {row.original.type === 'folder' ? (
+            <FolderIcon className="w-4 h-4 text-yellow-600" />
+          ) : (
+            <FileIcon className="w-4 h-4 text-blue-600" />
+          )}
+          <span>{row.original.filename}</span>
+        </div>
+      )
     },
     {
       accessorKey: 'size',

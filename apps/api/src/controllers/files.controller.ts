@@ -7,10 +7,11 @@ import {
   decryptAndReadUserFile,
   listUserFiles,
   listUserFolderContents,
-  moveUserFileToTrash,
   listUserTrashedFiles,
   restoreUserFileFromTrash,
-  deleteUserFileFromTrash
+  deleteUserFileFromTrash,
+  batchMoveUserFilesToTrash,
+  streamUserFolderAsZip
 } from '@services/filesStorage.service'
 
 import { z } from 'zod'
@@ -32,25 +33,34 @@ const fileSchema = z.object({
 @JsonController('/files')
 export default class FilesController {
   /**
-   * POST /api/files
-   * Upload a new file for the authenticated user (encrypted)
+   * POST /api/files/batch
+   * Upload multiple files for the authenticated user (encrypted)
    */
-  @Post('/')
+  @Post('/batch')
   @UseBefore(authenticate)
-  @UseBefore(upload.single('file'))
-  async uploadUserFile(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
-    if (!req.file) {
-      return res.status(400).json({ success: false, data: null, error: 'No file uploaded' })
+  @UseBefore(upload.array('files'))
+  async uploadUserFilesBatch(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      return res.status(400).json({ success: false, data: null, error: 'No files uploaded' })
     }
-    // Validate file using Zod schema
-    const result = fileSchema.safeParse(req.file)
-    if (!result.success) {
-      return res.status(400).json({ success: false, data: null, error: result.error.message })
+    const results = []
+    for (const file of req.files) {
+      // Validate file using Zod schema
+      const result = fileSchema.safeParse(file)
+      if (!result.success) {
+        results.push({ filename: file.originalname, success: false, error: result.error.message })
+        continue
+      }
+      try {
+        encryptAndSaveUserFile(file.buffer, file.originalname, user.id)
+        results.push({ filename: file.originalname, success: true, error: null })
+      } catch (err: any) {
+        results.push({ filename: file.originalname, success: false, error: err.message })
+      }
     }
-    encryptAndSaveUserFile(req.file.buffer, req.file.originalname, user.id)
     return res.json({
       success: true,
-      data: { filename: req.file.originalname, message: 'File uploaded and encrypted' },
+      data: results,
       error: null
     })
   }
@@ -70,39 +80,6 @@ export default class FilesController {
       return res
         .status(500)
         .json({ success: false, data: null, error: 'Failed to list files/folders' })
-    }
-  }
-
-  /**
-   * GET /api/files/download-folder
-   * Download a folder as a zip file for the authenticated user
-   * Query: path=folder1/folder2
-   */
-  @Get('/download-folder')
-  @UseBefore(authenticate)
-  async downloadFolder(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
-    try {
-      const folderPath = typeof req.query.path === 'string' ? req.query.path : ''
-      // Get the absolute path to the user's folder
-      const baseDir = path.join(__dirname, '../../../storage', String(user.id), 'files')
-      const targetDir = folderPath ? path.join(baseDir, folderPath) : baseDir
-      console.log('Zipping folder:', targetDir)
-      if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) {
-        return res.status(404).json({ success: false, data: null, error: 'Folder not found' })
-      }
-      res.setHeader('Content-Type', 'application/zip')
-      res.setHeader('Content-Disposition', `attachment; filename="${path.basename(targetDir)}.zip"`)
-      const archive = archiver('zip', { zlib: { level: 9 } })
-      archive.on('error', (err) => {
-        res.status(500).end()
-      })
-      archive.pipe(res)
-      archive.directory(targetDir, false)
-      archive.finalize()
-    } catch (e) {
-      return res
-        .status(500)
-        .json({ success: false, data: null, error: 'Failed to download folder' })
     }
   }
 
@@ -134,25 +111,23 @@ export default class FilesController {
   }
 
   /**
-   * DELETE /api/files/:filename
-   * Move a file to trash (soft delete)
+   * POST /api/files/batch-delete
+   * Move multiple files to trash (soft delete)
+   * Body: { filenames: string[] }
    */
-  @Delete('/:filename')
+  @Post('/batch-delete')
   @UseBefore(authenticate)
-  async moveToTrash(
-    @CurrentUser() user: User,
-    @Param('filename') filename: string,
-    @Res() res: Response
-  ) {
-    if (!filename) {
-      return res.status(400).json({ success: false, data: null, error: 'Filename required' })
+  async batchMoveToTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    const { filenames } = req.body
+    if (!Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({ success: false, data: null, error: 'No filenames provided' })
     }
-    const ok = moveUserFileToTrash(user.id, filename)
-    if (ok) {
-      return res.json({ success: true, data: { filename }, error: null })
-    } else {
-      return res.status(404).json({ success: false, data: null, error: 'File not found' })
-    }
+    const results = batchMoveUserFilesToTrash(user.id, filenames)
+    return res.json({
+      success: true,
+      data: results,
+      error: null
+    })
   }
 
   /**
