@@ -14,7 +14,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <AppSidebar />
       <SidebarInset>
         <HeaderUserProvider title="Account" />
-        <main className="p-4">{children}</main>
+        <main className="p-8">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

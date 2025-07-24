@@ -83,6 +83,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
           )
         )
         .catch(() => setTrashedFiles([]))
+        .finally(() => setLoading(false))
     })
   }, [accessToken])
 

@@ -53,8 +53,6 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       setCurrentPath(
         currentPath ? `${currentPath}/${row.original.filename}` : row.original.filename
       )
-      // After changing path, refresh files
-      setTimeout(() => refreshFiles(), 0)
     }
   }
 
@@ -178,7 +176,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border relative">
+        {/* Show skeleton only if there is no data at all (first load) */}
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -196,7 +195,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             ))}
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {files.length === 0 && loading ? (
               <TableSkeleton />
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (

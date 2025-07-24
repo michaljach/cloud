@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <HeaderUserProvider title="Files">
                   <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
                 </HeaderUserProvider>
-                <main className="p-4">{children}</main>
+                <main className="p-8">{children}</main>
               </SidebarInset>
             </SidebarProvider>
           </FilesProvider>
