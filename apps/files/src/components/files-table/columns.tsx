@@ -153,7 +153,10 @@ export const columns: ColumnDef<FileRow>[] = [
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {file.type === 'file' && (
-                <DropdownMenuItem onClick={handleDownload}>Download</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownload}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={() => setDialogOpen(true)}>
                 <span className="text-red-500">Delete</span>

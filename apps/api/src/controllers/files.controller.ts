@@ -23,11 +23,33 @@ import archiver from 'archiver'
 import fs from 'fs'
 import path from 'path'
 
-const upload = multer({ storage: multer.memoryStorage() })
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(process.cwd(), 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir)
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename to avoid conflicts
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+      cb(null, `${uniqueSuffix}-${file.originalname}`)
+    }
+  }),
+  limits: {
+    fileSize: 10000 * 1024 * 1024, // 100MB limit per file
+    files: 10 // Maximum 10 files per request
+  }
+})
 
 const fileSchema = z.object({
   originalname: z.string().min(1, 'Filename is required'),
-  buffer: z.instanceof(Buffer, { message: 'File buffer is required' })
+  path: z.string().min(1, 'File path is required'),
+  size: z.number().min(1, 'File size must be greater than 0')
 })
 
 @JsonController('/files')
@@ -52,9 +74,19 @@ export default class FilesController {
         continue
       }
       try {
-        encryptAndSaveUserFile(file.buffer, file.originalname, user.id)
+        // Read file from disk and encrypt it
+        const fileBuffer = fs.readFileSync(file.path)
+        encryptAndSaveUserFile(fileBuffer, file.originalname, user.id)
+
+        // Clean up temporary file
+        fs.unlinkSync(file.path)
+
         results.push({ filename: file.originalname, success: true, error: null })
       } catch (err: any) {
+        // Clean up temporary file on error
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path)
+        }
         results.push({ filename: file.originalname, success: false, error: err.message })
       }
     }

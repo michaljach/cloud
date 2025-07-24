@@ -11,9 +11,10 @@
     "test": "jest"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.6",
     "@repo/types": "*",
     "@repo/ui": "*",
+    "@tailwindcss/postcss": "^4.1.6",
+    "jszip": "^3.10.1",
     "next": "15.4.1",
     "postcss": "^8.5.3",
     "react": "19.1.0",

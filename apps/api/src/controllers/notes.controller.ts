@@ -14,12 +14,36 @@ import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
 import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
+import fs from 'fs'
+import path from 'path'
 
-const upload = multer({ storage: multer.memoryStorage() })
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(process.cwd(), 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir)
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename to avoid conflicts
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+      cb(null, `${uniqueSuffix}-${file.originalname}`)
+    }
+  }),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit per file
+    files: 1 // Maximum 1 file per request for notes
+  }
+})
 
 const fileSchema = z.object({
   originalname: z.string().min(1, 'Filename is required'),
-  buffer: z.instanceof(Buffer, { message: 'File buffer is required' })
+  path: z.string().min(1, 'File path is required'),
+  size: z.number().min(1, 'File size must be greater than 0')
 })
 
 @JsonController('/notes')
@@ -36,12 +60,30 @@ export default class NotesController {
     if (!req.file) {
       return res.status(400).json({ success: false, data: null, error: 'No file uploaded' })
     }
-    encryptAndSaveNote(req.file.buffer, req.file.originalname, user.id)
-    return res.json({
-      success: true,
-      data: { filename: req.file.originalname, message: 'Note uploaded and encrypted' },
-      error: null
-    })
+    try {
+      // Read file from disk and encrypt it
+      const fileBuffer = fs.readFileSync(req.file.path)
+      encryptAndSaveNote(fileBuffer, req.file.originalname, user.id)
+
+      // Clean up temporary file
+      fs.unlinkSync(req.file.path)
+
+      return res.json({
+        success: true,
+        data: { filename: req.file.originalname, message: 'Note uploaded and encrypted' },
+        error: null
+      })
+    } catch (err: any) {
+      // Clean up temporary file on error
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path)
+      }
+      return res.status(500).json({
+        success: false,
+        data: null,
+        error: `Upload failed: ${err.message}`
+      })
+    }
   }
 
   /**

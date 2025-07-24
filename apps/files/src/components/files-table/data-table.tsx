@@ -3,11 +3,17 @@
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useContext, useMemo } from 'react'
 import { FilesContext } from '../files-context'
-import { Folder, File as FileIcon, ArrowLeft } from 'lucide-react'
+import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
 import React from 'react'
 import { useUser } from '@repo/auth'
-import { uploadEncryptedUserFilesBatch, batchMoveUserFilesToTrash } from '@repo/api'
-import { encryptFile } from '@repo/utils'
+import {
+  uploadEncryptedUserFilesBatch,
+  batchMoveUserFilesToTrash,
+  downloadEncryptedUserFile
+} from '@repo/api'
+import { encryptFile, decryptFile } from '@repo/utils'
+import JSZip from 'jszip'
+import { toast } from 'sonner'
 
 import {
   Table,
@@ -44,8 +50,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const { files, loading, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
   const { accessToken } = useUser()
   const [dragActive, setDragActive] = React.useState(false)
-  const [status, setStatus] = React.useState<string | null>(null)
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = React.useState(false)
+  const [downloading, setDownloading] = React.useState(false)
 
   // Use provided data if available, otherwise use files from context
   const table = useReactTable({
@@ -97,28 +103,53 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     setDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       if (!accessToken) {
-        setStatus('Login required to upload')
+        toast.error('Login required to upload')
         return
       }
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
       const files = Array.from(e.dataTransfer.files) as File[]
-      setStatus(`Encrypting ${files.length} file(s)...`)
+
+      // Show initial toast
+      const toastId = toast.loading(`Encrypting ${files.length} file(s)...`)
+
       try {
-        // Encrypt all files in parallel
-        const encryptedFiles = await Promise.all(
+        // Read all files first to avoid permission issues
+        const fileData = await Promise.all(
           files.map(async (file) => {
-            const encrypted = await encryptFile(file, HARDCODED_KEY)
-            return { file: encrypted, filename: file.name }
+            const arrayBuffer = await file.arrayBuffer()
+            return { file, arrayBuffer, filename: file.name }
           })
         )
-        setStatus(`Uploading ${files.length} file(s)...`)
+
+        // Encrypt all files in parallel
+        const encryptedFiles = await Promise.all(
+          fileData.map(async ({ arrayBuffer, filename }) => {
+            const encrypted = await encryptFile(new Uint8Array(arrayBuffer), HARDCODED_KEY)
+            return { file: encrypted, filename }
+          })
+        )
+
+        // Update toast to show upload progress
+        toast.loading(`Uploading ${files.length} file(s)...`, { id: toastId })
+
         const results = await uploadEncryptedUserFilesBatch(encryptedFiles, accessToken)
         const successCount = results.filter((r: any) => r.success).length
         const errorCount = results.length - successCount
-        setStatus(`Upload complete! Success: ${successCount}, Failed: ${errorCount}`)
+
+        // Show success or partial success toast
+        if (errorCount === 0) {
+          toast.success(`Upload complete! Successfully uploaded ${successCount} file(s)`, {
+            id: toastId
+          })
+        } else {
+          toast.success(`Upload complete! Success: ${successCount}, Failed: ${errorCount}`, {
+            id: toastId
+          })
+        }
+
         refreshFiles()
       } catch (err: any) {
-        setStatus(`Batch upload error: ${err.message}`)
+        toast.error(`Batch upload error: ${err.message}`, { id: toastId })
       }
     }
   }
@@ -127,10 +158,76 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const selectedRows = table.getSelectedRowModel().rows
   const selectedFiles = selectedRows.map((row) => row.original)
 
+  // Filter selected files to only include actual files (not folders)
+  const selectedFileFiles = selectedFiles.filter((file) => file.type === 'file')
+
+  // Batch download handler
+  const handleBatchDownload = async () => {
+    if (!accessToken || selectedFileFiles.length === 0) return
+
+    setDownloading(true)
+
+    const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+
+    // Show initial toast
+    const toastId = toast.loading(`Downloading ${selectedFileFiles.length} file(s)...`)
+
+    try {
+      // Download and decrypt all files in parallel
+      const downloadPromises = selectedFileFiles.map(async (file) => {
+        const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
+        const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
+        const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
+        return { filename: file.filename, data: decrypted }
+      })
+
+      const downloadedFiles = await Promise.all(downloadPromises)
+
+      // Update toast to show zipping progress
+      toast.loading(`Creating zip archive...`, { id: toastId })
+
+      // Create zip file
+      const zip = new JSZip()
+
+      // Add each file to the zip
+      downloadedFiles.forEach(({ filename, data }) => {
+        zip.file(filename, data)
+      })
+
+      // Generate zip file
+      const zipBlob = await zip.generateAsync({ type: 'blob' })
+
+      // Download the zip file
+      const url = URL.createObjectURL(zipBlob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `files-${new Date().toISOString().split('T')[0]}.zip`
+      document.body.appendChild(a)
+      a.click()
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 100)
+
+      // Show success toast
+      toast.success(`Downloaded ${downloadedFiles.length} file(s) as zip successfully!`, {
+        id: toastId
+      })
+    } catch (err: any) {
+      // Show error toast
+      toast.error(`Batch download error: ${err.message}`, { id: toastId })
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   // Batch delete handler (now only does the delete, not confirmation)
   const handleBatchDelete = async () => {
     if (!accessToken || selectedFiles.length === 0) return
-    setStatus('Deleting selected files...')
+
+    // Show initial toast
+    const toastId = toast.loading(`Deleting ${selectedFiles.length} file(s)...`)
+
     // Delete both files and folders
     const fileNamesToDelete = selectedFiles.map((f) =>
       currentPath ? `${currentPath}/${f.filename}` : f.filename
@@ -139,9 +236,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       const results = await batchMoveUserFilesToTrash(fileNamesToDelete, accessToken)
       const successCount = results.filter((r: any) => r.success).length
       const errorCount = results.length - successCount
-      setStatus(`Batch delete complete! Success: ${successCount}, Failed: ${errorCount}`)
+
+      if (errorCount === 0) {
+        toast.success(`Successfully moved ${successCount} file(s) to trash`, { id: toastId })
+      } else {
+        toast.success(`Batch delete complete! Success: ${successCount}, Failed: ${errorCount}`, {
+          id: toastId
+        })
+      }
     } catch (err: any) {
-      setStatus(`Batch delete error: ${err.message}`)
+      toast.error(`Batch delete error: ${err.message}`, { id: toastId })
     }
     refreshFiles()
     table.resetRowSelection()
@@ -193,6 +297,17 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         <div className="flex items-center gap-2">
           {selectedFiles.length > 0 && (
             <>
+              {selectedFileFiles.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBatchDownload}
+                  disabled={downloading}
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Download Selected ({selectedFileFiles.length})
+                </Button>
+              )}
               <Button
                 variant="destructive"
                 size="sm"
@@ -292,7 +407,6 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           </TableBody>
         </Table>
       </div>
-      {status && <div className="text-sm text-muted-foreground mt-2">{status}</div>}
     </div>
   )
 }
