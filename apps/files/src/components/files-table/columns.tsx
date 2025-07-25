@@ -43,6 +43,7 @@ export const columns: ColumnDef<FileRow>[] = [
         checked={
           table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
+        onDoubleClick={(e) => e.stopPropagation()}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
       />
@@ -51,6 +52,7 @@ export const columns: ColumnDef<FileRow>[] = [
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onDoubleClick={(e) => e.stopPropagation()}
         aria-label="Select row"
       />
     ),
