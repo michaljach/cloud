@@ -3,6 +3,7 @@ export interface User {
   username: string
   fullName?: string
   role: string
+  storageLimit: number
   workspaceId?: string
   workspace?: {
     id: string

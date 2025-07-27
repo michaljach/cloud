@@ -309,3 +309,55 @@ export async function getUsers(accessToken: string): Promise<User[]> {
   if (!json.success) throw new Error(json.error || 'Failed to fetch users')
   return json.data
 }
+
+/**
+ * Get storage limit for a user (admin/root_admin only)
+ */
+export async function getUserStorageLimit(
+  accessToken: string,
+  userId: string
+): Promise<{
+  userId: string
+  storageLimit: number
+  storageLimitMB: number
+}> {
+  const res = await fetch(`${API_URL}/api/users/${userId}/storage-limit`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<{
+    userId: string
+    storageLimit: number
+    storageLimitMB: number
+  }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to get storage limit')
+  return json.data
+}
+
+/**
+ * Update storage limit for a user (admin/root_admin only)
+ */
+export async function updateUserStorageLimit(
+  accessToken: string,
+  userId: string,
+  storageLimitMB: number
+): Promise<{
+  user: User
+  storageLimit: number
+  storageLimitMB: number
+}> {
+  const res = await fetch(`${API_URL}/api/users/${userId}/storage-limit`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ storageLimitMB })
+  })
+  const json: ApiResponse<{
+    user: User
+    storageLimit: number
+    storageLimitMB: number
+  }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to update storage limit')
+  return json.data
+}

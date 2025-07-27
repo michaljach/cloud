@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/ba
 import { Skeleton } from '@repo/ui/components/base/skeleton'
 
 export function StorageQuota() {
-  const { storageQuota, storageQuotaLoading, storageQuotaError } = useUser()
+  const { storageQuota, storageQuotaLoading, storageQuotaError, user } = useUser()
 
-  // Mock storage limit (you can make this configurable)
-  const STORAGE_LIMIT_MB = 1024 // 1GB limit
-  const STORAGE_LIMIT_BYTES = STORAGE_LIMIT_MB * 1024 * 1024
+  // Use user's actual storage limit
+  const STORAGE_LIMIT_BYTES = user?.storageLimit || 1073741824 // Default 1GB
+  const STORAGE_LIMIT_MB = Math.round((STORAGE_LIMIT_BYTES / (1024 * 1024)) * 100) / 100
 
   if (storageQuotaLoading) {
     return (
@@ -94,9 +94,16 @@ export function StorageQuota() {
         </div>
 
         {/* Storage warning */}
-        {usagePercentage > 80 && (
+        {usagePercentage > 80 && usagePercentage < 100 && (
           <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
             ⚠️ Storage usage is high ({usagePercentage.toFixed(1)}%)
+          </div>
+        )}
+
+        {/* Storage limit exceeded */}
+        {usagePercentage >= 100 && (
+          <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+            🚫 Storage limit exceeded ({usagePercentage.toFixed(1)}%)
           </div>
         )}
       </CardContent>

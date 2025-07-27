@@ -16,7 +16,12 @@ export async function createUser(
   role: 'root_admin' | 'admin' | 'user' = 'user'
 ): Promise<User> {
   const user = await prisma.user.create({ data: { username, password, role } })
-  return { id: user.id, username: user.username, role: user.role }
+  return {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    storageLimit: user.storageLimit
+  }
 }
 
 /**
@@ -27,7 +32,12 @@ export async function createUser(
 export async function getUserByUsername(username: string): Promise<User | null> {
   const user = await prisma.user.findUnique({ where: { username } })
   if (!user) return null
-  return { id: user.id, username: user.username, role: user.role }
+  return {
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    storageLimit: user.storageLimit
+  }
 }
 
 /**
@@ -45,7 +55,44 @@ export async function listUsers(workspaceId?: string): Promise<User[]> {
     username: user.username,
     fullName: user.fullName,
     role: user.role,
+    storageLimit: user.storageLimit,
     workspaceId: user.workspaceId,
     workspace: user.workspace ? { id: user.workspace.id, name: user.workspace.name } : undefined
   }))
+}
+
+/**
+ * Get storage limit for a specific user
+ * @param userId User ID
+ * @returns Storage limit in bytes
+ */
+export async function getUserStorageLimit(userId: string): Promise<number> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { storageLimit: true }
+  })
+  return user?.storageLimit || 1073741824 // Default 1GB
+}
+
+/**
+ * Update storage limit for a user
+ * @param userId User ID
+ * @param storageLimit New storage limit in bytes
+ * @returns Updated user
+ */
+export async function updateUserStorageLimit(userId: string, storageLimit: number): Promise<User> {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { storageLimit },
+    include: { workspace: true }
+  })
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: user.fullName,
+    role: user.role,
+    storageLimit: user.storageLimit,
+    workspaceId: user.workspaceId,
+    workspace: user.workspace ? { id: user.workspace.id, name: user.workspace.name } : undefined
+  }
 }

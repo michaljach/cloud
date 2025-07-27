@@ -21,14 +21,15 @@ model Workspace {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  username String @unique
-  password String
-  fullName String?
-  role     String  @default("user") // 'root_admin', 'admin', 'user'
-  tokens   OAuthToken[]
-  workspaceId String?
-  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  id           String  @id @default(uuid())
+  username     String  @unique
+  password     String
+  fullName     String?
+  role         String  @default("user") // 'root_admin', 'admin', 'user'
+  storageLimit Int     @default(1073741824) // 1GB in bytes
+  tokens       OAuthToken[]
+  workspaceId  String?
+  workspace    Workspace? @relation(fields: [workspaceId], references: [id])
 }
 
 model OAuthClient {

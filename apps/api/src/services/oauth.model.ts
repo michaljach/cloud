@@ -32,7 +32,14 @@ export default {
   getUser: async (username: string, password: string): Promise<SharedUser | null> => {
     const user = await prisma.user.findUnique({
       where: { username },
-      select: { id: true, username: true, password: true, fullName: true, role: true }
+      select: {
+        id: true,
+        username: true,
+        password: true,
+        fullName: true,
+        role: true,
+        storageLimit: true
+      }
     })
     if (!user) return null
     const valid = await bcrypt.compare(password, user.password)
@@ -41,7 +48,8 @@ export default {
       id: user.id,
       username: user.username,
       fullName: user.fullName,
-      role: user.role as 'root_admin' | 'admin' | 'user'
+      role: user.role as 'root_admin' | 'admin' | 'user',
+      storageLimit: user.storageLimit
     }
   },
   /**

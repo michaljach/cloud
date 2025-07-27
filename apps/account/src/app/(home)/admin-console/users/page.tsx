@@ -48,6 +48,7 @@ export default function AdminConsolePage() {
               <TableHead>Full Name</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Workspace</TableHead>
+              <TableHead>Storage Limit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -79,6 +80,11 @@ export default function AdminConsolePage() {
                   </span>
                 </TableCell>
                 <TableCell className="max-w-[10rem] truncate">{u.workspace?.name || '-'}</TableCell>
+                <TableCell className="max-w-[8rem] truncate">
+                  {u.storageLimit
+                    ? `${Math.round((u.storageLimit / (1024 * 1024)) * 100) / 100} MB`
+                    : '-'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

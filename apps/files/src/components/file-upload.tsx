@@ -11,7 +11,7 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [status, setStatus] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
-  const { accessToken, refreshStorageQuota } = useUser()
+  const { accessToken, refreshStorageQuota, user, storageQuota } = useUser()
   const { refreshFiles } = useContext(FilesContext)
 
   const handleUpload = async (selectedFiles: File[]) => {
@@ -19,6 +19,21 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       setStatus('File(s) and login required')
       return
     }
+
+    // Check storage limit before uploading
+    if (user && storageQuota) {
+      const totalFileSize = selectedFiles.reduce((sum, file) => sum + file.size, 0)
+      const currentUsage = storageQuota.totalUsage.bytes
+      const storageLimit = user.storageLimit
+
+      if (currentUsage + totalFileSize > storageLimit) {
+        const availableSpace = storageLimit - currentUsage
+        const availableMB = Math.round((availableSpace / (1024 * 1024)) * 100) / 100
+        setStatus(`Error: Not enough storage space. Available: ${availableMB} MB`)
+        return
+      }
+    }
+
     setStatus('Encrypting...')
     try {
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
