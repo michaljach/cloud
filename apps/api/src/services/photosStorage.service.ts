@@ -9,7 +9,8 @@ import {
   getUserFilePath as getStorageFilePath,
   deleteUserFile as deleteStorageFile,
   getUserFileMetadata as getStorageFileMetadata,
-  type FileInfo
+  type FileInfo,
+  calculateUserStorageUsageByType
 } from '../utils'
 
 const STORAGE_TYPE = 'photos'
@@ -54,4 +55,8 @@ export function encryptAndSavePhoto(fileBuffer: Buffer, filename: string, userId
 export function decryptAndReadPhoto(filename: string, userId: string): Buffer {
   const userDir = getUserPhotosDir(userId)
   return decryptAndReadFile({ filename, dir: userDir })
+}
+
+export function getUserPhotosStorageUsage(userId: string): number {
+  return calculateUserStorageUsageByType(userId, STORAGE_TYPE)
 }

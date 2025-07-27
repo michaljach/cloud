@@ -11,8 +11,12 @@ import {
   restoreUserFileFromTrash,
   deleteUserFileFromTrash,
   batchMoveUserFilesToTrash,
-  streamUserFolderAsZip
+  streamUserFolderAsZip,
+  getUserStorageUsage,
+  getUserFilesStorageUsage
 } from '@services/filesStorage.service'
+import { getUserNotesStorageUsage } from '@services/notesStorage.service'
+import { getUserPhotosStorageUsage } from '@services/photosStorage.service'
 
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
@@ -212,6 +216,56 @@ export default class FilesController {
       return res.json({ success: true, data: { filename }, error: null })
     } else {
       return res.status(404).json({ success: false, data: null, error: 'File not found in trash' })
+    }
+  }
+
+  /**
+   * GET /api/files/storage/quota
+   * Get storage usage information for the authenticated user
+   */
+  @Get('/storage/quota')
+  @UseBefore(authenticate)
+  async getStorageQuota(@CurrentUser() user: User, @Res() res: Response) {
+    try {
+      const totalUsage = getUserStorageUsage(user.id)
+      const filesUsage = getUserFilesStorageUsage(user.id)
+      const notesUsage = getUserNotesStorageUsage(user.id)
+      const photosUsage = getUserPhotosStorageUsage(user.id)
+
+      // Convert bytes to MB for easier reading
+      const totalUsageMB = Math.round((totalUsage / (1024 * 1024)) * 100) / 100
+      const filesUsageMB = Math.round((filesUsage / (1024 * 1024)) * 100) / 100
+      const notesUsageMB = Math.round((notesUsage / (1024 * 1024)) * 100) / 100
+      const photosUsageMB = Math.round((photosUsage / (1024 * 1024)) * 100) / 100
+
+      return res.json({
+        success: true,
+        data: {
+          totalUsage: {
+            bytes: totalUsage,
+            megabytes: totalUsageMB
+          },
+          breakdown: {
+            files: {
+              bytes: filesUsage,
+              megabytes: filesUsageMB
+            },
+            notes: {
+              bytes: notesUsage,
+              megabytes: notesUsageMB
+            },
+            photos: {
+              bytes: photosUsage,
+              megabytes: photosUsageMB
+            }
+          }
+        },
+        error: null
+      })
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ success: false, data: null, error: 'Failed to get storage quota' })
     }
   }
 }

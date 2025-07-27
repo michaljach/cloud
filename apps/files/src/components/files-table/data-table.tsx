@@ -48,7 +48,7 @@ interface DataTableProps<TData, TValue> {
 
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const { files, loading, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
-  const { accessToken } = useUser()
+  const { accessToken, refreshStorageQuota } = useUser()
   const [dragActive, setDragActive] = React.useState(false)
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = React.useState(false)
   const [downloading, setDownloading] = React.useState(false)
@@ -148,6 +148,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         }
 
         refreshFiles()
+        // Refresh storage quota
+        refreshStorageQuota()
       } catch (err: any) {
         toast.error(`Batch upload error: ${err.message}`, { id: toastId })
       }
@@ -248,6 +250,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       toast.error(`Batch delete error: ${err.message}`, { id: toastId })
     }
     refreshFiles()
+    // Refresh storage quota
+    refreshStorageQuota()
     table.resetRowSelection()
     setBatchDeleteDialogOpen(false)
   }

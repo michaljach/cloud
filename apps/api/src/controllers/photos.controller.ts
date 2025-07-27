@@ -2,7 +2,11 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { encryptAndSavePhoto, decryptAndReadPhoto } from '@services/photosStorage.service'
+import {
+  encryptAndSavePhoto,
+  decryptAndReadPhoto,
+  getUserPhotosStorageUsage
+} from '@services/photosStorage.service'
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
@@ -104,6 +108,36 @@ export default class PhotosController {
       return res
         .status(404)
         .json({ success: false, data: null, error: 'Photo not found or decryption failed' })
+    }
+  }
+
+  /**
+   * GET /api/photos/storage/quota
+   * Get storage usage information for photos for the authenticated user
+   */
+  @Get('/storage/quota')
+  @UseBefore(authenticate)
+  async getStorageQuota(@CurrentUser() user: User, @Res() res: Response) {
+    try {
+      const photosUsage = getUserPhotosStorageUsage(user.id)
+
+      // Convert bytes to MB for easier reading
+      const photosUsageMB = Math.round((photosUsage / (1024 * 1024)) * 100) / 100
+
+      return res.json({
+        success: true,
+        data: {
+          photosUsage: {
+            bytes: photosUsage,
+            megabytes: photosUsageMB
+          }
+        },
+        error: null
+      })
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ success: false, data: null, error: 'Failed to get storage quota' })
     }
   }
 }

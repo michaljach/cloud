@@ -111,7 +111,7 @@ export const columns: ColumnDef<FileRow>[] = [
     header: () => <div className="text-right" />,
     cell: ({ row }) => {
       const file = row.original
-      const { accessToken } = useUser()
+      const { accessToken, refreshStorageQuota } = useUser()
       const { currentPath, refreshFiles } = useContext(FilesContext)
       const [dialogOpen, setDialogOpen] = React.useState(false)
       const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
@@ -183,6 +183,8 @@ export const columns: ColumnDef<FileRow>[] = [
                     await batchMoveUserFilesToTrash([fullPath], accessToken)
                     setDialogOpen(false)
                     if (typeof refreshFiles === 'function') refreshFiles()
+                    // Refresh storage quota
+                    refreshStorageQuota()
                   }}
                 >
                   Move to Trash

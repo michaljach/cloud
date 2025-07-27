@@ -9,7 +9,8 @@ import {
   getUserFilePath as getStorageFilePath,
   deleteUserFile as deleteStorageFile,
   getUserFileMetadata as getStorageFileMetadata,
-  type FileInfo
+  type FileInfo,
+  calculateUserStorageUsageByType
 } from '../utils'
 
 const STORAGE_TYPE = 'notes'
@@ -54,4 +55,8 @@ export function encryptAndSaveNote(fileBuffer: Buffer, filename: string, userId:
 export function decryptAndReadNote(filename: string, userId: string): Buffer {
   const userDir = getUserNotesDir(userId)
   return decryptAndReadFile({ filename, dir: userDir })
+}
+
+export function getUserNotesStorageUsage(userId: string): number {
+  return calculateUserStorageUsageByType(userId, STORAGE_TYPE)
 }

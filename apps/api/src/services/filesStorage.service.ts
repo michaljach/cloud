@@ -14,7 +14,9 @@ import {
   type FolderOrFileInfo,
   listUserTrashedFiles as listTrashedFiles,
   restoreUserFileFromTrash as restoreFileFromTrash,
-  deleteUserFileFromTrash as deleteFileFromTrash
+  deleteUserFileFromTrash as deleteFileFromTrash,
+  calculateUserStorageUsage,
+  calculateUserStorageUsageByType
 } from '../utils'
 import fs from 'fs'
 import path from 'path'
@@ -109,6 +111,14 @@ export function batchMoveUserFilesToTrash(
     }
   }
   return results
+}
+
+export function getUserStorageUsage(userId: string): number {
+  return calculateUserStorageUsage(userId)
+}
+
+export function getUserFilesStorageUsage(userId: string): number {
+  return calculateUserStorageUsageByType(userId, STORAGE_TYPE)
 }
 
 export function streamUserFolderAsZip(

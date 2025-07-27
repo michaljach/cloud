@@ -222,3 +222,73 @@ export function deleteUserFileFromTrash(userId: string, type: string, filename: 
   }
   return false
 }
+
+/**
+ * Calculate total storage usage for a user across all storage types
+ * Returns total size in bytes
+ */
+export function calculateUserStorageUsage(userId: string): number {
+  const userDir = path.join(STORAGE_DIR, String(userId))
+  if (!fs.existsSync(userDir)) {
+    return 0
+  }
+
+  let totalSize = 0
+
+  function calculateDirSize(dirPath: string): number {
+    let size = 0
+    if (!fs.existsSync(dirPath)) {
+      return size
+    }
+
+    const items = fs.readdirSync(dirPath)
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item)
+      const stat = fs.statSync(itemPath)
+
+      if (stat.isDirectory()) {
+        size += calculateDirSize(itemPath)
+      } else {
+        size += stat.size
+      }
+    }
+    return size
+  }
+
+  return calculateDirSize(userDir)
+}
+
+/**
+ * Calculate storage usage for a specific storage type for a user
+ * Returns total size in bytes
+ */
+export function calculateUserStorageUsageByType(userId: string, type: string): number {
+  const userDir = getUserStorageDir(userId, type)
+  if (!fs.existsSync(userDir)) {
+    return 0
+  }
+
+  let totalSize = 0
+
+  function calculateDirSize(dirPath: string): number {
+    let size = 0
+    if (!fs.existsSync(dirPath)) {
+      return size
+    }
+
+    const items = fs.readdirSync(dirPath)
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item)
+      const stat = fs.statSync(itemPath)
+
+      if (stat.isDirectory()) {
+        size += calculateDirSize(itemPath)
+      } else {
+        size += stat.size
+      }
+    }
+    return size
+  }
+
+  return calculateDirSize(userDir)
+}

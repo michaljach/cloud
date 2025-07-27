@@ -11,7 +11,7 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [status, setStatus] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
-  const { accessToken } = useUser()
+  const { accessToken, refreshStorageQuota } = useUser()
   const { refreshFiles } = useContext(FilesContext)
 
   const handleUpload = async (selectedFiles: File[]) => {
@@ -33,6 +33,8 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       setStatus('Upload successful!')
       setFiles([])
       refreshFiles()
+      // Refresh storage quota
+      refreshStorageQuota()
       if (onUploaded) onUploaded()
     } catch (err: any) {
       setStatus('Error: ' + err.message)

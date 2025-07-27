@@ -24,6 +24,7 @@ import {
 } from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
 import { FileUpload } from './file-upload'
+import { StorageQuota } from './storage-quota'
 import Link from 'next/link'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -87,7 +88,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>v0.1</SidebarFooter>
+      <SidebarFooter>
+        <StorageQuota />
+        v0.1
+      </SidebarFooter>
     </Sidebar>
   )
 }

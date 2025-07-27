@@ -275,6 +275,29 @@ export async function batchMoveUserFilesToTrash(
   return json.data
 }
 
+export async function getStorageQuota(accessToken: string): Promise<{
+  totalUsage: { bytes: number; megabytes: number }
+  breakdown: {
+    files: { bytes: number; megabytes: number }
+    notes: { bytes: number; megabytes: number }
+    photos: { bytes: number; megabytes: number }
+  }
+}> {
+  const res = await fetch(`${API_URL}/api/files/storage/quota`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<{
+    totalUsage: { bytes: number; megabytes: number }
+    breakdown: {
+      files: { bytes: number; megabytes: number }
+      notes: { bytes: number; megabytes: number }
+      photos: { bytes: number; megabytes: number }
+    }
+  }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to get storage quota')
+  return json.data
+}
+
 /**
  * Fetch all users (admin/root_admin only)
  */

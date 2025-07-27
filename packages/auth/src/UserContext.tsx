@@ -10,9 +10,18 @@ import React, {
   useCallback
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, loginUser, logoutUser, refreshToken } from '@repo/api'
+import { getCurrentUser, loginUser, logoutUser, refreshToken, getStorageQuota } from '@repo/api'
 import { User } from '@repo/types'
 import Cookies from 'js-cookie'
+
+interface StorageQuotaData {
+  totalUsage: { bytes: number; megabytes: number }
+  breakdown: {
+    files: { bytes: number; megabytes: number }
+    notes: { bytes: number; megabytes: number }
+    photos: { bytes: number; megabytes: number }
+  }
+}
 
 interface UserContextType {
   accessToken: string | null
@@ -20,10 +29,14 @@ interface UserContextType {
   user: User | null
   loading: boolean
   error: string | null
+  storageQuota: StorageQuotaData | null
+  storageQuotaLoading: boolean
+  storageQuotaError: string | null
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
   updateUser: (updateUser: User) => Promise<void>
+  refreshStorageQuota: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -36,6 +49,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [storageQuota, setStorageQuota] = useState<StorageQuotaData | null>(null)
+  const [storageQuotaLoading, setStorageQuotaLoading] = useState(false)
+  const [storageQuotaError, setStorageQuotaError] = useState<string | null>(null)
   const router = useRouter()
   const refreshTimeout = React.useRef<NodeJS.Timeout | null>(null)
 
@@ -117,6 +133,35 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const updateUser = useCallback(async (updatedUser: User) => {
     setUser(updatedUser)
   }, [])
+
+  // Refresh storage quota method
+  const refreshStorageQuota = useCallback(async () => {
+    if (!accessToken) {
+      setStorageQuota(null)
+      return
+    }
+
+    try {
+      setStorageQuotaLoading(true)
+      setStorageQuotaError(null)
+      const data = await getStorageQuota(accessToken)
+      setStorageQuota(data)
+    } catch (err: any) {
+      setStorageQuotaError(err.message)
+      console.error('Failed to fetch storage quota:', err)
+    } finally {
+      setStorageQuotaLoading(false)
+    }
+  }, [accessToken])
+
+  // Fetch storage quota when accessToken changes
+  useEffect(() => {
+    if (accessToken && user) {
+      refreshStorageQuota()
+    } else {
+      setStorageQuota(null)
+    }
+  }, [accessToken, user, refreshStorageQuota])
 
   // Login method
   const login = useCallback(async (username: string, passwordInput: string) => {
@@ -220,12 +265,30 @@ export function UserProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       error,
+      storageQuota,
+      storageQuotaLoading,
+      storageQuotaError,
       login,
       logout,
       refresh,
-      updateUser
+      updateUser,
+      refreshStorageQuota
     }),
-    [accessToken, refreshTokenState, user, loading, error, login, logout, refresh, updateUser]
+    [
+      accessToken,
+      refreshTokenState,
+      user,
+      loading,
+      error,
+      storageQuota,
+      storageQuotaLoading,
+      storageQuotaError,
+      login,
+      logout,
+      refresh,
+      updateUser,
+      refreshStorageQuota
+    ]
   )
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
