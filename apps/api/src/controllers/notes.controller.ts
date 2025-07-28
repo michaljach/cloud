@@ -5,8 +5,7 @@ import type { User } from '@repo/types'
 import {
   encryptAndSaveNote,
   decryptAndReadNote,
-  listUserNotes,
-  getUserNotesStorageUsage
+  listUserNotes
 } from '@services/notesStorage.service'
 
 import { base64urlDecode } from '@repo/utils'
@@ -127,36 +126,6 @@ export default class NotesController {
       return res.json({ success: true, data: files, error: null })
     } catch (e) {
       return res.status(500).json({ success: false, data: null, error: 'Failed to list notes' })
-    }
-  }
-
-  /**
-   * GET /api/notes/storage/quota
-   * Get storage usage information for notes for the authenticated user
-   */
-  @Get('/storage/quota')
-  @UseBefore(authenticate)
-  async getStorageQuota(@CurrentUser() user: User, @Res() res: Response) {
-    try {
-      const notesUsage = getUserNotesStorageUsage(user.id)
-
-      // Convert bytes to MB for easier reading
-      const notesUsageMB = Math.round((notesUsage / (1024 * 1024)) * 100) / 100
-
-      return res.json({
-        success: true,
-        data: {
-          notesUsage: {
-            bytes: notesUsage,
-            megabytes: notesUsageMB
-          }
-        },
-        error: null
-      })
-    } catch (e) {
-      return res
-        .status(500)
-        .json({ success: false, data: null, error: 'Failed to get storage quota' })
     }
   }
 }

@@ -22,6 +22,7 @@ import { listUserNotes } from '@repo/api'
 import { useUser } from '@repo/auth'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
+import { StorageQuota } from './storage-quota'
 
 const data = {
   user: {
@@ -95,7 +96,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>v0.1</SidebarFooter>
+      <SidebarFooter>
+        <StorageQuota />
+        v0.1
+      </SidebarFooter>
     </Sidebar>
   )
 }

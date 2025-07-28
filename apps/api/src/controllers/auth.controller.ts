@@ -12,6 +12,9 @@ import { z } from 'zod'
 import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
 import { CurrentUser } from '../decorators/currentUser'
+import { getUserStorageUsage, getUserFilesStorageUsage } from '@services/filesStorage.service'
+import { getUserNotesStorageUsage } from '@services/notesStorage.service'
+import { getUserPhotosStorageUsage } from '@services/photosStorage.service'
 
 const client_id = process.env.OAUTH_CLIENT_ID
 const client_secret = process.env.OAUTH_CLIENT_SECRET
@@ -107,6 +110,18 @@ export default class AuthController {
         return res.status(404).json({ success: false, data: null, error: 'User not found' })
       }
 
+      // Get storage usage data
+      const totalUsage = getUserStorageUsage(user.id)
+      const filesUsage = getUserFilesStorageUsage(user.id)
+      const notesUsage = getUserNotesStorageUsage(user.id)
+      const photosUsage = getUserPhotosStorageUsage(user.id)
+
+      // Convert bytes to MB for easier reading
+      const totalUsageMB = Math.round((totalUsage / (1024 * 1024)) * 100) / 100
+      const filesUsageMB = Math.round((filesUsage / (1024 * 1024)) * 100) / 100
+      const notesUsageMB = Math.round((notesUsage / (1024 * 1024)) * 100) / 100
+      const photosUsageMB = Math.round((photosUsage / (1024 * 1024)) * 100) / 100
+
       const safeUser: User = {
         id: completeUser.id,
         username: completeUser.username,
@@ -122,7 +137,33 @@ export default class AuthController {
           : undefined
       }
 
-      return res.json({ success: true, data: safeUser, error: null })
+      return res.json({
+        success: true,
+        data: {
+          user: safeUser,
+          storageQuota: {
+            totalUsage: {
+              bytes: totalUsage,
+              megabytes: totalUsageMB
+            },
+            breakdown: {
+              files: {
+                bytes: filesUsage,
+                megabytes: filesUsageMB
+              },
+              notes: {
+                bytes: notesUsage,
+                megabytes: notesUsageMB
+              },
+              photos: {
+                bytes: photosUsage,
+                megabytes: photosUsageMB
+              }
+            }
+          }
+        },
+        error: null
+      })
     } catch (err) {
       return handleError(res, err, 500)
     }

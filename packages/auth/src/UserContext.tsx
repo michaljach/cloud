@@ -10,7 +10,7 @@ import React, {
   useCallback
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, loginUser, logoutUser, refreshToken, getStorageQuota } from '@repo/api'
+import { getCurrentUser, loginUser, logoutUser, refreshToken } from '@repo/api'
 import { User } from '@repo/types'
 import Cookies from 'js-cookie'
 
@@ -30,8 +30,6 @@ interface UserContextType {
   loading: boolean
   error: string | null
   storageQuota: StorageQuotaData | null
-  storageQuotaLoading: boolean
-  storageQuotaError: string | null
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
@@ -50,8 +48,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [storageQuota, setStorageQuota] = useState<StorageQuotaData | null>(null)
-  const [storageQuotaLoading, setStorageQuotaLoading] = useState(false)
-  const [storageQuotaError, setStorageQuotaError] = useState<string | null>(null)
   const router = useRouter()
   const refreshTimeout = React.useRef<NodeJS.Timeout | null>(null)
 
@@ -109,15 +105,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async function fetchUser() {
       if (!accessToken) {
         setUser(null)
+        setStorageQuota(null)
         return
       }
       try {
         setLoading(true)
         setError(null)
-        const user = await getCurrentUser(accessToken)
-        setUser(user)
+        const result = await getCurrentUser(accessToken)
+        setUser(result.user)
+        setStorageQuota(result.storageQuota)
       } catch (e: unknown) {
         setUser(null)
+        setStorageQuota(null)
         setError(e instanceof Error ? e.message : 'Unknown error')
         await logout()
         router.push('/login')
@@ -134,7 +133,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUser(updatedUser)
   }, [])
 
-  // Refresh storage quota method
+  // Refresh storage quota method - now fetches user data which includes storage quota
   const refreshStorageQuota = useCallback(async () => {
     if (!accessToken) {
       setStorageQuota(null)
@@ -142,26 +141,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      setStorageQuotaLoading(true)
-      setStorageQuotaError(null)
-      const data = await getStorageQuota(accessToken)
-      setStorageQuota(data)
+      const result = await getCurrentUser(accessToken)
+      setUser(result.user)
+      setStorageQuota(result.storageQuota)
     } catch (err: any) {
-      setStorageQuotaError(err.message)
-      console.error('Failed to fetch storage quota:', err)
-    } finally {
-      setStorageQuotaLoading(false)
+      console.error('Failed to fetch user data:', err)
     }
   }, [accessToken])
-
-  // Fetch storage quota when accessToken changes
-  useEffect(() => {
-    if (accessToken && user) {
-      refreshStorageQuota()
-    } else {
-      setStorageQuota(null)
-    }
-  }, [accessToken, user, refreshStorageQuota])
 
   // Login method
   const login = useCallback(async (username: string, passwordInput: string) => {
@@ -266,8 +252,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       storageQuota,
-      storageQuotaLoading,
-      storageQuotaError,
       login,
       logout,
       refresh,
@@ -281,8 +265,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       storageQuota,
-      storageQuotaLoading,
-      storageQuotaError,
       login,
       logout,
       refresh,

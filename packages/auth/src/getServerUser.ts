@@ -24,7 +24,8 @@ export async function getServerUser(
   try {
     // Import getCurrentUser from @repo/api to avoid circular dependency
     const { getCurrentUser } = await import('@repo/api')
-    return await getCurrentUser(accessToken)
+    const result = await getCurrentUser(accessToken)
+    return result.user
   } catch {
     return null
   }
