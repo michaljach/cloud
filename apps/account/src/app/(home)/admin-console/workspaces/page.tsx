@@ -38,6 +38,7 @@ import {
   SelectValue
 } from '@repo/ui/components/base/select'
 import { Badge } from '@repo/ui/components/base/badge'
+import { WorkspaceEditModal } from '../../../../components/workspace-edit-modal'
 
 interface Workspace {
   id: string
@@ -78,6 +79,7 @@ export default function WorkspacesPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [membersModalOpen, setMembersModalOpen] = useState(false)
   const [addMemberModalOpen, setAddMemberModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null)
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([])
   const [newWorkspaceName, setNewWorkspaceName] = useState('')
@@ -194,6 +196,11 @@ export default function WorkspacesPage() {
     }
   }
 
+  const handleEditWorkspace = (workspace: Workspace) => {
+    setSelectedWorkspace(workspace)
+    setEditModalOpen(true)
+  }
+
   if (loading) return <div>Loading...</div>
   if (error) return <div>{error}</div>
 
@@ -228,9 +235,19 @@ export default function WorkspacesPage() {
               <TableCell>{workspace.name}</TableCell>
               <TableCell className="font-mono text-sm">{workspace.id}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm" onClick={() => handleViewMembers(workspace)}>
-                  View Members
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditWorkspace(workspace)}
+                  >
+                    <Icon.Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleViewMembers(workspace)}>
+                    View Members
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -404,6 +421,14 @@ export default function WorkspacesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Workspace Edit Modal */}
+      <WorkspaceEditModal
+        workspace={selectedWorkspace}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSuccess={refreshWorkspaces}
+      />
     </div>
   )
 }

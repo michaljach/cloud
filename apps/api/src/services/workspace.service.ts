@@ -190,3 +190,21 @@ export async function getUserWorkspaces(userId: string): Promise<UserWorkspace[]
   })
   return userWorkspaces
 }
+
+/**
+ * Update a workspace
+ * @param id Workspace ID
+ * @param name New workspace name
+ * @returns Updated workspace
+ */
+export async function updateWorkspace(id: string, name: string): Promise<Workspace> {
+  const workspace = await prisma.workspace.update({
+    where: { id },
+    data: { name },
+    select: {
+      id: true,
+      name: true
+    }
+  })
+  return workspace
+}

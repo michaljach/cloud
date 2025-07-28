@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useUser } from '@repo/auth'
-import { getMyWorkspaces, getWorkspaceMembers } from '@repo/api'
+import {
+  getMyWorkspaces,
+  getWorkspaceMembers,
+  updateUserWorkspaceRole,
+  removeUserFromWorkspace
+} from '@repo/api'
 import {
   Card,
   CardContent,
@@ -20,9 +25,17 @@ import {
   TableRow,
   TableCell
 } from '@repo/ui/components/base/table'
-import { Building2, Users, Calendar, ArrowLeft, Shield, Crown, User } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@repo/ui/components/base/select'
+import { Building2, Users, Calendar, ArrowLeft, Shield, Crown, User, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { WorkspaceEditModal } from '../../../../components/workspace-edit-modal'
 
 interface WorkspaceMembership {
   id: string
@@ -62,6 +75,9 @@ export default function WorkspaceDetailsPage() {
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const [isUpdatingRole, setIsUpdatingRole] = useState(false)
 
   const refreshWorkspaceData = async () => {
     if (!accessToken) return
@@ -86,6 +102,34 @@ export default function WorkspaceDetailsPage() {
       setError(err instanceof Error ? err.message : 'Failed to fetch workspace data')
     } finally {
       setIsLoadingMembers(false)
+    }
+  }
+
+  const handleUpdateRole = async (userId: string, newRole: 'owner' | 'admin' | 'member') => {
+    if (!accessToken || !workspaceId) return
+
+    setIsUpdatingRole(true)
+    setError(null) // Clear any previous errors
+    try {
+      await updateUserWorkspaceRole(accessToken, workspaceId, userId, newRole)
+      await refreshWorkspaceData()
+      setEditingMemberId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update role')
+    } finally {
+      setIsUpdatingRole(false)
+    }
+  }
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!accessToken || !workspaceId) return
+
+    setError(null) // Clear any previous errors
+    try {
+      await removeUserFromWorkspace(accessToken, workspaceId, userId)
+      await refreshWorkspaceData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove member')
     }
   }
 
@@ -138,10 +182,27 @@ export default function WorkspaceDetailsPage() {
             {getRoleIcon(workspaceMembership.role)}
             <span className="ml-1">{workspaceMembership.role}</span>
           </Badge>
+          {(workspaceMembership.role === 'owner' || workspaceMembership.role === 'admin') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditModalOpen(true)}
+              className="ml-2"
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+          )}
         </div>
 
         <p className="text-muted-foreground">Workspace ID: {workspaceMembership.workspace.id}</p>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Workspace Info Card */}
@@ -264,11 +325,50 @@ export default function WorkspaceDetailsPage() {
                       {workspaceMembership.role === 'owner' ||
                       (workspaceMembership.role === 'admin' && member.role === 'member') ? (
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            Edit Role
-                          </Button>
+                          {editingMemberId === member.userId ? (
+                            <div className="flex gap-2">
+                              <Select
+                                defaultValue={member.role}
+                                onValueChange={(value: 'owner' | 'admin' | 'member') =>
+                                  handleUpdateRole(member.userId, value)
+                                }
+                                disabled={isUpdatingRole}
+                              >
+                                <SelectTrigger className="w-24">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="owner">Owner</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                  <SelectItem value="member">Member</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingMemberId(null)}
+                                disabled={isUpdatingRole}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingMemberId(member.userId)}
+                              disabled={isUpdatingRole}
+                            >
+                              Edit Role
+                            </Button>
+                          )}
                           {member.role !== 'owner' && (
-                            <Button variant="outline" size="sm">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.userId)}
+                              disabled={isUpdatingRole}
+                            >
                               Remove
                             </Button>
                           )}
@@ -284,6 +384,21 @@ export default function WorkspaceDetailsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Workspace Edit Modal */}
+      <WorkspaceEditModal
+        workspace={
+          workspaceMembership
+            ? {
+                id: workspaceMembership.workspace.id,
+                name: workspaceMembership.workspace.name
+              }
+            : null
+        }
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSuccess={refreshWorkspaceData}
+      />
     </div>
   )
 }

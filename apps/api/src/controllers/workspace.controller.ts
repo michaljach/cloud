@@ -22,7 +22,8 @@ import {
   addUserToWorkspace,
   removeUserFromWorkspace,
   updateUserWorkspaceRole,
-  getUserWorkspaces
+  getUserWorkspaces,
+  updateWorkspace
 } from '@services/workspace.service'
 import { getUserById } from '@services/users.service'
 import { isRootAdmin } from '../utils'
@@ -102,6 +103,48 @@ export default class WorkspaceController {
       }
 
       return res.json({ success: true, data: workspace.userWorkspaces, error: null })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, data: null, error: err.message })
+    }
+  }
+
+  /**
+   * PUT /api/workspaces/:id
+   * Update workspace properties (admin/root_admin only)
+   */
+  @Put('/:id')
+  @UseBefore(authenticate)
+  @UseBefore(validate(z.object({ name: z.string().min(1, 'Workspace name is required') })))
+  async update(
+    @CurrentUser() oauthUser: User,
+    @Param('id') workspaceId: string,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    try {
+      const workspace = await getWorkspaceWithMembers(workspaceId)
+      if (!workspace) {
+        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+      }
+
+      // Check permissions: root admin can edit any workspace, admin can only edit workspaces they're admin/owner of
+      if (!isRootAdmin(user)) {
+        const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
+        if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
+          return res
+            .status(403)
+            .json({ success: false, data: null, error: 'Insufficient permissions' })
+        }
+      }
+
+      const { name } = req.body
+      const updatedWorkspace = await updateWorkspace(workspaceId, name)
+      return res.json({ success: true, data: updatedWorkspace, error: null })
     } catch (err: any) {
       return res.status(500).json({ success: false, data: null, error: err.message })
     }

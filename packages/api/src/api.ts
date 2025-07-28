@@ -437,6 +437,27 @@ export async function createWorkspace(
   return json.data
 }
 
+/**
+ * Update a workspace (admin/root_admin only)
+ */
+export async function updateWorkspace(
+  accessToken: string,
+  workspaceId: string,
+  name: string
+): Promise<{ id: string; name: string }> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ name })
+  })
+  const json: ApiResponse<{ id: string; name: string }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to update workspace')
+  return json.data
+}
+
 export async function getMyWorkspaces(accessToken: string): Promise<any[]> {
   const res = await fetch(`${API_URL}/api/workspaces/my`, {
     headers: { Authorization: `Bearer ${accessToken}` }
