@@ -68,6 +68,26 @@ A modern monorepo with Next.js (dashboard), Express API (OAuth2), and shared Pos
 
 ---
 
+## CI/CD
+
+This project uses GitHub Actions for continuous integration. The CI pipeline runs on every pull request and when merging to the main branch.
+
+### What the CI does:
+
+- **Tests**: Runs all tests across the monorepo using Turborepo
+- **Type Checking**: Validates TypeScript types
+- **Linting**: Checks code style and quality
+- **Build**: Ensures the project builds successfully
+- **Security**: Runs security audits on dependencies
+- **Database**: Sets up PostgreSQL for API tests
+
+### Workflow Files:
+
+- `.github/workflows/ci.yml` - Main CI pipeline
+- `.github/pull_request_template.md` - PR template
+
+---
+
 ## More Info
 
 - API: `apps/api/README.md`
