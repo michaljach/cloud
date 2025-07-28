@@ -99,14 +99,6 @@ export function LoginForm({
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? 'Logging in...' : 'Login'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    type="button"
-                    disabled={isSubmitting}
-                  >
-                    Login with Google
-                  </Button>
                 </div>
               </div>
               <div className="mt-4 text-center text-sm">

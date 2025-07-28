@@ -46,12 +46,8 @@ export function SignupForm({
   const {
     handleSubmit,
     formState: { isSubmitting },
-    setError,
-    watch
+    setError
   } = form
-
-  const password = watch('password')
-  const confirmPassword = watch('confirmPassword')
 
   async function onSubmit(values: { username: string; password: string; confirmPassword: string }) {
     // Validate password confirmation
@@ -135,14 +131,6 @@ export function SignupForm({
                 <div className="flex flex-col gap-3">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? 'Creating account...' : 'Create account'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    type="button"
-                    disabled={isSubmitting}
-                  >
-                    Sign up with Google
                   </Button>
                 </div>
               </div>

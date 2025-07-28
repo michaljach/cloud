@@ -23,6 +23,7 @@ import { useUser } from '@repo/auth'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
 import { StorageQuota } from './storage-quota'
+import { Skeleton } from '@repo/ui/components/base/skeleton'
 
 const data = {
   user: {
@@ -71,8 +72,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Notes</SidebarGroupLabel>
           <SidebarGroupContent>
-            {loading && <div>Loading...</div>}
+            {loading && (
+              <div className="space-y-2 px-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-6 w-2/3" />
+              </div>
+            )}
             {error && <div className="text-red-500">{error}</div>}
+            {!loading && !error && notes.length === 0 && (
+              <div className="text-muted-foreground text-sm px-2 py-1">No notes</div>
+            )}
             {notes.map((file) => (
               <SidebarMenuButton
                 key={file}
@@ -98,7 +108,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <StorageQuota />
-        v0.1
       </SidebarFooter>
     </Sidebar>
   )

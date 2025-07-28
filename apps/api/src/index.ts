@@ -5,6 +5,8 @@ import { useExpressServer } from 'routing-controllers'
 import FilesController from './controllers/files.controller'
 import AuthController from './controllers/auth.controller'
 import UsersController from './controllers/users.controller'
+import NotesController from './controllers/notes.controller'
+import PhotosController from './controllers/photos.controller'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -20,7 +22,7 @@ app.use(express.urlencoded({ extended: true }))
 
 useExpressServer(app, {
   routePrefix: '/api',
-  controllers: [FilesController, AuthController, UsersController] // TODO: Add other controllers here
+  controllers: [FilesController, AuthController, UsersController, NotesController, PhotosController]
 })
 
 // Catch-all error handler for consistent JSON errors

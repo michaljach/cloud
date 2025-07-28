@@ -90,7 +90,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <StorageQuota />
-        v0.1
       </SidebarFooter>
     </Sidebar>
   )

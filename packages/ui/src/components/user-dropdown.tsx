@@ -11,15 +11,7 @@ import {
   DropdownMenuTrigger
 } from '@repo/ui/components/base/dropdown-menu'
 import { SidebarMenuButton } from '@repo/ui/components/base/sidebar'
-import {
-  AmpersandIcon,
-  Bell,
-  CreditCard,
-  LogOut,
-  MoreVertical,
-  Settings,
-  ShieldUser
-} from 'lucide-react'
+import { Bell, CreditCard, LogOut, MoreVertical, Settings, ShieldUser } from 'lucide-react'
 import { User } from '@repo/types'
 
 export function UserDropdown({
