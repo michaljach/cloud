@@ -15,12 +15,46 @@ export async function createUser(
   password: string,
   role: 'root_admin' | 'admin' | 'user' = 'user'
 ): Promise<User> {
-  const user = await prisma.user.create({ data: { username, password, role } })
+  const user = await prisma.user.create({
+    data: { username, password, role },
+    select: {
+      id: true,
+      username: true,
+      role: true,
+      storageLimit: true,
+      fullName: true,
+      workspaceId: true
+    }
+  })
   return {
     id: user.id,
     username: user.username,
     role: user.role,
-    storageLimit: user.storageLimit
+    storageLimit: user.storageLimit,
+    fullName: user.fullName,
+    workspaceId: user.workspaceId
+  }
+}
+
+/**
+ * Get a user by ID
+ * @param userId User ID
+ * @returns User object or null if not found
+ */
+export async function getUserById(userId: string): Promise<User | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { workspace: true }
+  })
+  if (!user) return null
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: user.fullName,
+    role: user.role,
+    storageLimit: user.storageLimit,
+    workspaceId: user.workspaceId,
+    workspace: user.workspace ? { id: user.workspace.id, name: user.workspace.name } : undefined
   }
 }
 
@@ -30,13 +64,25 @@ export async function createUser(
  * @returns User object (id, username, role) or null if not found
  */
 export async function getUserByUsername(username: string): Promise<User | null> {
-  const user = await prisma.user.findUnique({ where: { username } })
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      username: true,
+      role: true,
+      storageLimit: true,
+      fullName: true,
+      workspaceId: true
+    }
+  })
   if (!user) return null
   return {
     id: user.id,
     username: user.username,
     role: user.role,
-    storageLimit: user.storageLimit
+    storageLimit: user.storageLimit,
+    fullName: user.fullName,
+    workspaceId: user.workspaceId
   }
 }
 
@@ -75,15 +121,18 @@ export async function getUserStorageLimit(userId: string): Promise<number> {
 }
 
 /**
- * Update storage limit for a user
+ * Update user properties
  * @param userId User ID
- * @param storageLimit New storage limit in bytes
+ * @param data Object containing properties to update
  * @returns Updated user
  */
-export async function updateUserStorageLimit(userId: string, storageLimit: number): Promise<User> {
+export async function updateUser(
+  userId: string,
+  data: { fullName?: string; role?: string; workspaceId?: string }
+): Promise<User> {
   const user = await prisma.user.update({
     where: { id: userId },
-    data: { storageLimit },
+    data,
     include: { workspace: true }
   })
   return {

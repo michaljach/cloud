@@ -1,10 +1,20 @@
 import 'reflect-metadata'
-import { JsonController, Get, Post, Patch, Param, Res, UseBefore, Body } from 'routing-controllers'
-import type { Response } from 'express'
+import {
+  JsonController,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Res,
+  UseBefore,
+  Body,
+  Req
+} from 'routing-controllers'
+import type { Response, Request } from 'express'
 import { authenticate } from '@middleware/authenticate'
 import { CurrentUser } from '../decorators/currentUser'
 import type { User } from '@repo/types'
-import { listUsers, updateUserStorageLimit, getUserStorageLimit } from '@services/users.service'
+import { listUsers, getUserStorageLimit, updateUser, getUserById } from '@services/users.service'
 import { z } from 'zod'
 
 @JsonController('/users')
@@ -62,26 +72,63 @@ export default class UsersController {
   }
 
   /**
-   * PATCH /api/users/:userId/storage-limit
-   * Update storage limit for a user (admin/root_admin only)
+   * PATCH /api/users/:userId
+   * Update user properties (admin/root_admin only)
    */
-  @Patch('/:userId/storage-limit')
+  @Patch('/:userId')
   @UseBefore(authenticate)
-  async updateStorageLimit(
+  async updateUserProperties(
     @CurrentUser() currentUser: User,
     @Param('userId') userId: string,
-    @Body() body: { storageLimitMB: number },
+    @Req() req: Request,
     @Res() res: Response
   ) {
     if (currentUser.role !== 'root_admin' && currentUser.role !== 'admin') {
       return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
     }
 
+    const body = req.body as { fullName?: string; role?: string; workspaceId?: string }
+
+    // Get the target user to check workspace permissions
+    const targetUser = await getUserById(userId)
+    if (!targetUser) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    // Workspace security check: admin can only edit users in the same workspace
+    if (currentUser.role === 'admin') {
+      if (!currentUser.workspaceId) {
+        return res.status(400).json({ success: false, data: null, error: 'Admin has no workspace' })
+      }
+      if (targetUser.workspaceId !== currentUser.workspaceId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          error: 'Admin can only edit users in the same workspace'
+        })
+      }
+    }
+
+    // Only root_admin can change roles
+    if (body.role && currentUser.role !== 'root_admin') {
+      return res
+        .status(403)
+        .json({ success: false, data: null, error: 'Only root admin can change roles' })
+    }
+
+    // Only root_admin can change workspace assignments
+    if (body.workspaceId && currentUser.role !== 'root_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        error: 'Only root admin can change workspace assignments'
+      })
+    }
+
     const schema = z.object({
-      storageLimitMB: z
-        .number()
-        .min(0.1, 'Storage limit must be at least 0.1 MB')
-        .max(10000, 'Storage limit cannot exceed 10GB')
+      fullName: z.string().min(1).optional(),
+      role: z.enum(['root_admin', 'admin', 'user']).optional(),
+      workspaceId: z.string().uuid().optional()
     })
 
     const validation = schema.safeParse(body)
@@ -90,16 +137,10 @@ export default class UsersController {
     }
 
     try {
-      const storageLimitBytes = Math.round(validation.data.storageLimitMB * 1024 * 1024)
-      const updatedUser = await updateUserStorageLimit(userId, storageLimitBytes)
-
+      const updatedUser = await updateUser(userId, validation.data)
       return res.json({
         success: true,
-        data: {
-          user: updatedUser,
-          storageLimit: storageLimitBytes,
-          storageLimitMB: validation.data.storageLimitMB
-        },
+        data: { user: updatedUser },
         error: null
       })
     } catch (err: any) {

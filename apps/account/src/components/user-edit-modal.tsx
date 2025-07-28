@@ -1,0 +1,195 @@
+'use client'
+
+import React, { useEffect, useState } from 'react'
+import { useForm } from '@repo/ui/hooks/use-form'
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage
+} from '@repo/ui/components/base/form'
+import { Input } from '@repo/ui/components/base/input'
+import { Button } from '@repo/ui/components/base/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@repo/ui/components/base/dialog'
+import { useUser } from '@repo/auth'
+import { updateUser } from '@repo/api'
+import type { User } from '@repo/types'
+
+interface UserEditModalProps {
+  user: User | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSuccess: () => void
+}
+
+export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditModalProps) {
+  const { accessToken } = useUser()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const form = useForm<{
+    fullName: string
+    role: string
+    workspaceId: string
+  }>({
+    defaultValues: {
+      fullName: '',
+      role: 'user',
+      workspaceId: ''
+    }
+  })
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting: formSubmitting },
+    setError: setFormError,
+    reset,
+    watch
+  } = form
+
+  const currentUser = useUser().user
+  const canEditRole = currentUser?.role === 'root_admin'
+  const canEditWorkspace = currentUser?.role === 'root_admin'
+
+  useEffect(() => {
+    if (user) {
+      reset({
+        fullName: user.fullName || '',
+        role: user.role,
+        workspaceId: user.workspaceId || ''
+      })
+    }
+  }, [user, reset])
+
+  async function handleFormSubmit(values: { fullName: string; role: string; workspaceId: string }) {
+    if (!accessToken || !user) return
+
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const updateData: { fullName?: string; role?: string; workspaceId?: string } = {}
+
+      // Only include fields that have changed
+      if (values.fullName !== user.fullName) {
+        updateData.fullName = values.fullName
+      }
+
+      if (canEditRole && values.role !== user.role) {
+        updateData.role = values.role
+      }
+
+      if (canEditWorkspace && values.workspaceId !== user.workspaceId) {
+        updateData.workspaceId = values.workspaceId || undefined
+      }
+
+      // Only make the API call if there are changes
+      if (Object.keys(updateData).length > 0) {
+        await updateUser(accessToken, user.id, updateData)
+        onSuccess()
+        onOpenChange(false)
+      } else {
+        onOpenChange(false)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>
+            Update user information. Only root admins can change roles and workspace assignments.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter full name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {canEditRole && (
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="root_admin">Root Admin</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {canEditWorkspace && (
+              <FormField
+                control={form.control}
+                name="workspaceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Workspace ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter workspace ID (optional)" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {error && <div className="text-sm text-red-600">{error}</div>}
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}

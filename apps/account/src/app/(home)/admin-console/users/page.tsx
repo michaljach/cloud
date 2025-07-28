@@ -13,12 +13,27 @@ import { useUser } from '@repo/auth'
 import { getUsers } from '@repo/api'
 import { Card } from '@repo/ui/components/base/card'
 import { Badge } from '@repo/ui/components/base/badge'
+import { Button } from '@repo/ui/components/base/button'
 import { Icon } from '@repo/ui/components/base/icons'
+import { UserEditModal } from '@/components/user-edit-modal'
+import type { User } from '@repo/types'
 
 export default function AdminConsolePage() {
   const { user, loading, accessToken } = useUser()
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+
+  const refreshUsers = async () => {
+    if (!accessToken) return
+    try {
+      const fetchedUsers = await getUsers(accessToken)
+      setUsers(fetchedUsers)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch users')
+    }
+  }
 
   useEffect(() => {
     if (!user || !accessToken) return
@@ -26,10 +41,17 @@ export default function AdminConsolePage() {
       setError('Forbidden')
       return
     }
-    getUsers(accessToken)
-      .then(setUsers)
-      .catch((err) => setError(err.message || 'Failed to fetch users'))
+    refreshUsers()
   }, [user, accessToken])
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user)
+    setEditModalOpen(true)
+  }
+
+  const handleEditSuccess = () => {
+    refreshUsers()
+  }
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>{error}</div>
@@ -49,6 +71,7 @@ export default function AdminConsolePage() {
               <TableHead>Role</TableHead>
               <TableHead>Workspace</TableHead>
               <TableHead>Storage Limit</TableHead>
+              <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -85,11 +108,28 @@ export default function AdminConsolePage() {
                     ? `${Math.round((u.storageLimit / (1024 * 1024)) * 100) / 100} MB`
                     : '-'}
                 </TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditUser(u)}
+                    className="h-8 px-2"
+                  >
+                    <Icon.Edit className="w-3 h-3" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      <UserEditModal
+        user={editingUser}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   )
 }

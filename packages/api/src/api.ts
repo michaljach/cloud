@@ -361,3 +361,24 @@ export async function updateUserStorageLimit(
   if (!json.success) throw new Error(json.error || 'Failed to update storage limit')
   return json.data
 }
+
+/**
+ * Update user properties (admin/root_admin only)
+ */
+export async function updateUser(
+  accessToken: string,
+  userId: string,
+  data: { fullName?: string; role?: string; workspaceId?: string }
+): Promise<{ user: User }> {
+  const res = await fetch(`${API_URL}/api/users/${userId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify(data)
+  })
+  const json: ApiResponse<{ user: User }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to update user')
+  return json.data
+}
