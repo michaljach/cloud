@@ -30,21 +30,21 @@ import {
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
 
-// Utility function to check if user is root admin
+// Utility functions for user permissions
+const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
+
 function isRootAdmin(user: any): boolean {
   return (
     user?.workspaces?.some(
-      (uw: any) => uw.role === 'owner' && uw.workspace.name === 'System Admin'
+      (uw: any) => uw.role === 'owner' && uw.workspace.id === SYSTEM_ADMIN_WORKSPACE_ID
     ) ?? false
   )
 }
 
-// Utility function to check if user is admin in any workspace
 function isAdmin(user: any): boolean {
   return user?.workspaces?.some((uw: any) => uw.role === 'admin' || uw.role === 'owner') ?? false
 }
 
-// Utility function to check if user has any workspaces
 function hasWorkspaces(user: any): boolean {
   return (user?.workspaces?.length ?? 0) > 0
 }
@@ -52,8 +52,8 @@ function hasWorkspaces(user: any): boolean {
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const cookiesStore = await cookies()
   const user = await getServerUser({ cookies: () => cookiesStore })
-  const userIsAdmin = isAdmin(user)
   const userIsRootAdmin = isRootAdmin(user)
+  const userIsAdmin = isAdmin(user)
   const userHasWorkspaces = hasWorkspaces(user)
 
   return (
@@ -132,7 +132,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                 </SidebarMenuItem>
               </SidebarMenu>
             )}
-            {userIsAdmin && (
+            {userIsRootAdmin && (
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Administration console">
@@ -147,18 +147,13 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         <Link href="/admin-console/users">Users</Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
-                    {userIsRootAdmin && (
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <Link href="/admin-console/workspaces">Workspaces</Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    )}
+
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton asChild>
-                        <Link href="/admin-console/roles">Roles</Link>
+                        <Link href="/admin-console/workspaces">Workspaces</Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
+
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton asChild>
                         <Link href="/admin-console/settings">Settings</Link>

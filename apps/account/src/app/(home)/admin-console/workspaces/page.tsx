@@ -40,6 +40,17 @@ import {
 import { Badge } from '@repo/ui/components/base/badge'
 import { WorkspaceEditModal } from '../../../../components/workspace-edit-modal'
 
+// Utility function to check if user is root admin
+const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
+
+function isRootAdmin(user: any): boolean {
+  return (
+    user?.workspaces?.some(
+      (uw: any) => uw.role === 'owner' && uw.workspace.id === SYSTEM_ADMIN_WORKSPACE_ID
+    ) ?? false
+  )
+}
+
 interface Workspace {
   id: string
   name: string
@@ -124,12 +135,10 @@ export default function WorkspacesPage() {
   useEffect(() => {
     if (!user || !accessToken) return
 
-    // Check if user is root admin (owner of System Admin workspace)
-    const isRootAdmin =
-      user?.workspaces?.some((uw) => uw.role === 'owner' && uw.workspace.name === 'System Admin') ??
-      false
+    // Check if user is root admin
+    const userIsRootAdmin = isRootAdmin(user)
 
-    if (!user || !isRootAdmin) {
+    if (!user || !userIsRootAdmin) {
       setError('Forbidden')
       return
     }
@@ -204,12 +213,10 @@ export default function WorkspacesPage() {
   if (loading) return <div>Loading...</div>
   if (error) return <div>{error}</div>
 
-  // Check if user is root admin (owner of System Admin workspace)
-  const isRootAdmin =
-    user?.workspaces?.some((uw) => uw.role === 'owner' && uw.workspace.name === 'System Admin') ??
-    false
+  // Check if user is root admin
+  const userIsRootAdmin = isRootAdmin(user)
 
-  if (!user || !isRootAdmin) return <div>Access denied</div>
+  if (!user || !userIsRootAdmin) return <div>Access denied</div>
 
   return (
     <div className="p-6">

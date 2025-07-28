@@ -9,7 +9,9 @@
   "files": [
     "dist"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@repo/types": "*"
+  },
   "peerDependencies": {},
   "devDependencies": {}
 }

@@ -26,15 +26,17 @@ import { UserEditModal } from '../../../../components/user-edit-modal'
 import { formatFileSize } from '@repo/utils'
 import type { User } from '@repo/types'
 
-// Utility function to check if user is root admin
+// Utility functions for user permissions
+const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
+
 function isRootAdmin(user: User): boolean {
   return (
-    user.workspaces?.some((uw) => uw.role === 'owner' && uw.workspace.name === 'System Admin') ??
-    false
+    user.workspaces?.some(
+      (uw) => uw.role === 'owner' && uw.workspace.id === SYSTEM_ADMIN_WORKSPACE_ID
+    ) ?? false
   )
 }
 
-// Utility function to check if user is admin in any workspace
 function isAdmin(user: User): boolean {
   return user.workspaces?.some((uw) => uw.role === 'admin' || uw.role === 'owner') ?? false
 }
@@ -77,7 +79,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!user || !accessToken) return
-    if (!isAdmin(user)) {
+    if (!isRootAdmin(user)) {
       setError('Forbidden')
       return
     }

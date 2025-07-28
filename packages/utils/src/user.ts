@@ -1,10 +1,5 @@
 import type { User } from '@repo/types'
 
-// Export all utility functions
-export * from './cryptoStorageUtils'
-export * from './fileStorageUtils'
-export * from './handleError'
-
 // System Admin workspace ID constant
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
 
@@ -32,10 +27,10 @@ export function isAdmin(user: User): boolean {
 }
 
 /**
- * Get all workspaces where a user is an admin or owner
+ * Check if a user has any workspaces
  * @param user The user to check
- * @returns Array of workspace memberships where user is admin/owner
+ * @returns true if the user has at least one workspace
  */
-export function getAdminWorkspaces(user: User) {
-  return user.workspaces?.filter((uw) => uw.role === 'admin' || uw.role === 'owner') ?? []
+export function hasWorkspaces(user: User): boolean {
+  return (user.workspaces?.length ?? 0) > 0
 }

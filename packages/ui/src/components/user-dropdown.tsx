@@ -90,7 +90,7 @@ export function UserDropdown({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {user?.workspaces?.some(
-          (uw) => uw.role === 'owner' && uw.workspace.name === 'System Admin'
+          (uw) => uw.role === 'owner' && uw.workspace.id === 'system-admin-workspace'
         ) && (
           <DropdownMenuItem>
             <ShieldUser />
