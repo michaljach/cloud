@@ -2,12 +2,25 @@ export interface User {
   id: string
   username: string
   fullName?: string
-  role: string
   storageLimit: number // Storage limit in MB
-  workspaceId?: string
-  workspace?: {
+  workspaces?: UserWorkspace[]
+  // Add other public fields as needed
+}
+
+export interface UserWorkspace {
+  id: string
+  userId: string
+  workspaceId: string
+  role: string // 'owner', 'admin', 'member'
+  joinedAt: Date
+  workspace: {
     id: string
     name: string
   }
-  // Add other public fields as needed
+}
+
+export interface Workspace {
+  id: string
+  name: string
+  userWorkspaces?: UserWorkspace[]
 }

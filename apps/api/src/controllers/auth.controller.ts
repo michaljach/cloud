@@ -83,7 +83,6 @@ export default class AuthController {
       const safeUser: User = {
         id: user.id,
         username: user.username,
-        role: user.role,
         storageLimit: user.storageLimit
       }
       return res.status(201).json({ success: true, data: safeUser, error: null })
@@ -103,7 +102,18 @@ export default class AuthController {
       // Get complete user data including workspace info
       const completeUser = await prisma.user.findUnique({
         where: { id: user.id },
-        include: { workspace: true }
+        include: {
+          userWorkspaces: {
+            include: {
+              workspace: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
+            }
+          }
+        }
       })
 
       if (!completeUser) {
@@ -126,15 +136,8 @@ export default class AuthController {
         id: completeUser.id,
         username: completeUser.username,
         fullName: completeUser.fullName,
-        role: completeUser.role,
         storageLimit: Number(completeUser.storageLimit),
-        workspaceId: completeUser.workspaceId,
-        workspace: completeUser.workspace
-          ? {
-              id: completeUser.workspace.id,
-              name: completeUser.workspace.name
-            }
-          : undefined
+        workspaces: completeUser.userWorkspaces
       }
 
       return res.json({
@@ -186,7 +189,6 @@ export default class AuthController {
         id: prismaUser.id,
         username: prismaUser.username,
         fullName: prismaUser.fullName,
-        role: prismaUser.role,
         storageLimit: prismaUser.storageLimit
       }
       return res.json({ success: true, data: safeUser, error: null })

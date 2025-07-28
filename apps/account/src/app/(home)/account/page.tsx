@@ -1,28 +1,22 @@
-import { DetailsForm } from '@/components/details-form'
 import { getServerUser } from '@repo/auth'
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-
-export const metadata = {
-  title: 'Account | Cloud',
-  description: 'Manage your account details and settings.'
-}
+import { DetailsForm } from '@/components/details-form'
 
 export default async function AccountPage() {
   const cookiesStore = await cookies()
   const user = await getServerUser({ cookies: () => cookiesStore })
 
   if (!user) {
-    redirect(`/login?redirect=/account`)
+    return <div>Not authenticated</div>
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-2xl font-bold mb-2">Account settings</h1>
-      <p className="text-muted-foreground mb-8">
-        Update your personal information and account preferences.
-      </p>
-      <h2 className="text-lg font-semibold mb-4">Personal details</h2>
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Account Settings</h1>
+        <p className="text-muted-foreground">Manage your account information and preferences</p>
+      </div>
+
       <DetailsForm user={user} />
     </div>
   )

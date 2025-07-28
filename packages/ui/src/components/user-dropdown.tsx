@@ -89,7 +89,9 @@ export function UserDropdown({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {user?.role === 'root_admin' && (
+        {user?.workspaces?.some(
+          (uw) => uw.role === 'owner' && uw.workspace.name === 'System Admin'
+        ) && (
           <DropdownMenuItem>
             <ShieldUser />
             Admininistration panel

@@ -12,10 +12,21 @@ import {
 } from 'routing-controllers'
 import type { Response, Request } from 'express'
 import { authenticate } from '@middleware/authenticate'
+import { validate } from '@middleware/validate'
 import { CurrentUser } from '../decorators/currentUser'
 import type { User } from '@repo/types'
-import { listUsers, getUserStorageLimit, updateUser, getUserById } from '@services/users.service'
+import {
+  listUsers,
+  getUserStorageLimit,
+  updateUser,
+  getUserById,
+  createUser,
+  getUserByUsername
+} from '@services/users.service'
+import { getUserWorkspaces } from '@services/workspace.service'
+import { isRootAdmin, isAdmin, getAdminWorkspaces } from '../utils'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 
 @JsonController('/users')
 export default class UsersController {
@@ -25,18 +36,113 @@ export default class UsersController {
    */
   @Get('/')
   @UseBefore(authenticate)
-  async list(@CurrentUser() user: User, @Res() res: Response) {
-    if (user.role === 'root_admin') {
+  async list(@CurrentUser() oauthUser: User, @Res() res: Response) {
+    // Fetch complete user data including workspace information
+    const user = await getUserById(oauthUser.id)
+
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    if (isRootAdmin(user)) {
       const users = await listUsers()
       return res.json({ success: true, data: users, error: null })
-    } else if (user.role === 'admin') {
-      if (!user.workspaceId) {
-        return res.status(400).json({ success: false, data: null, error: 'Admin has no workspace' })
+    } else if (isAdmin(user)) {
+      // Get users from all workspaces where the user is admin/owner
+      const adminWorkspaces = getAdminWorkspaces(user)
+      const allUsers = new Map<string, User>()
+
+      for (const userWorkspace of adminWorkspaces) {
+        const workspaceUsers = await listUsers(userWorkspace.workspaceId)
+        workspaceUsers.forEach((u) => {
+          if (!allUsers.has(u.id)) {
+            allUsers.set(u.id, u)
+          }
+        })
       }
-      const users = await listUsers(user.workspaceId)
-      return res.json({ success: true, data: users, error: null })
+
+      return res.json({ success: true, data: Array.from(allUsers.values()), error: null })
     } else {
       return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+    }
+  }
+
+  /**
+   * POST /api/users
+   * Create a new user (root_admin only)
+   */
+  @Post('/')
+  @UseBefore(authenticate)
+  @UseBefore(
+    validate(
+      z.object({
+        username: z.string().min(1, 'Username is required'),
+        password: z.string().min(6, 'Password must be at least 6 characters'),
+        fullName: z.string().optional(),
+        storageLimitMB: z
+          .number()
+          .min(1, 'Storage limit must be at least 1 MB')
+          .max(1000000, 'Storage limit cannot exceed 1000GB')
+          .optional()
+      })
+    )
+  )
+  async create(@CurrentUser() oauthUser: User, @Req() req: Request, @Res() res: Response) {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    if (!isRootAdmin(user)) {
+      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+    }
+
+    const { username, password, fullName, storageLimitMB = 1024 } = req.body
+
+    try {
+      // Check if username already exists
+      const existingUser = await getUserByUsername(username)
+      if (existingUser) {
+        return res
+          .status(409)
+          .json({ success: false, data: null, error: 'Username already exists' })
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10)
+
+      // Create user data
+      const userData: any = {
+        username,
+        password: hashedPassword,
+        storageLimit: storageLimitMB
+      }
+
+      if (fullName) {
+        userData.fullName = fullName
+      }
+
+      const newUser = await createUser(username, hashedPassword)
+
+      // Update additional fields if provided
+      if (fullName || storageLimitMB !== 1024) {
+        const updateData: any = {}
+        if (fullName) updateData.fullName = fullName
+        if (storageLimitMB !== 1024) updateData.storageLimit = storageLimitMB
+
+        await updateUser(newUser.id, updateData)
+      }
+
+      // Get the complete user data
+      const completeUser = await getUserById(newUser.id)
+
+      return res.status(201).json({
+        success: true,
+        data: { user: completeUser },
+        error: null
+      })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, data: null, error: err.message })
     }
   }
 
@@ -47,11 +153,16 @@ export default class UsersController {
   @Get('/:userId/storage-limit')
   @UseBefore(authenticate)
   async getStorageLimit(
-    @CurrentUser() currentUser: User,
+    @CurrentUser() oauthUser: User,
     @Param('userId') userId: string,
     @Res() res: Response
   ) {
-    if (currentUser.role !== 'root_admin' && currentUser.role !== 'admin') {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    if (!isRootAdmin(user) && !isAdmin(user)) {
       return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
     }
 
@@ -78,19 +189,22 @@ export default class UsersController {
   @Patch('/:userId')
   @UseBefore(authenticate)
   async updateUserProperties(
-    @CurrentUser() currentUser: User,
+    @CurrentUser() oauthUser: User,
     @Param('userId') userId: string,
     @Req() req: Request,
     @Res() res: Response
   ) {
-    if (currentUser.role !== 'root_admin' && currentUser.role !== 'admin') {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    if (!isRootAdmin(user) && !isAdmin(user)) {
       return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
     }
 
     const body = req.body as {
       fullName?: string
-      role?: string
-      workspaceId?: string
       storageLimitMB?: number
     }
 
@@ -100,40 +214,26 @@ export default class UsersController {
       return res.status(404).json({ success: false, data: null, error: 'User not found' })
     }
 
-    // Workspace security check: admin can only edit users in the same workspace
-    if (currentUser.role === 'admin') {
-      if (!currentUser.workspaceId) {
-        return res.status(400).json({ success: false, data: null, error: 'Admin has no workspace' })
-      }
-      if (targetUser.workspaceId !== currentUser.workspaceId) {
+    // Workspace security check: admin can only edit users in the same workspaces
+    if (!isRootAdmin(user)) {
+      const targetUserWorkspaces = await getUserWorkspaces(userId)
+
+      // Check if there's any overlap in workspaces where current user is admin/owner
+      const currentAdminWorkspaceIds = getAdminWorkspaces(user).map((uw) => uw.workspaceId)
+      const targetWorkspaceIds = targetUserWorkspaces.map((uw) => uw.workspaceId)
+      const hasOverlap = currentAdminWorkspaceIds.some((id) => targetWorkspaceIds.includes(id))
+
+      if (!hasOverlap) {
         return res.status(403).json({
           success: false,
           data: null,
-          error: 'Admin can only edit users in the same workspace'
+          error: 'Admin can only edit users in the same workspaces'
         })
       }
     }
 
-    // Only root_admin can change roles
-    if (body.role && currentUser.role !== 'root_admin') {
-      return res
-        .status(403)
-        .json({ success: false, data: null, error: 'Only root admin can change roles' })
-    }
-
-    // Only root_admin can change workspace assignments
-    if (body.workspaceId && currentUser.role !== 'root_admin') {
-      return res.status(403).json({
-        success: false,
-        data: null,
-        error: 'Only root admin can change workspace assignments'
-      })
-    }
-
     const schema = z.object({
       fullName: z.string().min(1).optional(),
-      role: z.enum(['root_admin', 'admin', 'user']).optional(),
-      workspaceId: z.string().uuid().optional(),
       storageLimitMB: z
         .number()
         .min(1, 'Storage limit must be at least 1 MB')

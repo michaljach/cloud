@@ -37,7 +37,6 @@ export default {
         username: true,
         password: true,
         fullName: true,
-        role: true,
         storageLimit: true
       }
     })
@@ -48,7 +47,6 @@ export default {
       id: user.id,
       username: user.username,
       fullName: user.fullName,
-      role: user.role as 'root_admin' | 'admin' | 'user',
       storageLimit: user.storageLimit
     }
   },
@@ -95,7 +93,7 @@ export default {
         grants: grants.split(','),
         redirectUris: redirectUris.split(',')
       },
-      user: { id: userId, username, role: user.role } as SharedUser
+      user: { id: userId, username } as SharedUser
     }
   },
   /**
@@ -108,7 +106,7 @@ export default {
       where: { accessToken },
       include: {
         client: true,
-        user: { select: { id: true, username: true, fullName: true, role: true } }
+        user: { select: { id: true, username: true, fullName: true, storageLimit: true } }
       }
     })
     if (!dbToken) return null
@@ -122,7 +120,7 @@ export default {
       user: dbUser
     } = dbToken
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
-    const { id: userId, username, fullName, role } = dbUser
+    const { id: userId, username, fullName, storageLimit } = dbUser
     return {
       accessToken,
       accessTokenExpiresAt,
@@ -135,7 +133,7 @@ export default {
         grants: grants.split(','),
         redirectUris: redirectUris.split(',')
       },
-      user: { id: userId, username, fullName, role } as SharedUser
+      user: { id: userId, username, fullName, storageLimit } as SharedUser
     }
   },
   /**

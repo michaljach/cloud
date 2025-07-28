@@ -7,6 +7,7 @@ import AuthController from './controllers/auth.controller'
 import UsersController from './controllers/users.controller'
 import NotesController from './controllers/notes.controller'
 import PhotosController from './controllers/photos.controller'
+import WorkspaceController from './controllers/workspace.controller'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -22,7 +23,14 @@ app.use(express.urlencoded({ extended: true }))
 
 useExpressServer(app, {
   routePrefix: '/api',
-  controllers: [FilesController, AuthController, UsersController, NotesController, PhotosController]
+  controllers: [
+    FilesController,
+    AuthController,
+    UsersController,
+    NotesController,
+    PhotosController,
+    WorkspaceController
+  ]
 })
 
 // Catch-all error handler for consistent JSON errors

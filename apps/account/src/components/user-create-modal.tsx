@@ -30,34 +30,36 @@ import {
   SelectValue
 } from '@repo/ui/components/base/select'
 import { useUser } from '@repo/auth'
-import { updateUser } from '@repo/api'
-import type { User } from '@repo/types'
+import { createUser } from '@repo/api'
 
-interface UserEditModalProps {
-  user: User | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
-}
-
-const updateUserSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
+const createUserSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().optional(),
   storageLimitMB: z
     .number()
     .min(1, 'Storage limit must be at least 1 MB')
     .max(1000000, 'Storage limit cannot exceed 1000GB')
 })
 
-type UpdateUserFormData = z.infer<typeof updateUserSchema>
+type CreateUserFormData = z.infer<typeof createUserSchema>
 
-export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditModalProps) {
+interface UserCreateModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSuccess: () => void
+}
+
+export function UserCreateModal({ open, onOpenChange, onSuccess }: UserCreateModalProps) {
   const { accessToken } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<UpdateUserFormData>({
-    resolver: zodResolver(updateUserSchema),
+  const form = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
+      username: '',
+      password: '',
       fullName: '',
       storageLimitMB: 1024 // Default 1GB
     }
@@ -66,74 +68,86 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
   const {
     handleSubmit,
     formState: { isSubmitting: formSubmitting },
-    setError: setFormError,
     reset
   } = form
 
+  // Reset form when modal opens/closes
   useEffect(() => {
-    if (user) {
-      reset({
-        fullName: user.fullName || '',
-        storageLimitMB: user.storageLimit || 1024
-      })
+    if (!open) {
+      reset()
+      setError(null)
     }
-  }, [user, reset])
+  }, [open, reset])
 
-  async function handleFormSubmit(values: UpdateUserFormData) {
-    if (!accessToken || !user) return
+  async function handleFormSubmit(values: CreateUserFormData) {
+    if (!accessToken) return
 
     setIsSubmitting(true)
     setError(null)
 
     try {
-      const updateData: {
-        fullName?: string
-        storageLimitMB?: number
-      } = {}
+      await createUser(accessToken, {
+        username: values.username,
+        password: values.password,
+        fullName: values.fullName || undefined,
+        storageLimitMB: values.storageLimitMB
+      })
 
-      // Only include fields that have changed
-      if (values.fullName !== user.fullName) {
-        updateData.fullName = values.fullName
-      }
-
-      if (values.storageLimitMB !== user.storageLimit) {
-        updateData.storageLimitMB = values.storageLimitMB
-      }
-
-      // Only make the API call if there are changes
-      if (Object.keys(updateData).length > 0) {
-        await updateUser(accessToken, user.id, updateData)
-        onSuccess()
-        onOpenChange(false)
-      } else {
-        onOpenChange(false)
-      }
+      onSuccess()
+      onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user')
+      setError(err instanceof Error ? err.message : 'Failed to create user')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (!user) return null
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>Create User</DialogTitle>
           <DialogDescription>
-            Update user information. Workspace management is handled separately.
+            Create a new user account. Workspace assignment can be done later through the workspace
+            management.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <FormField
               control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter username" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="password" placeholder="Enter password" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Full Name (Optional)</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Enter full name" />
                   </FormControl>
@@ -181,7 +195,7 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Updating...' : 'Update User'}
+                {isSubmitting ? 'Creating...' : 'Create User'}
               </Button>
             </DialogFooter>
           </form>

@@ -15,9 +15,9 @@ datasource db {
 }
 
 model Workspace {
-  id    String  @id @default(uuid())
-  name  String
-  users User[]
+  id           String         @id @default(uuid())
+  name         String
+  userWorkspaces UserWorkspace[]
 }
 
 model User {
@@ -25,11 +25,22 @@ model User {
   username     String  @unique
   password     String
   fullName     String?
-  role         String  @default("user") // 'root_admin', 'admin', 'user'
   storageLimit Int     @default(1024) // Storage limit in MB
   tokens       OAuthToken[]
-  workspaceId  String?
-  workspace    Workspace? @relation(fields: [workspaceId], references: [id])
+  userWorkspaces UserWorkspace[]
+}
+
+model UserWorkspace {
+  id          String    @id @default(uuid())
+  userId      String
+  workspaceId String
+  role        String    @default("member") // 'owner', 'admin', 'member'
+  joinedAt    DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, workspaceId])
 }
 
 model OAuthClient {

@@ -7,7 +7,8 @@ import {
   Box,
   PlusCircle,
   Mail,
-  ShieldUser
+  ShieldUser,
+  Building2
 } from 'lucide-react'
 import { getServerUser } from '@repo/auth'
 import { cookies } from 'next/headers'
@@ -29,10 +30,31 @@ import {
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
 
+// Utility function to check if user is root admin
+function isRootAdmin(user: any): boolean {
+  return (
+    user?.workspaces?.some(
+      (uw: any) => uw.role === 'owner' && uw.workspace.name === 'System Admin'
+    ) ?? false
+  )
+}
+
+// Utility function to check if user is admin in any workspace
+function isAdmin(user: any): boolean {
+  return user?.workspaces?.some((uw: any) => uw.role === 'admin' || uw.role === 'owner') ?? false
+}
+
+// Utility function to check if user has any workspaces
+function hasWorkspaces(user: any): boolean {
+  return (user?.workspaces?.length ?? 0) > 0
+}
+
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const cookiesStore = await cookies()
   const user = await getServerUser({ cookies: () => cookiesStore })
-  const isAdmin = user?.role === 'admin' || user?.role === 'root_admin'
+  const userIsAdmin = isAdmin(user)
+  const userIsRootAdmin = isRootAdmin(user)
+  const userHasWorkspaces = hasWorkspaces(user)
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -87,7 +109,30 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                 </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
-            {isAdmin && (
+            {userHasWorkspaces && (
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip="My Workspaces">
+                    <Link href="/workspaces">
+                      <Building2 />
+                      <span className="font-medium">My Workspaces</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <SidebarMenuSub>
+                    {user?.workspaces?.map((userWorkspace: any) => (
+                      <SidebarMenuSubItem key={userWorkspace.workspace.id}>
+                        <SidebarMenuSubButton asChild>
+                          <Link href={`/workspaces/${userWorkspace.workspace.id}`}>
+                            {userWorkspace.workspace.name}
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            )}
+            {userIsAdmin && (
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip="Administration console">
@@ -102,6 +147,13 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         <Link href="/admin-console/users">Users</Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
+                    {userIsRootAdmin && (
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <Link href="/admin-console/workspaces">Workspaces</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    )}
                     <SidebarMenuSubItem>
                       <SidebarMenuSubButton asChild>
                         <Link href="/admin-console/roles">Roles</Link>
@@ -119,7 +171,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>v0.1</SidebarFooter>
+      <SidebarFooter></SidebarFooter>
     </Sidebar>
   )
 }

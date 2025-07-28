@@ -1,83 +1,85 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { useForm } from '@repo/ui/hooks/use-form'
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage
-} from '@repo/ui/components/base/form'
-import { Input } from '@repo/ui/components/base/input'
-import { Button } from '@repo/ui/components/base/button'
+import { useState } from 'react'
 import { useUser } from '@repo/auth'
-import { updateCurrentUser } from '@repo/api'
-import type { User } from '@repo/types'
+import { User } from '@repo/types'
+import { Button } from '@repo/ui/components/base/button'
+import { Input } from '@repo/ui/components/base/input'
+import { Label } from '@repo/ui/components/base/label'
 
-export function DetailsForm({ user }: { user: User }) {
-  const { accessToken, updateUser } = useUser()
-  const form = useForm<{ fullName: string }>({
-    defaultValues: { fullName: user?.fullName ?? '' }
-  })
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-    setError,
-    reset
-  } = form
-  const [success, setSuccess] = React.useState(false)
+interface DetailsFormProps {
+  user: User
+}
 
-  useEffect(() => {
-    reset({ fullName: user?.fullName ?? '' })
-  }, [user, reset])
+export function DetailsForm({ user }: DetailsFormProps) {
+  const [fullName, setFullName] = useState(user.fullName || '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleFormSubmit(values: { fullName: string }) {
-    setSuccess(false)
-    if (!values.fullName.trim()) {
-      setError('fullName', { message: 'Full name is required' })
-      return
-    }
-    try {
-      if (!accessToken) throw new Error('Not authenticated')
-      const updatedUser = await updateCurrentUser(accessToken, values.fullName.trim())
-      setSuccess(true)
-      updateUser(updatedUser)
-    } catch (err) {
-      setError('fullName', {
-        message: err instanceof Error ? err.message : 'Failed to update name'
-      })
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    // TODO: Implement form submission
+    console.log('Form submitted:', { fullName })
+
+    setTimeout(() => {
+      setIsSubmitting(false)
+    }, 1000)
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-4 max-w-sm">
-        <FormItem>
-          <FormLabel>Username</FormLabel>
-          <FormControl>
-            <Input value={user?.username ?? ''} disabled />
-          </FormControl>
-        </FormItem>
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Enter your full name" disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {success && <div className="text-green-600 text-sm">Name updated!</div>}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : 'Save'}
-        </Button>
+    <div className="max-w-lg">
+      <div className="mb-8">
+        <h4 className="text-lg font-semibold text-gray-900">Personal Information</h4>
+        <p className="text-gray-600 mt-2">Update your personal details and account information</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+            Username
+          </Label>
+          <Input
+            id="username"
+            value={user.username}
+            disabled
+            className="bg-gray-50 border-gray-200"
+          />
+          <p className="text-sm text-gray-500">Username cannot be changed</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+            Full Name
+          </Label>
+          <Input
+            id="fullName"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Enter your full name"
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="storageLimit" className="text-sm font-medium text-gray-700">
+            Storage Limit
+          </Label>
+          <Input
+            id="storageLimit"
+            value={`${user.storageLimit} MB`}
+            disabled
+            className="bg-gray-50 border-gray-200"
+          />
+          <p className="text-sm text-gray-500">Storage limit is managed by administrators</p>
+        </div>
+
+        <div className="pt-4">
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+            {isSubmitting ? 'Updating...' : 'Update Details'}
+          </Button>
+        </div>
       </form>
-    </Form>
+    </div>
   )
 }

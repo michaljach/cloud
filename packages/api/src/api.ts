@@ -360,12 +360,37 @@ export async function updateUserStorageLimit(
 }
 
 /**
+ * Create a new user (root_admin only)
+ */
+export async function createUser(
+  accessToken: string,
+  data: {
+    username: string
+    password: string
+    fullName?: string
+    storageLimitMB?: number
+  }
+): Promise<{ user: User }> {
+  const res = await fetch(`${API_URL}/api/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify(data)
+  })
+  const json: ApiResponse<{ user: User }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to create user')
+  return json.data
+}
+
+/**
  * Update user properties (admin/root_admin only)
  */
 export async function updateUser(
   accessToken: string,
   userId: string,
-  data: { fullName?: string; role?: string; workspaceId?: string; storageLimitMB?: number }
+  data: { fullName?: string; storageLimitMB?: number }
 ): Promise<{ user: User }> {
   const res = await fetch(`${API_URL}/api/users/${userId}`, {
     method: 'PATCH',
@@ -378,4 +403,108 @@ export async function updateUser(
   const json: ApiResponse<{ user: User }> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to update user')
   return json.data
+}
+
+/**
+ * List all workspaces (root_admin only)
+ */
+export async function getWorkspaces(accessToken: string): Promise<{ id: string; name: string }[]> {
+  const res = await fetch(`${API_URL}/api/workspaces`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<{ id: string; name: string }[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
+  return json.data
+}
+
+/**
+ * Create a new workspace (root_admin only)
+ */
+export async function createWorkspace(
+  accessToken: string,
+  name: string
+): Promise<{ id: string; name: string }> {
+  const res = await fetch(`${API_URL}/api/workspaces`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ name })
+  })
+  const json: ApiResponse<{ id: string; name: string }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to create workspace')
+  return json.data
+}
+
+export async function getMyWorkspaces(accessToken: string): Promise<any[]> {
+  const res = await fetch(`${API_URL}/api/workspaces/my`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<any[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
+  return json.data
+}
+
+export async function getWorkspaceMembers(
+  accessToken: string,
+  workspaceId: string
+): Promise<any[]> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<any[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to fetch workspace members')
+  return json.data
+}
+
+export async function addUserToWorkspace(
+  accessToken: string,
+  workspaceId: string,
+  userId: string,
+  role: 'owner' | 'admin' | 'member' = 'member'
+): Promise<any> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ userId, role })
+  })
+  const json: ApiResponse<any> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to add user to workspace')
+  return json.data
+}
+
+export async function updateUserWorkspaceRole(
+  accessToken: string,
+  workspaceId: string,
+  userId: string,
+  role: 'owner' | 'admin' | 'member'
+): Promise<any> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ role })
+  })
+  const json: ApiResponse<any> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to update user role')
+  return json.data
+}
+
+export async function removeUserFromWorkspace(
+  accessToken: string,
+  workspaceId: string,
+  userId: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members/${userId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<null> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to remove user from workspace')
 }
