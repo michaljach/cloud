@@ -1,32 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-
-interface WorkspaceInvite {
-  id: string
-  workspaceId: string
-  invitedByUserId: string
-  invitedUserId?: string
-  invitedUsername: string
-  role: 'owner' | 'admin' | 'member'
-  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
-  expiresAt: Date
-  createdAt: Date
-  workspace?: {
-    id: string
-    name: string
-  }
-  invitedBy?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-  invitedUser?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-}
-
-const prisma = new PrismaClient()
+import type { WorkspaceInvite } from '@repo/types'
+import { prisma } from '@lib/prisma'
 
 /**
  * Create a workspace invitation
@@ -92,11 +65,13 @@ export async function createWorkspaceInvite(
     }
   })
 
-  // Cast the role to the expected union type
+  // Cast the role to the expected union type and convert dates to strings
   return {
     ...invite,
     role: invite.role as 'owner' | 'admin' | 'member',
-    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
+    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled',
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString()
   }
 }
 
@@ -140,7 +115,9 @@ export async function getUserInvites(userId: string): Promise<WorkspaceInvite[]>
   return invites.map((invite) => ({
     ...invite,
     role: invite.role as 'owner' | 'admin' | 'member',
-    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
+    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled',
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString()
   }))
 }
 
@@ -177,7 +154,9 @@ export async function getWorkspaceInvites(workspaceId: string): Promise<Workspac
   return invites.map((invite) => ({
     ...invite,
     role: invite.role as 'owner' | 'admin' | 'member',
-    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
+    status: invite.status as 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled',
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString()
   }))
 }
 
@@ -260,7 +239,9 @@ export async function acceptWorkspaceInvite(
       invite: {
         ...invite,
         role: invite.role as 'owner' | 'admin' | 'member',
-        status: 'accepted' as const
+        status: 'accepted' as const,
+        expiresAt: invite.expiresAt.toISOString(),
+        createdAt: invite.createdAt.toISOString()
       },
       userWorkspace
     }
@@ -310,7 +291,9 @@ export async function declineWorkspaceInvite(
   return {
     ...invite,
     role: invite.role as 'owner' | 'admin' | 'member',
-    status: 'declined' as const
+    status: 'declined' as const,
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString()
   }
 }
 
@@ -349,6 +332,8 @@ export async function cancelWorkspaceInvite(
   return {
     ...invite,
     role: invite.role as 'owner' | 'admin' | 'member',
-    status: 'cancelled' as const
+    status: 'cancelled' as const,
+    expiresAt: invite.expiresAt.toISOString(),
+    createdAt: invite.createdAt.toISOString()
   }
 }

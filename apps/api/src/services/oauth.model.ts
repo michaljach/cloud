@@ -1,9 +1,8 @@
 import { Request } from 'express'
 import { Token, Client, User as OAuthUser } from 'oauth2-server'
-import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { User as SharedUser } from '@repo/types'
-const prisma = new PrismaClient()
+import { prisma } from '@lib/prisma'
 
 export default {
   /**

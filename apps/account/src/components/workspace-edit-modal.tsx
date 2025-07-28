@@ -24,6 +24,7 @@ import {
   FormMessage
 } from '@repo/ui/components/base/form'
 import { Input } from '@repo/ui/components/base/input'
+import type { Workspace } from '@repo/types'
 
 const updateWorkspaceSchema = z.object({
   name: z
@@ -33,11 +34,6 @@ const updateWorkspaceSchema = z.object({
 })
 
 type UpdateWorkspaceFormData = z.infer<typeof updateWorkspaceSchema>
-
-interface Workspace {
-  id: string
-  name: string
-}
 
 interface WorkspaceEditModalProps {
   workspace: Workspace | null

@@ -14,18 +14,7 @@ import { Badge } from '@repo/ui/components/base/badge'
 import { Button } from '@repo/ui/components/base/button'
 import { Building2, Calendar, Users, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
-
-interface WorkspaceMembership {
-  id: string
-  userId: string
-  workspaceId: string
-  role: string
-  joinedAt: string
-  workspace: {
-    id: string
-    name: string
-  }
-}
+import type { WorkspaceMembership } from '@repo/types'
 
 export default function WorkspacesPage() {
   const { user, loading, accessToken } = useUser()

@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import { Workspace, UserWorkspace } from '@repo/types'
-
-const prisma = new PrismaClient()
+import { prisma } from '@lib/prisma'
 
 /**
  * List all workspaces

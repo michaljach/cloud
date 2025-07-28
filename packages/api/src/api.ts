@@ -1,38 +1,13 @@
-import type { User } from '@repo/types'
+import type {
+  User,
+  Workspace,
+  WorkspaceInvite,
+  WorkspaceMembership,
+  WorkspaceMember,
+  ApiResponse
+} from '@repo/types'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!
-
-interface ApiResponse<T> {
-  success: boolean
-  data: T
-  error: string | null
-}
-
-interface WorkspaceInvite {
-  id: string
-  workspaceId: string
-  invitedByUserId: string
-  invitedUserId?: string
-  invitedUsername: string
-  role: 'owner' | 'admin' | 'member'
-  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
-  expiresAt: string
-  createdAt: string
-  workspace?: {
-    id: string
-    name: string
-  }
-  invitedBy?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-  invitedUser?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-}
 
 export async function getCurrentUser(accessToken: string): Promise<{
   user: User
@@ -434,11 +409,11 @@ export async function updateUser(
 /**
  * List all workspaces (root_admin only)
  */
-export async function getWorkspaces(accessToken: string): Promise<{ id: string; name: string }[]> {
+export async function getWorkspaces(accessToken: string): Promise<Workspace[]> {
   const res = await fetch(`${API_URL}/api/workspaces`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  const json: ApiResponse<{ id: string; name: string }[]> = await res.json()
+  const json: ApiResponse<Workspace[]> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
   return json.data
 }
@@ -446,10 +421,7 @@ export async function getWorkspaces(accessToken: string): Promise<{ id: string; 
 /**
  * Create a new workspace (root_admin only)
  */
-export async function createWorkspace(
-  accessToken: string,
-  name: string
-): Promise<{ id: string; name: string }> {
+export async function createWorkspace(accessToken: string, name: string): Promise<Workspace> {
   const res = await fetch(`${API_URL}/api/workspaces`, {
     method: 'POST',
     headers: {
@@ -458,7 +430,7 @@ export async function createWorkspace(
     },
     body: JSON.stringify({ name })
   })
-  const json: ApiResponse<{ id: string; name: string }> = await res.json()
+  const json: ApiResponse<Workspace> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to create workspace')
   return json.data
 }
@@ -470,7 +442,7 @@ export async function updateWorkspace(
   accessToken: string,
   workspaceId: string,
   name: string
-): Promise<{ id: string; name: string }> {
+): Promise<Workspace> {
   const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}`, {
     method: 'PUT',
     headers: {
@@ -479,7 +451,7 @@ export async function updateWorkspace(
     },
     body: JSON.stringify({ name })
   })
-  const json: ApiResponse<{ id: string; name: string }> = await res.json()
+  const json: ApiResponse<Workspace> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to update workspace')
   return json.data
 }
@@ -585,11 +557,11 @@ export async function leaveWorkspace(accessToken: string, workspaceId: string): 
   if (!json.success) throw new Error(json.error || 'Failed to leave workspace')
 }
 
-export async function getMyWorkspaces(accessToken: string): Promise<any[]> {
+export async function getMyWorkspaces(accessToken: string): Promise<WorkspaceMembership[]> {
   const res = await fetch(`${API_URL}/api/workspaces/my`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  const json: ApiResponse<any[]> = await res.json()
+  const json: ApiResponse<WorkspaceMembership[]> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
   return json.data
 }
@@ -597,11 +569,11 @@ export async function getMyWorkspaces(accessToken: string): Promise<any[]> {
 export async function getWorkspaceMembers(
   accessToken: string,
   workspaceId: string
-): Promise<any[]> {
+): Promise<WorkspaceMember[]> {
   const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  const json: ApiResponse<any[]> = await res.json()
+  const json: ApiResponse<WorkspaceMember[]> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to fetch workspace members')
   return json.data
 }

@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { User } from '@repo/types'
 import crypto from 'crypto'
-const prisma = new PrismaClient()
+import { prisma } from '@lib/prisma'
 
 /**
  * Create a new user in the database

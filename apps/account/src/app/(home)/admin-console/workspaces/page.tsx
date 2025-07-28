@@ -39,6 +39,7 @@ import {
 } from '@repo/ui/components/base/select'
 import { WorkspaceEditModal } from '@/components/workspace-edit-modal'
 import { RemoveMemberDialog } from '@/components/remove-member-dialog'
+import type { Workspace, WorkspaceMember, User } from '@repo/types'
 
 // Utility function to check if user is root admin
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
@@ -51,41 +52,10 @@ function isRootAdmin(user: any): boolean {
   )
 }
 
-interface Workspace {
-  id: string
-  name: string
-}
-
-interface WorkspaceUser {
-  id: string
-  username: string
-  fullName?: string
-  workspaces?: Array<{
-    role: string
-    workspace: {
-      id: string
-      name: string
-    }
-  }>
-}
-
-interface WorkspaceMember {
-  id: string
-  userId: string
-  workspaceId: string
-  role: string
-  joinedAt: string
-  user: WorkspaceUser
-  workspace: {
-    id: string
-    name: string
-  }
-}
-
 export default function WorkspacesPage() {
   const { user, loading, accessToken } = useUser()
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [users, setUsers] = useState<WorkspaceUser[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [membersModalOpen, setMembersModalOpen] = useState(false)

@@ -1,3 +1,5 @@
+import type { UserWorkspace, Workspace } from './workspace'
+
 export interface User {
   id: string
   username: string
@@ -7,25 +9,5 @@ export interface User {
   // Add other public fields as needed
 }
 
-export interface UserWorkspace {
-  id: string
-  userId: string
-  workspaceId: string
-  role: string // 'owner', 'admin', 'member'
-  joinedAt: Date
-  user?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-  workspace: {
-    id: string
-    name: string
-  }
-}
-
-export interface Workspace {
-  id: string
-  name: string
-  userWorkspaces?: UserWorkspace[]
-}
+// Re-export workspace types for convenience
+export type { UserWorkspace, Workspace } from './workspace'

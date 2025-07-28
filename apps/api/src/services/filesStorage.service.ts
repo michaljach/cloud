@@ -10,14 +10,13 @@ import {
   deleteUserFile as deleteStorageFile,
   getUserFileMetadata as getStorageFileMetadata,
   listUserFolderContentsWithMetadata,
-  type FileInfo,
-  type FolderOrFileInfo,
   listUserTrashedFiles as listTrashedFiles,
   restoreUserFileFromTrash as restoreFileFromTrash,
   deleteUserFileFromTrash as deleteFileFromTrash,
   calculateUserStorageUsage,
   calculateUserStorageUsageByType
 } from '../utils'
+import type { FileInfo, FolderOrFileInfo } from '@repo/types'
 import fs from 'fs'
 import path from 'path'
 import archiver from 'archiver'
@@ -65,7 +64,7 @@ export function encryptAndSaveUserFile(
   filename: string,
   userId: string
 ): string {
-  const userDir = ensureUserFilesDir(userId)
+  const userDir = getUserFilesDir(userId)
   return encryptAndSaveFile({ fileBuffer, filename, dir: userDir })
 }
 

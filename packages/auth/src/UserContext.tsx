@@ -3,25 +3,16 @@
 import React, {
   createContext,
   useContext,
-  useEffect,
   useState,
-  ReactNode,
+  useEffect,
+  useCallback,
   useMemo,
-  useCallback
+  ReactNode
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, loginUser, logoutUser, refreshToken } from '@repo/api'
-import { User } from '@repo/types'
+import { getCurrentUser, loginUser, refreshToken, logoutUser, updateCurrentUser } from '@repo/api'
+import type { User, StorageQuotaData } from '@repo/types'
 import Cookies from 'js-cookie'
-
-interface StorageQuotaData {
-  totalUsage: { bytes: number; megabytes: number }
-  breakdown: {
-    files: { bytes: number; megabytes: number }
-    notes: { bytes: number; megabytes: number }
-    photos: { bytes: number; megabytes: number }
-  }
-}
 
 interface UserContextType {
   accessToken: string | null

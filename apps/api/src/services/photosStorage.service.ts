@@ -4,14 +4,21 @@ import {
   ensureUserStorageDir,
   getUserStorageDir,
   userStorageDirExists,
-  listUserFiles,
+  listUserFilesWithMetadata,
   userFileExists as checkUserFileExists,
   getUserFilePath as getStorageFilePath,
   deleteUserFile as deleteStorageFile,
   getUserFileMetadata as getStorageFileMetadata,
-  type FileInfo,
+  listUserFolderContentsWithMetadata,
+  listUserTrashedFiles as listTrashedFiles,
+  restoreUserFileFromTrash as restoreFileFromTrash,
+  deleteUserFileFromTrash as deleteFileFromTrash,
+  calculateUserStorageUsage,
   calculateUserStorageUsageByType
 } from '../utils'
+import type { FileInfo, FolderOrFileInfo } from '@repo/types'
+import fs from 'fs'
+import path from 'path'
 
 const STORAGE_TYPE = 'photos'
 
@@ -28,7 +35,7 @@ export function userPhotosDirExists(userId: string): boolean {
 }
 
 export function listUserPhotos(userId: string): string[] {
-  return listUserFiles(userId, STORAGE_TYPE)
+  return listUserFilesWithMetadata(userId, STORAGE_TYPE).map((f) => f.filename)
 }
 
 export function userPhotoExists(userId: string, filename: string): boolean {

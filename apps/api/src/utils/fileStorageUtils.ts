@@ -1,24 +1,12 @@
 import fs from 'fs'
 import path from 'path'
+import type { FileInfo, FolderOrFileInfo, TrashedFileInfo } from '@repo/types'
 
-const STORAGE_DIR = path.resolve(__dirname, '../../storage')
+const STORAGE_DIR = process.env.STORAGE_DIR || './storage'
 
 // Ensure main storage directory exists
 if (!fs.existsSync(STORAGE_DIR)) {
   fs.mkdirSync(STORAGE_DIR, { recursive: true })
-}
-
-export interface FileInfo {
-  filename: string
-  size: number
-  modified: Date
-}
-
-export interface FolderOrFileInfo {
-  name: string
-  type: 'file' | 'folder'
-  size?: number
-  modified: Date
 }
 
 /**
@@ -174,10 +162,7 @@ export function getUserFileMetadata(
 /**
  * List all files in the user's trash folder
  */
-export function listUserTrashedFiles(
-  userId: string,
-  type: string
-): (FileInfo & { type: 'file' | 'folder' })[] {
+export function listUserTrashedFiles(userId: string, type: string): TrashedFileInfo[] {
   const userDir = getUserStorageDir(userId, type)
   const trashDir = path.join(userDir, '.trash')
   if (!fs.existsSync(trashDir)) {

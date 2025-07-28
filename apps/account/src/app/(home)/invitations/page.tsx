@@ -15,32 +15,7 @@ import { Separator } from '@repo/ui/components/base/separator'
 import { acceptWorkspaceInvite, declineWorkspaceInvite, getMyInvites } from '@repo/api'
 import { Mail, Check, X, Clock, Building2, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-
-interface WorkspaceInvite {
-  id: string
-  workspaceId: string
-  invitedByUserId: string
-  invitedUserId?: string
-  invitedUsername: string
-  role: 'owner' | 'admin' | 'member'
-  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
-  expiresAt: string
-  createdAt: string
-  workspace?: {
-    id: string
-    name: string
-  }
-  invitedBy?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-  invitedUser?: {
-    id: string
-    username: string
-    fullName?: string
-  }
-}
+import type { WorkspaceInvite } from '@repo/types'
 
 export default function InvitationsPage() {
   const { user, loading, accessToken } = useUser()

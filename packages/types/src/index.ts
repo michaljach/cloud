@@ -1,2 +1,5 @@
 export * from './user'
+export * from './workspace'
 export * from './workspaceInvite'
+export * from './storage'
+export * from './api'

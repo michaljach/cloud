@@ -50,35 +50,7 @@ import { WorkspaceEditModal } from '@/components/workspace-edit-modal'
 import { WorkspaceInviteModal } from '@/components/workspace-invite-modal'
 import { LeaveWorkspaceDialog } from '@/components/leave-workspace-dialog'
 import { RemoveMemberDialog } from '@/components/remove-member-dialog'
-
-interface WorkspaceMembership {
-  id: string
-  userId: string
-  workspaceId: string
-  role: string
-  joinedAt: string
-  workspace: {
-    id: string
-    name: string
-  }
-}
-
-interface WorkspaceMember {
-  id: string
-  userId: string
-  workspaceId: string
-  role: string
-  joinedAt: string
-  user: {
-    id: string
-    username: string
-    fullName?: string
-  }
-  workspace: {
-    id: string
-    name: string
-  }
-}
+import type { WorkspaceMembership, WorkspaceMember } from '@repo/types'
 
 export default function WorkspaceDetailsPage() {
   const { user, loading, accessToken } = useUser()

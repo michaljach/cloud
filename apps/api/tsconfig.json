@@ -16,7 +16,8 @@
       "@utils/*": ["utils/*"],
       "@middleware/*": ["middleware/*"],
       "@routes/*": ["routes/*"],
-      "@generated/*": ["generated/prisma/*"]
+      "@generated/*": ["generated/prisma/*"],
+      "@lib/*": ["lib/*"]
     }
   },
   "include": ["./src/**/*"],

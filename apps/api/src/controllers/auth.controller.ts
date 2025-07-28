@@ -5,7 +5,6 @@ import OAuth2Server from 'oauth2-server'
 import oauthModel from '@services/oauth.model'
 import bcrypt from 'bcryptjs'
 import * as usersService from '@services/users.service'
-import { PrismaClient } from '@prisma/client'
 import type { User } from '@repo/types'
 import { handleError } from '@utils/handleError'
 import { z } from 'zod'
@@ -15,12 +14,12 @@ import { CurrentUser } from '../decorators/currentUser'
 import { getUserStorageUsage, getUserFilesStorageUsage } from '@services/filesStorage.service'
 import { getUserNotesStorageUsage } from '@services/notesStorage.service'
 import { getUserPhotosStorageUsage } from '@services/photosStorage.service'
+import { prisma } from '@lib/prisma'
 
 const client_id = process.env.OAUTH_CLIENT_ID
 const client_secret = process.env.OAUTH_CLIENT_SECRET
 
 const oauth = new OAuth2Server({ model: oauthModel })
-const prisma = new PrismaClient()
 
 @JsonController('/auth')
 export default class AuthController {
