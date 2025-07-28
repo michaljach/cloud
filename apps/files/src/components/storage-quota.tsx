@@ -5,13 +5,13 @@ import { useUser } from '@repo/auth'
 import { HardDrive, FileText, Image } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
+import { formatFileSize } from '@repo/utils'
 
 export function StorageQuota() {
   const { storageQuota, storageQuotaLoading, storageQuotaError, user } = useUser()
 
-  // Use user's actual storage limit
-  const STORAGE_LIMIT_BYTES = user?.storageLimit || 1073741824 // Default 1GB
-  const STORAGE_LIMIT_MB = Math.round((STORAGE_LIMIT_BYTES / (1024 * 1024)) * 100) / 100
+  // Use user's actual storage limit (now in MB)
+  const STORAGE_LIMIT_MB = user?.storageLimit // Default 1GB in MB
 
   if (storageQuotaLoading) {
     return (
@@ -42,10 +42,17 @@ export function StorageQuota() {
     )
   }
 
-  if (!storageQuota) return null
+  if (!storageQuota || !STORAGE_LIMIT_MB) return null
 
   const { totalUsage, breakdown } = storageQuota
-  const usagePercentage = (totalUsage.bytes / STORAGE_LIMIT_BYTES) * 100
+  const usagePercentage = (totalUsage.megabytes / STORAGE_LIMIT_MB) * 100
+
+  // Convert MB to bytes for formatFileSize
+  const totalUsageBytes = totalUsage.megabytes * 1024 * 1024
+  const storageLimitBytes = STORAGE_LIMIT_MB * 1024 * 1024
+  const filesUsageBytes = breakdown.files.megabytes * 1024 * 1024
+  const notesUsageBytes = breakdown.notes.megabytes * 1024 * 1024
+  const photosUsageBytes = breakdown.photos.megabytes * 1024 * 1024
 
   return (
     <Card className="mx-2 mb-4">
@@ -55,7 +62,7 @@ export function StorageQuota() {
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Total Used</span>
             <span className="font-medium">
-              {totalUsage.megabytes.toFixed(1)} MB / {STORAGE_LIMIT_MB} MB
+              {formatFileSize(totalUsageBytes)} / {formatFileSize(storageLimitBytes)}
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -73,7 +80,7 @@ export function StorageQuota() {
               <HardDrive className="w-3 h-3 text-blue-600" />
               <span className="text-muted-foreground">Files</span>
             </div>
-            <span>{breakdown.files.megabytes.toFixed(1)} MB</span>
+            <span>{formatFileSize(filesUsageBytes)}</span>
           </div>
 
           <div className="flex items-center justify-between text-xs">
@@ -81,7 +88,7 @@ export function StorageQuota() {
               <FileText className="w-3 h-3 text-green-600" />
               <span className="text-muted-foreground">Notes</span>
             </div>
-            <span>{breakdown.notes.megabytes.toFixed(1)} MB</span>
+            <span>{formatFileSize(notesUsageBytes)}</span>
           </div>
 
           <div className="flex items-center justify-between text-xs">
@@ -89,7 +96,7 @@ export function StorageQuota() {
               <Image className="w-3 h-3 text-purple-600" />
               <span className="text-muted-foreground">Photos</span>
             </div>
-            <span>{breakdown.photos.megabytes.toFixed(1)} MB</span>
+            <span>{formatFileSize(photosUsageBytes)}</span>
           </div>
         </div>
 

@@ -368,7 +368,7 @@ export async function updateUserStorageLimit(
 export async function updateUser(
   accessToken: string,
   userId: string,
-  data: { fullName?: string; role?: string; workspaceId?: string }
+  data: { fullName?: string; role?: string; workspaceId?: string; storageLimitMB?: number }
 ): Promise<{ user: User }> {
   const res = await fetch(`${API_URL}/api/users/${userId}`, {
     method: 'PATCH',

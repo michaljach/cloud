@@ -22,14 +22,14 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
 
     // Check storage limit before uploading
     if (user && storageQuota) {
-      const totalFileSize = selectedFiles.reduce((sum, file) => sum + file.size, 0)
-      const currentUsage = storageQuota.totalUsage.bytes
-      const storageLimit = user.storageLimit
+      const totalFileSizeMB =
+        selectedFiles.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024)
+      const currentUsageMB = storageQuota.totalUsage.megabytes
+      const storageLimitMB = user.storageLimit
 
-      if (currentUsage + totalFileSize > storageLimit) {
-        const availableSpace = storageLimit - currentUsage
-        const availableMB = Math.round((availableSpace / (1024 * 1024)) * 100) / 100
-        setStatus(`Error: Not enough storage space. Available: ${availableMB} MB`)
+      if (currentUsageMB + totalFileSizeMB > storageLimitMB) {
+        const availableSpaceMB = storageLimitMB - currentUsageMB
+        setStatus(`Error: Not enough storage space. Available: ${availableSpaceMB.toFixed(1)} MB`)
         return
       }
     }

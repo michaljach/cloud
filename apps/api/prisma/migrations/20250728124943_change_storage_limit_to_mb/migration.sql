@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "storageLimit" SET DEFAULT 1024,
+ALTER COLUMN "storageLimit" SET DATA TYPE BIGINT;

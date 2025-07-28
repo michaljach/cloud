@@ -11,11 +11,11 @@ import {
 } from '@repo/ui/components/base/table'
 import { useUser } from '@repo/auth'
 import { getUsers } from '@repo/api'
-import { Card } from '@repo/ui/components/base/card'
 import { Badge } from '@repo/ui/components/base/badge'
 import { Button } from '@repo/ui/components/base/button'
 import { Icon } from '@repo/ui/components/base/icons'
 import { UserEditModal } from '@/components/user-edit-modal'
+import { formatFileSize } from '@repo/utils'
 import type { User } from '@repo/types'
 
 export default function AdminConsolePage() {
@@ -104,9 +104,7 @@ export default function AdminConsolePage() {
                 </TableCell>
                 <TableCell className="max-w-[10rem] truncate">{u.workspace?.name || '-'}</TableCell>
                 <TableCell className="max-w-[8rem] truncate">
-                  {u.storageLimit
-                    ? `${Math.round((u.storageLimit / (1024 * 1024)) * 100) / 100} MB`
-                    : '-'}
+                  {u.storageLimit ? formatFileSize(u.storageLimit * 1024 * 1024) : '-'}
                 </TableCell>
                 <TableCell>
                   <Button

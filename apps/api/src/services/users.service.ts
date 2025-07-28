@@ -110,14 +110,14 @@ export async function listUsers(workspaceId?: string): Promise<User[]> {
 /**
  * Get storage limit for a specific user
  * @param userId User ID
- * @returns Storage limit in bytes
+ * @returns Storage limit in MB
  */
 export async function getUserStorageLimit(userId: string): Promise<number> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { storageLimit: true }
   })
-  return user?.storageLimit || 1073741824 // Default 1GB
+  return Number(user?.storageLimit) || 1024 // Default 1GB in MB
 }
 
 /**
@@ -128,7 +128,7 @@ export async function getUserStorageLimit(userId: string): Promise<number> {
  */
 export async function updateUser(
   userId: string,
-  data: { fullName?: string; role?: string; workspaceId?: string }
+  data: { fullName?: string; role?: string; workspaceId?: string; storageLimit?: number }
 ): Promise<User> {
   const user = await prisma.user.update({
     where: { id: userId },

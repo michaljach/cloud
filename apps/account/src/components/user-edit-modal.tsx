@@ -46,11 +46,13 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
     fullName: string
     role: string
     workspaceId: string
+    storageLimitMB: number
   }>({
     defaultValues: {
       fullName: '',
       role: 'user',
-      workspaceId: ''
+      workspaceId: '',
+      storageLimitMB: 1024 // Default 1GB
     }
   })
 
@@ -71,19 +73,30 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
       reset({
         fullName: user.fullName || '',
         role: user.role,
-        workspaceId: user.workspaceId || ''
+        workspaceId: user.workspaceId || '',
+        storageLimitMB: user.storageLimit || 1024
       })
     }
   }, [user, reset])
 
-  async function handleFormSubmit(values: { fullName: string; role: string; workspaceId: string }) {
+  async function handleFormSubmit(values: {
+    fullName: string
+    role: string
+    workspaceId: string
+    storageLimitMB: number
+  }) {
     if (!accessToken || !user) return
 
     setIsSubmitting(true)
     setError(null)
 
     try {
-      const updateData: { fullName?: string; role?: string; workspaceId?: string } = {}
+      const updateData: {
+        fullName?: string
+        role?: string
+        workspaceId?: string
+        storageLimitMB?: number
+      } = {}
 
       // Only include fields that have changed
       if (values.fullName !== user.fullName) {
@@ -96,6 +109,10 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
 
       if (canEditWorkspace && values.workspaceId !== user.workspaceId) {
         updateData.workspaceId = values.workspaceId || undefined
+      }
+
+      if (values.storageLimitMB !== user.storageLimit) {
+        updateData.storageLimitMB = values.storageLimitMB
       }
 
       // Only make the API call if there are changes
@@ -180,6 +197,33 @@ export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditM
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="storageLimitMB"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Storage Limit</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select storage limit" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1024">1 GB</SelectItem>
+                      <SelectItem value="5120">5 GB</SelectItem>
+                      <SelectItem value="10240">10 GB</SelectItem>
+                      <SelectItem value="102400">100 GB</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {error && <div className="text-sm text-red-600">{error}</div>}
 

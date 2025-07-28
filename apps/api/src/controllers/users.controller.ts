@@ -87,7 +87,12 @@ export default class UsersController {
       return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
     }
 
-    const body = req.body as { fullName?: string; role?: string; workspaceId?: string }
+    const body = req.body as {
+      fullName?: string
+      role?: string
+      workspaceId?: string
+      storageLimitMB?: number
+    }
 
     // Get the target user to check workspace permissions
     const targetUser = await getUserById(userId)
@@ -128,7 +133,12 @@ export default class UsersController {
     const schema = z.object({
       fullName: z.string().min(1).optional(),
       role: z.enum(['root_admin', 'admin', 'user']).optional(),
-      workspaceId: z.string().uuid().optional()
+      workspaceId: z.string().uuid().optional(),
+      storageLimitMB: z
+        .number()
+        .min(1, 'Storage limit must be at least 1 MB')
+        .max(1000000, 'Storage limit cannot exceed 1000GB')
+        .optional()
     })
 
     const validation = schema.safeParse(body)
@@ -137,7 +147,14 @@ export default class UsersController {
     }
 
     try {
-      const updatedUser = await updateUser(userId, validation.data)
+      // Use storageLimitMB directly since we now store in MB
+      const updateData: any = { ...validation.data }
+      if (updateData.storageLimitMB !== undefined) {
+        updateData.storageLimit = updateData.storageLimitMB
+        delete updateData.storageLimitMB
+      }
+
+      const updatedUser = await updateUser(userId, updateData)
       return res.json({
         success: true,
         data: { user: updatedUser },

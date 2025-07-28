@@ -96,7 +96,36 @@ export default class AuthController {
   @Get('/me')
   @UseBefore(authenticate)
   async me(@CurrentUser() user: User, @Res() res: Response) {
-    return res.json({ success: true, data: user, error: null })
+    try {
+      // Get complete user data including workspace info
+      const completeUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: { workspace: true }
+      })
+
+      if (!completeUser) {
+        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      }
+
+      const safeUser: User = {
+        id: completeUser.id,
+        username: completeUser.username,
+        fullName: completeUser.fullName,
+        role: completeUser.role,
+        storageLimit: Number(completeUser.storageLimit),
+        workspaceId: completeUser.workspaceId,
+        workspace: completeUser.workspace
+          ? {
+              id: completeUser.workspace.id,
+              name: completeUser.workspace.name
+            }
+          : undefined
+      }
+
+      return res.json({ success: true, data: safeUser, error: null })
+    } catch (err) {
+      return handleError(res, err, 500)
+    }
   }
 
   /**

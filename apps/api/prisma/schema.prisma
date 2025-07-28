@@ -26,7 +26,7 @@ model User {
   password     String
   fullName     String?
   role         String  @default("user") // 'root_admin', 'admin', 'user'
-  storageLimit Int     @default(1073741824) // 1GB in bytes
+  storageLimit Int     @default(1024) // Storage limit in MB
   tokens       OAuthToken[]
   workspaceId  String?
   workspace    Workspace? @relation(fields: [workspaceId], references: [id])

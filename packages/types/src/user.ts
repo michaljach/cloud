@@ -3,7 +3,7 @@ export interface User {
   username: string
   fullName?: string
   role: string
-  storageLimit: number
+  storageLimit: number // Storage limit in MB
   workspaceId?: string
   workspace?: {
     id: string
