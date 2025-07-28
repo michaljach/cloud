@@ -128,6 +128,16 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild>
+                        <Link href="/workspaces/create">
+                          <div className="flex items-center gap-1">
+                            <PlusCircle className="w-4 h-4" />
+                            Create Workspace
+                          </div>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
                   </SidebarMenuSub>
                 </SidebarMenuItem>
               </SidebarMenu>

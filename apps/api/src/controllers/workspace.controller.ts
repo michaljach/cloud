@@ -152,7 +152,7 @@ export default class WorkspaceController {
 
   /**
    * POST /api/workspaces
-   * Create a new workspace (root_admin only)
+   * Create a new workspace (any authenticated user)
    */
   @Post('/')
   @UseBefore(authenticate)
@@ -163,14 +163,14 @@ export default class WorkspaceController {
       return res.status(404).json({ success: false, data: null, error: 'User not found' })
     }
 
-    if (!isRootAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
-    }
-
     const { name } = req.body
 
     try {
       const workspace = await createWorkspace(name)
+
+      // Add the creator as the owner of the workspace
+      await addUserToWorkspace(user.id, workspace.id, 'owner')
+
       return res.status(201).json({ success: true, data: workspace, error: null })
     } catch (err: any) {
       return res.status(500).json({ success: false, data: null, error: err.message })
@@ -266,6 +266,22 @@ export default class WorkspaceController {
       }
 
       const { role } = req.body
+
+      // Check if this change would remove the last owner
+      const targetMembership = workspace.userWorkspaces?.find((uw) => uw.userId === targetUserId)
+      if (targetMembership?.role === 'owner' && role !== 'owner') {
+        const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
+        if (owners.length === 1) {
+          return res
+            .status(400)
+            .json({
+              success: false,
+              data: null,
+              error: 'Cannot remove the last owner. There must always be at least one owner.'
+            })
+        }
+      }
+
       const userWorkspace = await updateUserWorkspaceRole(targetUserId, workspaceId, role)
       if (!userWorkspace) {
         return res

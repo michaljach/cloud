@@ -138,6 +138,18 @@ export default function WorkspaceDetailsPage() {
     refreshWorkspaceData()
   }, [user, accessToken, workspaceId])
 
+  // Refresh workspace data when the page becomes visible (e.g., after creating a workspace)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && accessToken && workspaceId) {
+        refreshWorkspaceData()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user, accessToken, workspaceId])
+
   if (loading) return <div className="p-6">Loading...</div>
   if (error) return <div className="p-6 text-red-600">{error}</div>
   if (!user) return <div className="p-6">Not authenticated</div>
@@ -163,6 +175,22 @@ export default function WorkspaceDetailsPage() {
       default:
         return 'outline' as const
     }
+  }
+
+  // Helper function to check if changing a role would remove the last owner
+  const wouldRemoveLastOwner = (memberId: string, newRole: 'owner' | 'admin' | 'member') => {
+    const currentOwners = workspaceMembers.filter((m) => m.role === 'owner')
+    const targetMember = workspaceMembers.find((m) => m.userId === memberId)
+
+    if (!targetMember) return false
+
+    // If the member is currently an owner and we're changing them to non-owner
+    if (targetMember.role === 'owner' && newRole !== 'owner') {
+      // Check if they're the only owner
+      return currentOwners.length === 1
+    }
+
+    return false
   }
 
   return (
@@ -329,9 +357,16 @@ export default function WorkspaceDetailsPage() {
                             <div className="flex gap-2">
                               <Select
                                 defaultValue={member.role}
-                                onValueChange={(value: 'owner' | 'admin' | 'member') =>
+                                onValueChange={(value: 'owner' | 'admin' | 'member') => {
+                                  // Prevent removing the last owner
+                                  if (wouldRemoveLastOwner(member.userId, value)) {
+                                    setError(
+                                      'Cannot remove the last owner. There must always be at least one owner.'
+                                    )
+                                    return
+                                  }
                                   handleUpdateRole(member.userId, value)
-                                }
+                                }}
                                 disabled={isUpdatingRole}
                               >
                                 <SelectTrigger className="w-24">
@@ -339,8 +374,18 @@ export default function WorkspaceDetailsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="owner">Owner</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="member">Member</SelectItem>
+                                  <SelectItem
+                                    value="admin"
+                                    disabled={wouldRemoveLastOwner(member.userId, 'admin')}
+                                  >
+                                    Admin
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="member"
+                                    disabled={wouldRemoveLastOwner(member.userId, 'member')}
+                                  >
+                                    Member
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                               <Button

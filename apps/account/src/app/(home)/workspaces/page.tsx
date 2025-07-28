@@ -12,7 +12,7 @@ import {
 } from '@repo/ui/components/base/card'
 import { Badge } from '@repo/ui/components/base/badge'
 import { Button } from '@repo/ui/components/base/button'
-import { Building2, Users, Calendar } from 'lucide-react'
+import { Building2, Calendar, Users, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface WorkspaceMembership {
@@ -47,15 +47,35 @@ export default function WorkspacesPage() {
     refreshWorkspaces()
   }, [user, accessToken])
 
+  // Refresh workspaces when the page becomes visible (e.g., after creating a workspace)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && accessToken) {
+        refreshWorkspaces()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [user, accessToken])
+
   if (loading) return <div className="p-6">Loading...</div>
   if (error) return <div className="p-6 text-red-600">{error}</div>
   if (!user) return <div className="p-6">Not authenticated</div>
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">My Workspaces</h1>
-        <p className="text-muted-foreground">Manage your workspace memberships and access</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">My Workspaces</h1>
+          <p className="text-muted-foreground">Manage your workspace memberships and access</p>
+        </div>
+        <Button asChild>
+          <Link href="/workspaces/create">
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Create Workspace
+          </Link>
+        </Button>
       </div>
 
       {workspaces.length === 0 ? (
@@ -66,9 +86,17 @@ export default function WorkspacesPage() {
             <p className="text-muted-foreground mb-4">
               You are not a member of any workspaces yet.
             </p>
-            <p className="text-sm text-muted-foreground">
-              Contact an administrator to be added to a workspace.
-            </p>
+            <div className="space-y-3">
+              <Button asChild>
+                <Link href="/workspaces/create">
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Create Your First Workspace
+                </Link>
+              </Button>
+              <p className="text-sm text-muted-foreground">
+                Or contact an administrator to be added to an existing workspace.
+              </p>
+            </div>
           </CardContent>
         </Card>
       ) : (
