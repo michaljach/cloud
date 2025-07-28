@@ -13,6 +13,11 @@ export interface UserWorkspace {
   workspaceId: string
   role: string // 'owner', 'admin', 'member'
   joinedAt: Date
+  user?: {
+    id: string
+    username: string
+    fullName?: string
+  }
   workspace: {
     id: string
     name: string

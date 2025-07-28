@@ -1,4 +1,4 @@
-import { User } from '@repo/types'
+import type { User } from '@repo/types'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
@@ -6,6 +6,32 @@ interface ApiResponse<T> {
   success: boolean
   data: T
   error: string | null
+}
+
+interface WorkspaceInvite {
+  id: string
+  workspaceId: string
+  invitedByUserId: string
+  invitedUserId?: string
+  invitedUsername: string
+  role: 'owner' | 'admin' | 'member'
+  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'cancelled'
+  expiresAt: string
+  createdAt: string
+  workspace?: {
+    id: string
+    name: string
+  }
+  invitedBy?: {
+    id: string
+    username: string
+    fullName?: string
+  }
+  invitedUser?: {
+    id: string
+    username: string
+    fullName?: string
+  }
 }
 
 export async function getCurrentUser(accessToken: string): Promise<{
@@ -456,6 +482,107 @@ export async function updateWorkspace(
   const json: ApiResponse<{ id: string; name: string }> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to update workspace')
   return json.data
+}
+
+// Workspace Invite API functions
+export async function getMyInvites(accessToken: string): Promise<WorkspaceInvite[]> {
+  const res = await fetch(`${API_URL}/api/workspace-invites/my`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<WorkspaceInvite[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to get invitations')
+  return json.data
+}
+
+export async function getWorkspaceInvites(
+  accessToken: string,
+  workspaceId: string
+): Promise<WorkspaceInvite[]> {
+  const res = await fetch(`${API_URL}/api/workspace-invites/workspace/${workspaceId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<WorkspaceInvite[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to get workspace invitations')
+  return json.data
+}
+
+export async function createWorkspaceInvite(
+  accessToken: string,
+  workspaceId: string,
+  invitedUsername: string,
+  role: 'owner' | 'admin' | 'member' = 'member'
+): Promise<WorkspaceInvite> {
+  const res = await fetch(`${API_URL}/api/workspace-invites`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ workspaceId, invitedUsername, role })
+  })
+  const json: ApiResponse<WorkspaceInvite> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to create invitation')
+  return json.data
+}
+
+export async function acceptWorkspaceInvite(
+  accessToken: string,
+  inviteId: string
+): Promise<{ invite: WorkspaceInvite; userWorkspace: any }> {
+  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}/accept`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<{ invite: WorkspaceInvite; userWorkspace: any }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to accept invitation')
+  return json.data
+}
+
+export async function declineWorkspaceInvite(
+  accessToken: string,
+  inviteId: string
+): Promise<WorkspaceInvite> {
+  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}/decline`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<WorkspaceInvite> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to decline invitation')
+  return json.data
+}
+
+export async function cancelWorkspaceInvite(
+  accessToken: string,
+  inviteId: string
+): Promise<WorkspaceInvite> {
+  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<WorkspaceInvite> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to cancel invitation')
+  return json.data
+}
+
+export async function leaveWorkspace(accessToken: string, workspaceId: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/leave`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  })
+  const json: ApiResponse<null> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to leave workspace')
 }
 
 export async function getMyWorkspaces(accessToken: string): Promise<any[]> {

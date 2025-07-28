@@ -8,6 +8,7 @@ import UsersController from './controllers/users.controller'
 import NotesController from './controllers/notes.controller'
 import PhotosController from './controllers/photos.controller'
 import WorkspaceController from './controllers/workspace.controller'
+import WorkspaceInviteController from './controllers/workspaceInvite.controller'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -29,7 +30,8 @@ useExpressServer(app, {
     UsersController,
     NotesController,
     PhotosController,
-    WorkspaceController
+    WorkspaceController,
+    WorkspaceInviteController
   ]
 })
 

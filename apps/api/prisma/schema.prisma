@@ -18,6 +18,7 @@ model Workspace {
   id           String         @id @default(uuid())
   name         String
   userWorkspaces UserWorkspace[]
+  invites      WorkspaceInvite[]
 }
 
 model User {
@@ -28,6 +29,8 @@ model User {
   storageLimit Int     @default(1024) // Storage limit in MB
   tokens       OAuthToken[]
   userWorkspaces UserWorkspace[]
+  sentInvites  WorkspaceInvite[] @relation("InvitedBy")
+  receivedInvites WorkspaceInvite[] @relation("InvitedUser")
 }
 
 model UserWorkspace {
@@ -41,6 +44,24 @@ model UserWorkspace {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   
   @@unique([userId, workspaceId])
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(uuid())
+  workspaceId String
+  invitedByUserId String
+  invitedUserId String?
+  invitedUsername String // For users who don't exist yet
+  role        String    @default("member") // 'owner', 'admin', 'member'
+  status      String    @default("pending") // 'pending', 'accepted', 'declined', 'expired'
+  expiresAt   DateTime  @default(dbgenerated("NOW() + INTERVAL '7 days'"))
+  createdAt   DateTime  @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy   User      @relation("InvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  invitedUser User?     @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
+  
+  @@unique([workspaceId, invitedUsername])
 }
 
 model OAuthClient {

@@ -29,6 +29,7 @@ import {
 } from '@repo/ui/components/base/sidebar'
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
+import { InvitationsSidebarItem } from './invitations-sidebar-item'
 
 // Utility functions for user permissions
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
@@ -109,17 +110,19 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                 </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
-            {userHasWorkspaces && (
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="My Workspaces">
-                    <Link href="/workspaces">
-                      <Building2 />
-                      <span className="font-medium">My Workspaces</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  <SidebarMenuSub>
-                    {user?.workspaces?.map((userWorkspace: any) => (
+
+            {/* My Workspaces - Always show Create Workspace and Invitations */}
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="My Workspaces">
+                  <Link href="/workspaces">
+                    <Building2 />
+                    <span className="font-medium">My Workspaces</span>
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuSub>
+                  {userHasWorkspaces &&
+                    user?.workspaces?.map((userWorkspace: any) => (
                       <SidebarMenuSubItem key={userWorkspace.workspace.id}>
                         <SidebarMenuSubButton asChild>
                           <Link href={`/workspaces/${userWorkspace.workspace.id}`}>
@@ -128,20 +131,20 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild>
-                        <Link href="/workspaces/create">
-                          <div className="flex items-center gap-1">
-                            <PlusCircle className="w-4 h-4" />
-                            Create Workspace
-                          </div>
-                        </Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            )}
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild>
+                      <Link href="/workspaces/create">
+                        <div className="flex items-center gap-1">
+                          <PlusCircle className="w-4 h-4" />
+                          Create Workspace
+                        </div>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <InvitationsSidebarItem />
+                </SidebarMenuSub>
+              </SidebarMenuItem>
+            </SidebarMenu>
             {userIsRootAdmin && (
               <SidebarMenu>
                 <SidebarMenuItem>

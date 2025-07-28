@@ -272,13 +272,11 @@ export default class WorkspaceController {
       if (targetMembership?.role === 'owner' && role !== 'owner') {
         const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
         if (owners.length === 1) {
-          return res
-            .status(400)
-            .json({
-              success: false,
-              data: null,
-              error: 'Cannot remove the last owner. There must always be at least one owner.'
-            })
+          return res.status(400).json({
+            success: false,
+            data: null,
+            error: 'Cannot remove the last owner. There must always be at least one owner.'
+          })
         }
       }
 
@@ -339,6 +337,62 @@ export default class WorkspaceController {
       }
 
       const success = await removeUserFromWorkspace(targetUserId, workspaceId)
+      if (!success) {
+        return res
+          .status(404)
+          .json({ success: false, data: null, error: 'User not found in workspace' })
+      }
+
+      return res.json({ success: true, data: null, error: null })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, data: null, error: err.message })
+    }
+  }
+
+  /**
+   * DELETE /api/workspaces/:id/leave
+   * Leave a workspace (current user)
+   */
+  @Delete('/:id/leave')
+  @UseBefore(authenticate)
+  async leaveWorkspace(
+    @CurrentUser() oauthUser: User,
+    @Param('id') workspaceId: string,
+    @Res() res: Response
+  ) {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    try {
+      const workspace = await getWorkspaceWithMembers(workspaceId)
+      if (!workspace) {
+        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+      }
+
+      // Check if user is a member of this workspace
+      const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
+      if (!userMembership) {
+        return res
+          .status(404)
+          .json({ success: false, data: null, error: 'You are not a member of this workspace' })
+      }
+
+      // Prevent leaving if user is the last owner
+      if (userMembership.role === 'owner') {
+        const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
+        if (owners.length === 1) {
+          return res.status(400).json({
+            success: false,
+            data: null,
+            error:
+              'Cannot leave workspace. You are the last owner. Please transfer ownership or delete the workspace.'
+          })
+        }
+      }
+
+      const success = await removeUserFromWorkspace(user.id, workspaceId)
       if (!success) {
         return res
           .status(404)

@@ -37,8 +37,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { Badge } from '@repo/ui/components/base/badge'
-import { WorkspaceEditModal } from '../../../../components/workspace-edit-modal'
+import { WorkspaceEditModal } from '@/components/workspace-edit-modal'
+import { RemoveMemberDialog } from '@/components/remove-member-dialog'
 
 // Utility function to check if user is root admin
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
@@ -98,6 +98,8 @@ export default function WorkspacesPage() {
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [selectedUser, setSelectedUser] = useState('')
   const [selectedRole, setSelectedRole] = useState<'owner' | 'admin' | 'member'>('member')
+  const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false)
+  const [memberToRemove, setMemberToRemove] = useState<WorkspaceMember | null>(null)
 
   const refreshWorkspaces = async () => {
     if (!accessToken) return
@@ -200,6 +202,8 @@ export default function WorkspacesPage() {
     try {
       await removeUserFromWorkspace(accessToken, selectedWorkspace.id, userId)
       await loadWorkspaceMembers(selectedWorkspace.id)
+      setRemoveMemberDialogOpen(false)
+      setMemberToRemove(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove member')
     }
@@ -351,7 +355,10 @@ export default function WorkspacesPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleRemoveMember(member.userId)}
+                          onClick={() => {
+                            setMemberToRemove(member)
+                            setRemoveMemberDialogOpen(true)
+                          }}
                         >
                           Remove
                         </Button>
@@ -435,6 +442,20 @@ export default function WorkspacesPage() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         onSuccess={refreshWorkspaces}
+      />
+
+      {/* Remove Member Dialog */}
+      <RemoveMemberDialog
+        open={removeMemberDialogOpen}
+        onOpenChange={setRemoveMemberDialogOpen}
+        onConfirm={() => {
+          if (memberToRemove) {
+            handleRemoveMember(memberToRemove.userId)
+          }
+        }}
+        memberName={memberToRemove?.user.username || ''}
+        workspaceName={selectedWorkspace?.name || ''}
+        isRemoving={false}
       />
     </div>
   )

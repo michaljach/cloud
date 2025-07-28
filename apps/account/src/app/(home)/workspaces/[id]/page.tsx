@@ -6,7 +6,8 @@ import {
   getMyWorkspaces,
   getWorkspaceMembers,
   updateUserWorkspaceRole,
-  removeUserFromWorkspace
+  removeUserFromWorkspace,
+  leaveWorkspace
 } from '@repo/api'
 import {
   Card,
@@ -32,10 +33,23 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { Building2, Users, Calendar, ArrowLeft, Shield, Crown, User, Edit } from 'lucide-react'
+import {
+  Building2,
+  Users,
+  Calendar,
+  ArrowLeft,
+  Shield,
+  Crown,
+  User,
+  Edit,
+  UserPlus
+} from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { WorkspaceEditModal } from '../../../../components/workspace-edit-modal'
+import { WorkspaceEditModal } from '@/components/workspace-edit-modal'
+import { WorkspaceInviteModal } from '@/components/workspace-invite-modal'
+import { LeaveWorkspaceDialog } from '@/components/leave-workspace-dialog'
+import { RemoveMemberDialog } from '@/components/remove-member-dialog'
 
 interface WorkspaceMembership {
   id: string
@@ -78,6 +92,11 @@ export default function WorkspaceDetailsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
   const [isUpdatingRole, setIsUpdatingRole] = useState(false)
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
+  const [isLeavingWorkspace, setIsLeavingWorkspace] = useState(false)
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false)
+  const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false)
+  const [memberToRemove, setMemberToRemove] = useState<WorkspaceMember | null>(null)
 
   const refreshWorkspaceData = async () => {
     if (!accessToken) return
@@ -122,14 +141,39 @@ export default function WorkspaceDetailsPage() {
   }
 
   const handleRemoveMember = async (userId: string) => {
-    if (!accessToken || !workspaceId) return
-
-    setError(null) // Clear any previous errors
+    if (!accessToken) return
     try {
+      setIsUpdatingRole(true)
+      setError(null)
       await removeUserFromWorkspace(accessToken, workspaceId, userId)
       await refreshWorkspaceData()
+      setRemoveMemberDialogOpen(false)
+      setMemberToRemove(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove member')
+    } finally {
+      setIsUpdatingRole(false)
+    }
+  }
+
+  const handleRemoveMemberClick = (member: WorkspaceMember) => {
+    setMemberToRemove(member)
+    setRemoveMemberDialogOpen(true)
+  }
+
+  const handleLeaveWorkspace = async () => {
+    if (!accessToken) return
+
+    try {
+      setIsLeavingWorkspace(true)
+      setError(null)
+      await leaveWorkspace(accessToken, workspaceId)
+      // Redirect to workspaces page after leaving
+      window.location.href = '/workspaces'
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to leave workspace')
+    } finally {
+      setIsLeavingWorkspace(false)
     }
   }
 
@@ -203,27 +247,41 @@ export default function WorkspaceDetailsPage() {
           </Link>
         </Button>
 
-        <div className="flex items-center gap-3 mb-2">
-          <Building2 className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">{workspaceMembership.workspace.name}</h1>
-          <Badge variant={getRoleBadgeVariant(workspaceMembership.role)}>
-            {getRoleIcon(workspaceMembership.role)}
-            <span className="ml-1">{workspaceMembership.role}</span>
-          </Badge>
-          {(workspaceMembership.role === 'owner' || workspaceMembership.role === 'admin') && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              {workspaceMembership?.workspace.name}
+              {workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin' ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2"
+                  onClick={() => setEditModalOpen(true)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </h1>
+            <p className="text-muted-foreground">
+              Workspace ID: {workspaceMembership?.workspace.id}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {(workspaceMembership?.role === 'owner' || workspaceMembership?.role === 'admin') && (
+              <Button onClick={() => setInviteModalOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite User
+              </Button>
+            )}
             <Button
               variant="outline"
-              size="sm"
-              onClick={() => setEditModalOpen(true)}
-              className="ml-2"
+              onClick={() => setLeaveDialogOpen(true)}
+              disabled={isLeavingWorkspace}
             >
-              <Edit className="w-4 h-4 mr-1" />
-              Edit
+              {isLeavingWorkspace ? 'Leaving...' : 'Leave Workspace'}
             </Button>
-          )}
+          </div>
         </div>
-
-        <p className="text-muted-foreground">Workspace ID: {workspaceMembership.workspace.id}</p>
       </div>
 
       {error && (
@@ -265,6 +323,20 @@ export default function WorkspaceDetailsPage() {
             <div>
               <label className="text-sm font-medium text-muted-foreground">Total Members</label>
               <p className="text-lg font-semibold">{workspaceMembers.length}</p>
+            </div>
+            <div className="pt-4 border-t">
+              <label className="text-sm font-medium text-muted-foreground">Actions</label>
+              <div className="mt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeaveDialogOpen(true)}
+                  disabled={isLeavingWorkspace}
+                  className="w-full"
+                >
+                  {isLeavingWorkspace ? 'Leaving...' : 'Leave Workspace'}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -411,7 +483,7 @@ export default function WorkspaceDetailsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleRemoveMember(member.userId)}
+                              onClick={() => handleRemoveMemberClick(member)}
                               disabled={isUpdatingRole}
                             >
                               Remove
@@ -443,6 +515,33 @@ export default function WorkspaceDetailsPage() {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         onSuccess={refreshWorkspaceData}
+      />
+
+      {/* Workspace Invite Modal */}
+      <WorkspaceInviteModal
+        workspaceId={workspaceId}
+        open={inviteModalOpen}
+        onOpenChange={setInviteModalOpen}
+        onSuccess={refreshWorkspaceData}
+      />
+
+      {/* Leave Workspace Dialog */}
+      <LeaveWorkspaceDialog
+        open={leaveDialogOpen}
+        onOpenChange={setLeaveDialogOpen}
+        onConfirm={handleLeaveWorkspace}
+        workspaceName={workspaceMembership?.workspace.name || ''}
+        isLeaving={isLeavingWorkspace}
+      />
+
+      {/* Remove Member Dialog */}
+      <RemoveMemberDialog
+        open={removeMemberDialogOpen}
+        onOpenChange={setRemoveMemberDialogOpen}
+        onConfirm={() => handleRemoveMember(memberToRemove?.userId || '')}
+        memberName={memberToRemove?.user.username || ''}
+        workspaceName={workspaceMembership?.workspace.name || ''}
+        isRemoving={isUpdatingRole}
       />
     </div>
   )

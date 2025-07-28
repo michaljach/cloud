@@ -6,6 +6,16 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
+  // Clear all data from database
+  console.log('🧹 Clearing existing data...')
+  await prisma.workspaceInvite.deleteMany()
+  await prisma.userWorkspace.deleteMany()
+  await prisma.oAuthToken.deleteMany()
+  await prisma.oAuthClient.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.workspace.deleteMany()
+  console.log('✅ Database cleared successfully!')
+
   // Create System Admin workspace
   console.log('Creating System Admin workspace...')
   const systemAdminWorkspace = await prisma.workspace.upsert({
