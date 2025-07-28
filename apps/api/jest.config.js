@@ -10,6 +10,7 @@ module.exports = {
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
     '^@middleware/(.*)$': '<rootDir>/src/middleware/$1',
     '^@routes/(.*)$': '<rootDir>/src/routes/$1',
-    '^@generated/(.*)$': '<rootDir>/src/generated/prisma/$1'
+    '^@generated/(.*)$': '<rootDir>/src/generated/prisma/$1',
+    '^@lib/(.*)$': '<rootDir>/src/lib/$1'
   }
 }

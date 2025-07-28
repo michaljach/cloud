@@ -1,13 +1,13 @@
 export const PrismaClient = jest.fn().mockImplementation(() => ({
   oAuthClient: {
     findUnique: jest.fn(({ where }) => {
-      if (where.clientId === 'client1') {
+      if (where.clientId === 'cloud-client') {
         return {
           id: 1,
-          clientId: 'client1',
-          clientSecret: 'secret',
+          clientId: 'cloud-client',
+          clientSecret: 'cloud-secret',
           grants: 'password,refresh_token',
-          redirectUris: 'http://localhost'
+          redirectUris: 'http://localhost:3000/callback'
         }
       }
       return null
@@ -18,8 +18,10 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
       if (where.username === 'user') {
         return {
           id: 1,
-          username: 'admin',
-          password: 'pass'
+          username: 'user',
+          password: 'hashed-user123',
+          fullName: 'Test User',
+          storageLimit: 1024
         }
       }
       return null
@@ -35,10 +37,10 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
       ...data,
       client: {
         id: 1,
-        clientId: 'client1',
-        clientSecret: 'secret',
+        clientId: 'cloud-client',
+        clientSecret: 'cloud-secret',
         grants: 'password,refresh_token',
-        redirectUris: 'http://localhost'
+        redirectUris: 'http://localhost:3000/callback'
       },
       user: {
         id: 1,
@@ -55,10 +57,10 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
           scope: 'default',
           client: {
             id: 1,
-            clientId: 'client1',
-            clientSecret: 'secret',
+            clientId: 'cloud-client',
+            clientSecret: 'cloud-secret',
             grants: 'password,refresh_token',
-            redirectUris: 'http://localhost'
+            redirectUris: 'http://localhost:3000/callback'
           },
           user: {
             id: 1,

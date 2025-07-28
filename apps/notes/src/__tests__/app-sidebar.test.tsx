@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import { AppSidebar } from '../components/app-sidebar'
 import { UserProvider } from '@repo/auth'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
@@ -44,9 +44,11 @@ describe('AppSidebar', () => {
     )
   }
 
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     ;(listUserNotes as jest.Mock).mockResolvedValue([])
-    renderSidebar()
+    await act(async () => {
+      renderSidebar()
+    })
     expect(screen.getByText('Acme Inc.')).toBeInTheDocument()
     expect(screen.getByText('Notes')).toBeInTheDocument()
   })
@@ -59,22 +61,32 @@ describe('AppSidebar', () => {
           resolve = r
         })
     )
-    renderSidebar()
-    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    await act(async () => {
+      renderSidebar()
+    })
+    // Check for skeleton elements using data-slot attribute
+    const skeletons = screen.getAllByTestId('skeleton')
+    expect(skeletons).toHaveLength(3) // There should be 3 skeleton elements
     // Resolve the promise to finish loading
-    resolve!([])
-    await waitFor(() => expect(screen.queryByText('Loading...')).not.toBeInTheDocument())
+    await act(async () => {
+      resolve!([])
+    })
+    await waitFor(() => expect(screen.queryAllByTestId('skeleton')).toHaveLength(0))
   })
 
   it('shows error state', async () => {
     ;(listUserNotes as jest.Mock).mockRejectedValue(new Error('Failed to fetch'))
-    renderSidebar()
+    await act(async () => {
+      renderSidebar()
+    })
     await waitFor(() => expect(screen.getByText('Failed to fetch')).toBeInTheDocument())
   })
 
   it('renders notes list and highlights selected note', async () => {
     ;(listUserNotes as jest.Mock).mockResolvedValue(['note1', 'note2'])
-    renderSidebar()
+    await act(async () => {
+      renderSidebar()
+    })
     await waitFor(() => expect(screen.getByText('note1')).toBeInTheDocument())
     expect(screen.getByText('note2')).toBeInTheDocument()
     // Selected note should have special class
@@ -82,9 +94,11 @@ describe('AppSidebar', () => {
     expect(selected?.className).toMatch(/bg-primary/)
   })
 
-  it('renders settings link', () => {
+  it('renders settings link', async () => {
     ;(listUserNotes as jest.Mock).mockResolvedValue([])
-    renderSidebar()
+    await act(async () => {
+      renderSidebar()
+    })
     // Find all sidebar menu buttons by data-sidebar attribute
     const menuButtons = Array.from(document.querySelectorAll('[data-sidebar="menu-button"]'))
     // Find the one that contains 'Settings' and a link to /settings

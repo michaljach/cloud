@@ -2,25 +2,25 @@ import fs from 'fs'
 import path from 'path'
 import type { FileInfo, FolderOrFileInfo, TrashedFileInfo } from '@repo/types'
 
-const STORAGE_DIR = process.env.STORAGE_DIR || './storage'
-
-// Ensure main storage directory exists
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR, { recursive: true })
-}
-
 /**
  * Get the main storage directory path
  */
 export function getStorageDir(): string {
-  return STORAGE_DIR
+  const storageDir = process.env.STORAGE_DIR || './storage'
+
+  // Ensure main storage directory exists
+  if (!fs.existsSync(storageDir)) {
+    fs.mkdirSync(storageDir, { recursive: true })
+  }
+
+  return storageDir
 }
 
 /**
  * Get a user's specific storage directory for a given type
  */
 export function getUserStorageDir(userId: string, type: string): string {
-  return path.join(STORAGE_DIR, String(userId), type)
+  return path.join(getStorageDir(), String(userId), type)
 }
 
 /**
@@ -213,7 +213,7 @@ export function deleteUserFileFromTrash(userId: string, type: string, filename: 
  * Returns total size in bytes
  */
 export function calculateUserStorageUsage(userId: string): number {
-  const userDir = path.join(STORAGE_DIR, String(userId))
+  const userDir = path.join(getStorageDir(), String(userId))
   if (!fs.existsSync(userDir)) {
     return 0
   }

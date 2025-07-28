@@ -1,11 +1,67 @@
 import request from 'supertest'
-import app from '../../index'
+
+// Set up environment variables for testing
+process.env.OAUTH_CLIENT_ID = 'cloud-client'
+process.env.OAUTH_CLIENT_SECRET = 'cloud-secret'
 
 jest.mock('@prisma/client')
+jest.mock('@lib/prisma', () => ({
+  prisma: {
+    oAuthClient: {
+      findUnique: jest.fn(({ where }) => {
+        if (where.clientId === 'cloud-client') {
+          return {
+            id: 1,
+            clientId: 'cloud-client',
+            clientSecret: 'cloud-secret',
+            grants: 'password,refresh_token',
+            redirectUris: 'http://localhost:3000/callback'
+          }
+        }
+        return null
+      })
+    },
+    user: {
+      findUnique: jest.fn(({ where }) => {
+        if (where.username === 'user') {
+          return {
+            id: 1,
+            username: 'user',
+            password: 'hashed-user123',
+            fullName: 'Test User',
+            storageLimit: 1024
+          }
+        }
+        return null
+      })
+    },
+    oAuthToken: {
+      create: jest.fn(({ data }) => {
+        return {
+          ...data,
+          client: {
+            id: 1,
+            clientId: 'cloud-client',
+            clientSecret: 'cloud-secret',
+            grants: 'password,refresh_token',
+            redirectUris: 'http://localhost:3000/callback'
+          },
+          user: {
+            id: 1,
+            username: 'user'
+          }
+        }
+      })
+    }
+  }
+}))
 jest.mock('bcryptjs', () => ({
-  compare: jest.fn((input, hash) => input === 'pass'),
+  compare: jest.fn((input, hash) => input === 'user123'),
   hash: jest.fn((input) => `hashed-${input}`)
 }))
+
+// Import app after mocks are set up
+import app from '../../index'
 
 describe('Auth API', () => {
   it('should fail with missing credentials', async () => {
@@ -23,8 +79,8 @@ describe('Auth API', () => {
       grant_type: 'password',
       username: 'wrong',
       password: 'wrong',
-      client_id: 'client1',
-      client_secret: 'secret'
+      client_id: 'cloud-client',
+      client_secret: 'cloud-secret'
     })
     expect(res.status).not.toBe(200)
     expect(res.body).toHaveProperty('error')
@@ -35,10 +91,11 @@ describe('Auth API', () => {
     const res = await request(app).post('/api/auth/token').type('form').send({
       grant_type: 'password',
       username: 'user',
-      password: 'pass',
-      client_id: 'client1',
-      client_secret: 'secret'
+      password: 'user123',
+      client_id: 'cloud-client',
+      client_secret: 'cloud-secret'
     })
+
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
     expect(res.body.data).toHaveProperty('accessToken')

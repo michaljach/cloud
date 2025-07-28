@@ -8,6 +8,9 @@ import path from 'path'
 // Mock the storage directory for testing
 const TEST_STORAGE_DIR = path.join(__dirname, '../../../test-storage')
 
+// Set the storage directory environment variable for testing
+process.env.STORAGE_DIR = TEST_STORAGE_DIR
+
 describe('Storage Quota Utils', () => {
   beforeEach(() => {
     // Clean up test directory before each test
@@ -43,10 +46,10 @@ describe('Storage Quota Utils', () => {
       const file2Path = path.join(userDir, 'test2.txt')
 
       fs.writeFileSync(file1Path, 'Hello World') // 11 bytes
-      fs.writeFileSync(file2Path, 'Test content') // 13 bytes
+      fs.writeFileSync(file2Path, 'Test content') // 12 bytes
 
       const usage = calculateUserStorageUsageByType(userId, storageType)
-      expect(usage).toBe(24) // 11 + 13 = 24 bytes
+      expect(usage).toBe(23) // 11 + 12 = 23 bytes
     })
 
     it('should calculate storage usage including subdirectories', () => {
