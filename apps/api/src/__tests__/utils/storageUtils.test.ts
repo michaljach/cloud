@@ -2,17 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import {
   getStorageDir,
-  getUserStorageDir,
-  ensureUserStorageDir,
-  userStorageDirExists,
-  listUserFiles,
-  listUserFilesWithMetadata,
-  userFileExists,
-  getUserFilePath,
-  deleteUserFile,
-  getUserFileMetadata,
-  type FileInfo
-} from '../../utils/fileStorageUtils'
+  getUserPersonalStorageDir,
+  ensureStorageDirForContext,
+  storageDirExistsForContext,
+  listFilesForContext,
+  listFilesWithMetadataForContext,
+  fileExistsForContext,
+  getFilePathForContext,
+  deleteFileForContext,
+  getFileMetadataForContext
+} from '../../utils/storageUtils'
+import type { FileInfo } from '@repo/types'
 
 // Mock the storage directory to a test location
 jest.mock('fs', () => ({
@@ -41,19 +41,19 @@ describe('fileStorageUtils', () => {
     })
   })
 
-  describe('getUserStorageDir', () => {
+  describe('getUserPersonalStorageDir', () => {
     it('should return the correct user storage directory path', () => {
-      const result = getUserStorageDir(testUserId, testType)
+      const result = getUserPersonalStorageDir(testUserId, testType)
       expect(result).toContain(testUserId)
       expect(result).toContain(testType)
     })
   })
 
-  describe('ensureUserStorageDir', () => {
+  describe('ensureStorageDirForContext', () => {
     it('should create directory if it does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      ensureUserStorageDir(testUserId, testType)
+      ensureStorageDirForContext(testUserId, 'personal', testType)
 
       expect(mockFs.mkdirSync).toHaveBeenCalledWith(expect.stringContaining(testUserId), {
         recursive: true
@@ -63,17 +63,17 @@ describe('fileStorageUtils', () => {
     it('should not create directory if it already exists', () => {
       mockFs.existsSync.mockReturnValue(true)
 
-      ensureUserStorageDir(testUserId, testType)
+      ensureStorageDirForContext(testUserId, 'personal', testType)
 
       expect(mockFs.mkdirSync).not.toHaveBeenCalled()
     })
   })
 
-  describe('userStorageDirExists', () => {
+  describe('storageDirExistsForContext', () => {
     it('should return true when directory exists', () => {
       mockFs.existsSync.mockReturnValue(true)
 
-      const result = userStorageDirExists(testUserId, testType)
+      const result = storageDirExistsForContext(testUserId, 'personal', testType)
 
       expect(result).toBe(true)
       expect(mockFs.existsSync).toHaveBeenCalled()
@@ -82,17 +82,17 @@ describe('fileStorageUtils', () => {
     it('should return false when directory does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = userStorageDirExists(testUserId, testType)
+      const result = storageDirExistsForContext(testUserId, 'personal', testType)
 
       expect(result).toBe(false)
     })
   })
 
-  describe('listUserFiles', () => {
+  describe('listFilesForContext', () => {
     it('should return empty array when directory does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = listUserFiles(testUserId, testType)
+      const result = listFilesForContext(testUserId, 'personal', testType)
 
       expect(result).toEqual([])
     })
@@ -102,17 +102,17 @@ describe('fileStorageUtils', () => {
       mockFs.readdirSync.mockReturnValue(['file1.txt', 'file2.txt'] as any)
       mockFs.statSync.mockReturnValue({ isFile: () => true } as any)
 
-      const result = listUserFiles(testUserId, testType)
+      const result = listFilesForContext(testUserId, 'personal', testType)
 
       expect(result).toEqual(['file1.txt', 'file2.txt'])
     })
   })
 
-  describe('listUserFilesWithMetadata', () => {
+  describe('listFilesWithMetadataForContext', () => {
     it('should return empty array when directory does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = listUserFilesWithMetadata(testUserId, testType)
+      const result = listFilesWithMetadataForContext(testUserId, 'personal', testType)
 
       expect(result).toEqual([])
     })
@@ -128,7 +128,7 @@ describe('fileStorageUtils', () => {
       mockFs.readdirSync.mockReturnValue(['file1.txt'] as any)
       mockFs.statSync.mockReturnValue(mockStat as any)
 
-      const result = listUserFilesWithMetadata(testUserId, testType)
+      const result = listFilesWithMetadataForContext(testUserId, 'personal', testType)
 
       expect(result).toEqual([
         {
@@ -140,12 +140,12 @@ describe('fileStorageUtils', () => {
     })
   })
 
-  describe('userFileExists', () => {
+  describe('fileExistsForContext', () => {
     it('should return true when file exists', () => {
       mockFs.existsSync.mockReturnValue(true)
       mockFs.statSync.mockReturnValue({ isFile: () => true } as any)
 
-      const result = userFileExists(testUserId, testType, 'test.txt')
+      const result = fileExistsForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toBe(true)
     })
@@ -153,26 +153,26 @@ describe('fileStorageUtils', () => {
     it('should return false when file does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = userFileExists(testUserId, testType, 'test.txt')
+      const result = fileExistsForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toBe(false)
     })
   })
 
-  describe('getUserFilePath', () => {
+  describe('getFilePathForContext', () => {
     it('should return the correct file path', () => {
-      const result = getUserFilePath(testUserId, testType, 'test.txt')
+      const result = getFilePathForContext(testUserId, 'personal', testType, 'test.txt')
       expect(result).toContain(testUserId)
       expect(result).toContain(testType)
       expect(result).toContain('test.txt')
     })
   })
 
-  describe('deleteUserFile', () => {
+  describe('deleteFileForContext', () => {
     it('should delete file when it exists', () => {
       mockFs.existsSync.mockReturnValue(true)
 
-      const result = deleteUserFile(testUserId, testType, 'test.txt')
+      const result = deleteFileForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toBe(true)
       expect(mockFs.unlinkSync).toHaveBeenCalled()
@@ -181,14 +181,14 @@ describe('fileStorageUtils', () => {
     it('should return false when file does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = deleteUserFile(testUserId, testType, 'test.txt')
+      const result = deleteFileForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toBe(false)
       expect(mockFs.unlinkSync).not.toHaveBeenCalled()
     })
   })
 
-  describe('getUserFileMetadata', () => {
+  describe('getFileMetadataForContext', () => {
     it('should return metadata when file exists', () => {
       const mockStat = {
         size: 1024,
@@ -198,7 +198,7 @@ describe('fileStorageUtils', () => {
       mockFs.existsSync.mockReturnValue(true)
       mockFs.statSync.mockReturnValue(mockStat as any)
 
-      const result = getUserFileMetadata(testUserId, testType, 'test.txt')
+      const result = getFileMetadataForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toEqual({
         filename: 'test.txt',
@@ -210,7 +210,7 @@ describe('fileStorageUtils', () => {
     it('should return null when file does not exist', () => {
       mockFs.existsSync.mockReturnValue(false)
 
-      const result = getUserFileMetadata(testUserId, testType, 'test.txt')
+      const result = getFileMetadataForContext(testUserId, 'personal', testType, 'test.txt')
 
       expect(result).toBe(null)
     })

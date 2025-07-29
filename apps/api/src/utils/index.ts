@@ -2,7 +2,7 @@ import type { User } from '@repo/types'
 
 // Export all utility functions
 export * from './cryptoStorageUtils'
-export * from './fileStorageUtils'
+export * from './storageUtils'
 export * from './handleError'
 
 // System Admin workspace ID constant

@@ -1,5 +1,12 @@
 import { NoteEditorContainer } from '@/components/note-editor-container'
 
-export default function NotePage() {
-  return <NoteEditorContainer />
+interface NotePageProps {
+  params: Promise<{
+    filename: string
+  }>
+}
+
+export default async function NotePage({ params }: NotePageProps) {
+  const { filename } = await params
+  return <NoteEditorContainer filename={filename} />
 }

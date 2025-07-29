@@ -20,7 +20,6 @@ export function DetailsForm({ user }: DetailsFormProps) {
     setIsSubmitting(true)
 
     // TODO: Implement form submission
-    console.log('Form submitted:', { fullName })
 
     setTimeout(() => {
       setIsSubmitting(false)

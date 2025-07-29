@@ -1,7 +1,7 @@
 import './globals.css'
 import '@repo/ui/styles.css'
 import type { Metadata } from 'next'
-import { UserProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider } from '@repo/auth'
 import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SearchClient } from '@/components/search-client'
@@ -19,18 +19,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <UserProvider>
-          <FilesProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <HeaderUserProvider title="Files">
-                  <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
-                </HeaderUserProvider>
-                <main className="p-8">{children}</main>
-                <Toaster />
-              </SidebarInset>
-            </SidebarProvider>
-          </FilesProvider>
+          <WorkspaceProvider>
+            <FilesProvider>
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset>
+                  <HeaderUserProvider title="Files">
+                    <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
+                  </HeaderUserProvider>
+                  <main className="p-8">{children}</main>
+                  <Toaster />
+                </SidebarInset>
+              </SidebarProvider>
+            </FilesProvider>
+          </WorkspaceProvider>
         </UserProvider>
       </body>
     </html>

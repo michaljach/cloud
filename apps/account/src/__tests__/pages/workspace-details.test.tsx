@@ -85,6 +85,7 @@ describe('Workspace Details Page', () => {
 
   const mockWorkspaceMembers = [
     {
+      id: 'membership-1',
       userId: 'user-1',
       username: 'testuser',
       fullName: 'Test User',
@@ -97,6 +98,7 @@ describe('Workspace Details Page', () => {
       }
     },
     {
+      id: 'membership-2',
       userId: 'user-2',
       username: 'memberuser',
       fullName: 'Member User',

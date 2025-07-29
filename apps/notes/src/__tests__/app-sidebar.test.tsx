@@ -2,15 +2,24 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { AppSidebar } from '../components/app-sidebar'
-import { UserProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider } from '@repo/auth'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
-// Mock useUser to provide a fake accessToken
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
-  useUser: () => ({ accessToken: 'test-token' }),
-  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
-}))
+// Mock useUser and useWorkspace to provide fake data
+jest.mock('@repo/auth', () => {
+  const mockUseUser = jest.fn()
+  const mockUseWorkspace = jest.fn()
+
+  return {
+    ...jest.requireActual('@repo/auth'),
+    useUser: mockUseUser,
+    useWorkspace: mockUseWorkspace,
+    UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    WorkspaceProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    __mockUseUser: mockUseUser,
+    __mockUseWorkspace: mockUseWorkspace
+  }
+})
 
 // Mock useSidebar to provide a selectedNote
 jest.mock('@repo/ui/components/base/sidebar', () => {
@@ -21,41 +30,85 @@ jest.mock('@repo/ui/components/base/sidebar', () => {
   }
 })
 
-// Mock listUserNotes to control notes fetching
+// Mock listNotes to control notes fetching
 jest.mock('@repo/api', () => ({
   ...jest.requireActual('@repo/api'),
-  listUserNotes: jest.fn()
+  listNotes: jest.fn().mockResolvedValue([])
 }))
 
-import { listUserNotes } from '@repo/api'
+import { listNotes } from '@repo/api'
 
 describe('AppSidebar', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    // Set default mocks
+    const authModule = require('@repo/auth')
+    authModule.__mockUseUser.mockReturnValue({ accessToken: null })
+    authModule.__mockUseWorkspace.mockReturnValue({
+      currentWorkspace: null,
+      availableWorkspaces: [],
+      loading: false,
+      error: null,
+      switchToWorkspace: jest.fn(),
+      switchToPersonal: jest.fn(),
+      refreshWorkspaces: jest.fn(),
+      isPersonalSpace: true
+    })
   })
 
   function renderSidebar() {
     return render(
       <UserProvider>
-        <SidebarProvider>
-          <AppSidebar />
-        </SidebarProvider>
+        <WorkspaceProvider>
+          <SidebarProvider>
+            <AppSidebar />
+          </SidebarProvider>
+        </WorkspaceProvider>
       </UserProvider>
     )
   }
 
-  it('renders without crashing', async () => {
-    ;(listUserNotes as jest.Mock).mockResolvedValue([])
+  // Helper to update mocks for different scenarios
+  function setupMocks(accessToken: string | null, currentWorkspace: any) {
+    const authModule = require('@repo/auth')
+    authModule.__mockUseUser.mockReturnValue({ accessToken })
+    authModule.__mockUseWorkspace.mockReturnValue({
+      currentWorkspace,
+      availableWorkspaces: [],
+      loading: false,
+      error: null,
+      switchToWorkspace: jest.fn(),
+      switchToPersonal: jest.fn(),
+      refreshWorkspaces: jest.fn(),
+      isPersonalSpace: true
+    })
+  }
+
+  it('renders basic structure', async () => {
     await act(async () => {
       renderSidebar()
     })
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument()
-    expect(screen.getByText('Notes')).toBeInTheDocument()
+    // Look for the specific Notes header text
+    expect(
+      screen.getByText('Notes', { selector: 'span.text-base.font-semibold' })
+    ).toBeInTheDocument()
+  })
+
+  it('renders without crashing', async () => {
+    setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
+    ;(listNotes as jest.Mock).mockResolvedValue([])
+    await act(async () => {
+      renderSidebar()
+    })
+    expect(
+      screen.getByText('Notes', { selector: 'span.text-base.font-semibold' })
+    ).toBeInTheDocument()
   })
 
   it('shows loading state', async () => {
+    setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
     let resolve: (notes: string[]) => void
-    ;(listUserNotes as jest.Mock).mockImplementation(
+    ;(listNotes as jest.Mock).mockImplementation(
       () =>
         new Promise((r) => {
           resolve = r
@@ -75,7 +128,8 @@ describe('AppSidebar', () => {
   })
 
   it('shows error state', async () => {
-    ;(listUserNotes as jest.Mock).mockRejectedValue(new Error('Failed to fetch'))
+    setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
+    ;(listNotes as jest.Mock).mockRejectedValue(new Error('Failed to fetch'))
     await act(async () => {
       renderSidebar()
     })
@@ -83,7 +137,8 @@ describe('AppSidebar', () => {
   })
 
   it('renders notes list and highlights selected note', async () => {
-    ;(listUserNotes as jest.Mock).mockResolvedValue(['note1', 'note2'])
+    setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
+    ;(listNotes as jest.Mock).mockResolvedValue(['note1', 'note2'])
     await act(async () => {
       renderSidebar()
     })
@@ -95,7 +150,8 @@ describe('AppSidebar', () => {
   })
 
   it('renders settings link', async () => {
-    ;(listUserNotes as jest.Mock).mockResolvedValue([])
+    setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
+    ;(listNotes as jest.Mock).mockResolvedValue([])
     await act(async () => {
       renderSidebar()
     })

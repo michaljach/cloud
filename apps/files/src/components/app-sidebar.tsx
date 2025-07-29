@@ -23,12 +23,16 @@ import {
   DialogDescription
 } from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
+import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
+import { useWorkspace } from '@repo/auth'
 import { FileUpload } from './file-upload'
 import { StorageQuota } from './storage-quota'
 import Link from 'next/link'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [open, setOpen] = React.useState(false)
+  const { currentWorkspace } = useWorkspace()
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -37,11 +41,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
                 <Box className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Files</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="px-2 mt-2">
+          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <div className="px-2">

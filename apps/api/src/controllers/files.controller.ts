@@ -5,14 +5,11 @@ import type { User } from '@repo/types'
 import {
   encryptAndSaveUserFile,
   decryptAndReadUserFile,
-  listUserFiles,
-  listUserFolderContents,
   listUserTrashedFiles,
   restoreUserFileFromTrash,
   deleteUserFileFromTrash,
-  batchMoveUserFilesToTrash,
-  streamUserFolderAsZip
-} from '@services/filesStorage.service'
+  batchMoveUserFilesToTrash
+} from '@services/files.service'
 
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
@@ -22,6 +19,7 @@ import { validate } from '@middleware/validate'
 import archiver from 'archiver'
 import fs from 'fs'
 import path from 'path'
+import { getStorageDir, listFolderContentsWithMetadataForContext } from '@utils/storageUtils'
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(process.cwd(), 'uploads')
@@ -52,19 +50,24 @@ const fileSchema = z.object({
   size: z.number().min(1, 'File size must be greater than 0')
 })
 
+const PERSONAL_WORKSPACE_ID = 'personal'
+
 @JsonController('/files')
-export default class FilesController {
+export default class UnifiedFilesController {
   /**
    * POST /api/files/batch
-   * Upload multiple files for the authenticated user (encrypted)
+   * Upload multiple files for the authenticated user (encrypted for personal, unencrypted for workspace)
    */
   @Post('/batch')
   @UseBefore(authenticate)
   @UseBefore(upload.array('files'))
-  async uploadUserFilesBatch(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+  async uploadFilesBatch(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
       return res.status(400).json({ success: false, data: null, error: 'No files uploaded' })
     }
+
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
     const results = []
     for (const file of req.files) {
       // Validate file using Zod schema
@@ -74,9 +77,24 @@ export default class FilesController {
         continue
       }
       try {
-        // Read file from disk and encrypt it
+        // Read file from disk
         const fileBuffer = fs.readFileSync(file.path)
-        encryptAndSaveUserFile(fileBuffer, file.originalname, user.id)
+
+        if (workspaceId === PERSONAL_WORKSPACE_ID) {
+          // Use personal storage with encryption
+          encryptAndSaveUserFile(fileBuffer, file.originalname, user.id)
+        } else {
+          // Use workspace storage without encryption
+          const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+          const filePath = path.join(workspaceStorageDir, file.originalname)
+
+          // Ensure workspace storage directory exists
+          if (!fs.existsSync(workspaceStorageDir)) {
+            fs.mkdirSync(workspaceStorageDir, { recursive: true })
+          }
+
+          fs.writeFileSync(filePath, fileBuffer)
+        }
 
         // Clean up temporary file
         fs.unlinkSync(file.path)
@@ -103,10 +121,39 @@ export default class FilesController {
    */
   @Get('/')
   @UseBefore(authenticate)
-  async listUserFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+  async listFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     try {
-      const path = typeof req.query.path === 'string' ? req.query.path : ''
-      const items = listUserFolderContents(user.id, path)
+      const filePath = typeof req.query.path === 'string' ? req.query.path : ''
+      const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
+      let items
+      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+        // Use personal storage (existing encrypted storage)
+        items = listFolderContentsWithMetadataForContext(user.id, 'personal', 'files', filePath)
+      } else {
+        // Use workspace storage (separate from user storage)
+        const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+        const targetDir = filePath ? path.join(workspaceStorageDir, filePath) : workspaceStorageDir
+
+        if (!fs.existsSync(targetDir)) {
+          items = []
+        } else {
+          items = fs
+            .readdirSync(targetDir)
+            .filter((item) => item !== '.trash') // Hide .trash folder
+            .map((item) => {
+              const itemPath = path.join(targetDir, item)
+              const stat = fs.statSync(itemPath)
+              return {
+                name: item,
+                size: stat.isFile() ? stat.size : undefined,
+                modified: stat.mtime,
+                type: stat.isDirectory() ? ('folder' as const) : ('file' as const)
+              }
+            })
+        }
+      }
+
       return res.json({ success: true, data: items, error: null })
     } catch (e) {
       return res
@@ -116,14 +163,60 @@ export default class FilesController {
   }
 
   /**
+   * GET /api/files/trash
+   * List all trashed files for the authenticated user
+   */
+  @Get('/trash')
+  @UseBefore(authenticate)
+  async listTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
+    let files
+    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      // Use personal storage trash
+      files = listUserTrashedFiles(user.id)
+    } else {
+      // Use workspace storage trash
+      const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+      const trashDir = path.join(workspaceStorageDir, '.trash')
+
+      // Ensure storage and trash directories exist
+      if (!fs.existsSync(workspaceStorageDir)) {
+        fs.mkdirSync(workspaceStorageDir, { recursive: true })
+      }
+      if (!fs.existsSync(trashDir)) {
+        fs.mkdirSync(trashDir, { recursive: true })
+        files = []
+      } else {
+        try {
+          files = fs.readdirSync(trashDir).map((f) => {
+            const stat = fs.statSync(path.join(trashDir, f))
+            return {
+              filename: f,
+              size: stat.size,
+              modified: stat.mtime,
+              type: stat.isDirectory() ? 'folder' : 'file'
+            }
+          })
+        } catch (error) {
+          files = []
+        }
+      }
+    }
+
+    return res.json({ success: true, data: files, error: null })
+  }
+
+  /**
    * GET /api/files/:filename
-   * Download a specific file for the authenticated user (decrypted)
+   * Download a specific file for the authenticated user (decrypted for personal, raw for workspace)
    */
   @Get('/:filename')
   @UseBefore(authenticate)
-  async downloadUserFile(
+  async downloadFile(
     @CurrentUser() user: User,
     @Param('filename') filename: string,
+    @Req() req: Request,
     @Res() res: Response
   ) {
     const paramSchema = z.object({ filename: z.string().min(1, 'Filename is required') })
@@ -131,8 +224,21 @@ export default class FilesController {
     if (!params.success) {
       return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
+
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
     try {
-      const data = decryptAndReadUserFile(params.data.filename, user.id)
+      let data: Buffer
+      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+        // Use personal storage with decryption
+        data = decryptAndReadUserFile(params.data.filename, user.id)
+      } else {
+        // Use workspace storage without decryption
+        const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+        const filePath = path.join(workspaceStorageDir, params.data.filename)
+        data = fs.readFileSync(filePath)
+      }
+
       res.setHeader('Content-Disposition', `attachment; filename="${params.data.filename}"`)
       return res.send(data)
     } catch (e) {
@@ -143,49 +249,100 @@ export default class FilesController {
   }
 
   /**
-   * POST /api/files/batch-delete
-   * Move multiple files to trash (soft delete)
-   * Body: { filenames: string[] }
+   * POST /api/files/batch/trash
+   * Move multiple files to trash
    */
-  @Post('/batch-delete')
+  @Post('/batch/trash')
   @UseBefore(authenticate)
   async batchMoveToTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     const { filenames } = req.body
-    if (!Array.isArray(filenames) || filenames.length === 0) {
-      return res.status(400).json({ success: false, data: null, error: 'No filenames provided' })
-    }
-    const results = batchMoveUserFilesToTrash(user.id, filenames)
-    return res.json({
-      success: true,
-      data: results,
-      error: null
-    })
-  }
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
 
-  /**
-   * GET /api/files/trash
-   * List all trashed files for the authenticated user
-   */
-  @Get('/trash')
-  @UseBefore(authenticate)
-  async listTrash(@CurrentUser() user: User, @Res() res: Response) {
-    const files = listUserTrashedFiles(user.id)
-    return res.json({ success: true, data: files, error: null })
+    if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, data: null, error: 'Filenames array is required' })
+    }
+
+    let results
+    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      // Use personal storage trash
+      results = batchMoveUserFilesToTrash(user.id, filenames)
+    } else {
+      // Use workspace storage trash
+      const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+      const trashDir = path.join(workspaceStorageDir, '.trash')
+
+      // Ensure storage and trash directories exist
+      if (!fs.existsSync(workspaceStorageDir)) {
+        fs.mkdirSync(workspaceStorageDir, { recursive: true })
+      }
+      if (!fs.existsSync(trashDir)) {
+        fs.mkdirSync(trashDir, { recursive: true })
+      }
+
+      results = []
+      for (const filename of filenames) {
+        try {
+          const filePath = path.join(workspaceStorageDir, filename)
+          const trashPath = path.join(trashDir, filename)
+
+          if (fs.existsSync(filePath)) {
+            fs.renameSync(filePath, trashPath)
+            results.push({ filename, success: true, error: null })
+          } else {
+            results.push({ filename, success: false, error: 'File not found' })
+          }
+        } catch (err: any) {
+          results.push({ filename, success: false, error: err.message })
+        }
+      }
+    }
+
+    return res.json({ success: true, data: results, error: null })
   }
 
   /**
    * POST /api/files/trash/restore
    * Restore a file from trash
-   * Body: { filename: string }
    */
   @Post('/trash/restore')
   @UseBefore(authenticate)
   async restoreFromTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     const { filename } = req.body
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
     if (!filename) {
       return res.status(400).json({ success: false, data: null, error: 'Filename required' })
     }
-    const ok = restoreUserFileFromTrash(user.id, filename)
+
+    let ok: boolean
+    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      // Use personal storage trash
+      ok = restoreUserFileFromTrash(user.id, filename)
+    } else {
+      // Use workspace storage trash
+      const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+      const trashDir = path.join(workspaceStorageDir, '.trash')
+      const trashFilePath = path.join(trashDir, filename)
+      const restoreFilePath = path.join(workspaceStorageDir, filename)
+
+      // Ensure storage and trash directories exist
+      if (!fs.existsSync(workspaceStorageDir)) {
+        fs.mkdirSync(workspaceStorageDir, { recursive: true })
+      }
+      if (!fs.existsSync(trashDir)) {
+        fs.mkdirSync(trashDir, { recursive: true })
+      }
+
+      if (fs.existsSync(trashFilePath)) {
+        fs.renameSync(trashFilePath, restoreFilePath)
+        ok = true
+      } else {
+        ok = false
+      }
+    }
+
     if (ok) {
       return res.json({ success: true, data: { filename }, error: null })
     } else {
@@ -202,14 +359,45 @@ export default class FilesController {
   async deleteFromTrash(
     @CurrentUser() user: User,
     @Param('filename') filename: string,
+    @Req() req: Request,
     @Res() res: Response
   ) {
-    if (!filename) {
-      return res.status(400).json({ success: false, data: null, error: 'Filename required' })
+    const paramSchema = z.object({ filename: z.string().min(1, 'Filename is required') })
+    const params = paramSchema.safeParse({ filename })
+    if (!params.success) {
+      return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
-    const ok = deleteUserFileFromTrash(user.id, filename)
+
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
+    let ok: boolean
+    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      // Use personal storage trash
+      ok = deleteUserFileFromTrash(user.id, params.data.filename)
+    } else {
+      // Use workspace storage trash
+      const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
+      const trashDir = path.join(workspaceStorageDir, '.trash')
+      const trashFilePath = path.join(trashDir, params.data.filename)
+
+      // Ensure storage and trash directories exist
+      if (!fs.existsSync(workspaceStorageDir)) {
+        fs.mkdirSync(workspaceStorageDir, { recursive: true })
+      }
+      if (!fs.existsSync(trashDir)) {
+        fs.mkdirSync(trashDir, { recursive: true })
+      }
+
+      if (fs.existsSync(trashFilePath)) {
+        fs.unlinkSync(trashFilePath)
+        ok = true
+      } else {
+        ok = false
+      }
+    }
+
     if (ok) {
-      return res.json({ success: true, data: { filename }, error: null })
+      return res.json({ success: true, data: { filename: params.data.filename }, error: null })
     } else {
       return res.status(404).json({ success: false, data: null, error: 'File not found in trash' })
     }

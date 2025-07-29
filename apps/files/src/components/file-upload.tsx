@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useContext } from 'react'
-import { useUser } from '@repo/auth'
-import { uploadEncryptedUserFilesBatch } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/auth'
+import { uploadFilesBatch } from '@repo/api'
 import { encryptFile } from '@repo/utils'
 import { FilesContext } from './files-context'
 
@@ -12,11 +12,12 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [dragActive, setDragActive] = useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
   const { accessToken, refreshStorageQuota, user, storageQuota } = useUser()
+  const { currentWorkspace } = useWorkspace()
   const { refreshFiles } = useContext(FilesContext)
 
   const handleUpload = async (selectedFiles: File[]) => {
-    if (!selectedFiles.length || !accessToken) {
-      setStatus('File(s) and login required')
+    if (!selectedFiles.length || !accessToken || !currentWorkspace) {
+      setStatus('File(s), login, and workspace context required')
       return
     }
 
@@ -44,7 +45,12 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
         })
       )
       setStatus('Uploading...')
-      await uploadEncryptedUserFilesBatch(encryptedFiles, accessToken)
+
+      // Use workspace-aware upload
+
+      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+      await uploadFilesBatch(encryptedFiles, accessToken, workspaceId)
+
       setStatus('Upload successful!')
       setFiles([])
       refreshFiles()
@@ -52,25 +58,40 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       refreshStorageQuota()
       if (onUploaded) onUploaded()
     } catch (err: any) {
+      console.error('❌ Upload error:', err)
       setStatus('Error: ' + err.message)
     }
   }
 
   // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(true)
   }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // This is required to allow dropping
+    e.dataTransfer.dropEffect = 'copy'
+    setDragActive(true)
+  }
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setDragActive(false)
+    // Only set dragActive to false if we're leaving the drop zone
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragActive(false)
+    }
   }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFiles = Array.from(e.dataTransfer.files)
       setFiles(droppedFiles)
@@ -90,7 +111,8 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-2 border-2 rounded p-8 cursor-pointer transition-colors select-none text-center ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-dashed border-muted'}`}
+      className={`flex flex-col items-center justify-center gap-2 border-2 rounded p-8 cursor-pointer transition-colors select-none text-center min-h-[200px] ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-dashed border-muted'}`}
+      onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -102,20 +124,31 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       <input
         ref={inputRef}
         type="file"
-        style={{ display: 'none' }}
-        onChange={handleInputChange}
         multiple
+        onChange={handleInputChange}
+        className="hidden"
+        accept="*/*"
       />
-      <span className="text-lg font-semibold">Drop files here or click to upload</span>
-      <span className="text-xs text-muted-foreground">
-        All uploaded files are securely encrypted.
-      </span>
-      {files.length > 0 && (
-        <span className="text-xs text-foreground">
-          Selected: {files.map((f) => f.name).join(', ')}
-        </span>
-      )}
-      {status && <div className="text-sm text-muted-foreground">{status}</div>}
+      <div className="flex flex-col items-center gap-2">
+        <div className="text-4xl">{dragActive ? '📂' : '📁'}</div>
+        <div className="text-sm text-muted-foreground">
+          {dragActive
+            ? 'Drop files here to upload'
+            : status || 'Drop files here or click to browse'}
+        </div>
+        {files.length > 0 && (
+          <div className="text-xs text-muted-foreground">{files.length} file(s) selected</div>
+        )}
+        {/* Debug info */}
+        {currentWorkspace && (
+          <div className="text-xs text-blue-600 mt-2">
+            Current:{' '}
+            {currentWorkspace.id === 'personal'
+              ? 'Personal Space'
+              : `Workspace: ${currentWorkspace.id}`}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

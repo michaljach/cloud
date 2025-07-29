@@ -5,12 +5,8 @@ import { useContext, useMemo } from 'react'
 import { FilesContext } from '../files-context'
 import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
 import React from 'react'
-import { useUser } from '@repo/auth'
-import {
-  uploadEncryptedUserFilesBatch,
-  batchMoveUserFilesToTrash,
-  downloadEncryptedUserFile
-} from '@repo/api'
+import { useUser, useWorkspace } from '@repo/auth'
+import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api'
 import { encryptFile, decryptFile } from '@repo/utils'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
@@ -49,6 +45,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const { files, loading, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
   const { accessToken, refreshStorageQuota } = useUser()
+  const { currentWorkspace } = useWorkspace()
   const [dragActive, setDragActive] = React.useState(false)
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = React.useState(false)
   const [downloading, setDownloading] = React.useState(false)
@@ -101,6 +98,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       if (!accessToken) {
         toast.error('Login required to upload')
@@ -132,7 +130,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         // Update toast to show upload progress
         toast.loading(`Uploading ${files.length} file(s)...`, { id: toastId })
 
-        const results = await uploadEncryptedUserFilesBatch(encryptedFiles, accessToken)
+        // Use unified upload
+        const workspaceId = currentWorkspace?.id === 'personal' ? undefined : currentWorkspace?.id
+        const results = await uploadFilesBatch(encryptedFiles, accessToken, workspaceId)
         const successCount = results.filter((r: any) => r.success).length
         const errorCount = results.length - successCount
 
@@ -178,7 +178,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       // Download and decrypt all files in parallel
       const downloadPromises = selectedFileFiles.map(async (file) => {
         const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
-        const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
+        const workspaceId = currentWorkspace?.id === 'personal' ? undefined : currentWorkspace?.id
+        const encrypted = await downloadFile(fullPath, accessToken, workspaceId)
         const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
         return { filename: file.filename, data: decrypted }
       })
@@ -234,8 +235,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     const fileNamesToDelete = selectedFiles.map((f) =>
       currentPath ? `${currentPath}/${f.filename}` : f.filename
     )
+
     try {
-      const results = await batchMoveUserFilesToTrash(fileNamesToDelete, accessToken)
+      const workspaceId = currentWorkspace?.id === 'personal' ? undefined : currentWorkspace?.id
+      const results = await batchMoveFilesToTrash(fileNamesToDelete, accessToken, workspaceId)
+
       const successCount = results.filter((r: any) => r.success).length
       const errorCount = results.length - successCount
 

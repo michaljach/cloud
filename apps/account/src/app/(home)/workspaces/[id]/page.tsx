@@ -211,14 +211,18 @@ export default function WorkspaceDetailsPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href="/workspaces">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Workspaces
-          </Link>
-        </Button>
+      {/* Navigation */}
+      <div className="mb-4">
+        <Link
+          href="/workspaces"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Workspaces
+        </Link>
+      </div>
 
+      <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">

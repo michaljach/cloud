@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import {
   LayoutDashboard,
@@ -10,8 +12,8 @@ import {
   ShieldUser,
   Building2
 } from 'lucide-react'
-import { getServerUser } from '@repo/auth'
-import { cookies } from 'next/headers'
+import { useUser, useWorkspace } from '@repo/auth'
+import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
 
 import {
   Sidebar,
@@ -50,9 +52,9 @@ function hasWorkspaces(user: any): boolean {
   return (user?.workspaces?.length ?? 0) > 0
 }
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const cookiesStore = await cookies()
-  const user = await getServerUser({ cookies: () => cookiesStore })
+export function AppSidebarClient({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useUser()
+  const { currentWorkspace } = useWorkspace()
   const userIsRootAdmin = isRootAdmin(user)
   const userIsAdmin = isAdmin(user)
   const userHasWorkspaces = hasWorkspaces(user)
@@ -70,6 +72,9 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="px-2 mt-2">
+          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

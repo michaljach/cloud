@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@repo/ui/components/base/button'
-import { useUser } from '@repo/auth'
-import { restoreUserFileFromTrash, deleteUserFileFromTrash } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/auth'
+import { restoreFileFromTrash, deleteFileFromTrash } from '@repo/api'
 import { formatFileSize, formatDate } from '@repo/utils'
 import React from 'react'
 import {
@@ -54,19 +54,34 @@ export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const { accessToken } = useUser()
+        const { currentWorkspace } = useWorkspace()
         const [restoreDialogOpen, setRestoreDialogOpen] = React.useState(false)
         const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+
         const handleRestore = async () => {
-          if (!accessToken) return
-          await restoreUserFileFromTrash(row.original.filename, accessToken)
-          setRestoreDialogOpen(false)
-          refresh()
+          if (!accessToken || !currentWorkspace) return
+
+          try {
+            const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+            await restoreFileFromTrash(row.original.filename, accessToken, workspaceId)
+            setRestoreDialogOpen(false)
+            refresh()
+          } catch (error) {
+            console.error('🗑️ Error restoring file from trash:', error)
+          }
         }
+
         const handleDelete = async () => {
-          if (!accessToken) return
-          await deleteUserFileFromTrash(row.original.filename, accessToken)
-          setDeleteDialogOpen(false)
-          refresh()
+          if (!accessToken || !currentWorkspace) return
+
+          try {
+            const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+            await deleteFileFromTrash(row.original.filename, accessToken, workspaceId)
+            setDeleteDialogOpen(false)
+            refresh()
+          } catch (error) {
+            console.error('🗑️ Error deleting file from trash:', error)
+          }
         }
         return (
           <div className="flex gap-2 justify-end">

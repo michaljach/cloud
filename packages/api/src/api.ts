@@ -628,3 +628,200 @@ export async function removeUserFromWorkspace(
   const json: ApiResponse<null> = await res.json()
   if (!json.success) throw new Error(json.error || 'Failed to remove user from workspace')
 }
+
+// Unified function that works for both personal and workspace files
+export async function listFiles(
+  accessToken: string,
+  path?: string,
+  workspaceId?: string
+): Promise<{ name: string; size?: number; modified: string; type: 'file' | 'folder' }[]> {
+  const url = new URL(`${API_URL}/api/files`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  if (path) {
+    url.searchParams.set('path', path)
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list files')
+  return json.data
+}
+
+export async function downloadFile(
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<Uint8Array> {
+  const url = new URL(`${API_URL}/api/files/${encodeURIComponent(filename)}`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Download failed')
+  return new Uint8Array(await res.arrayBuffer())
+}
+
+export async function listTrashedFiles(
+  accessToken: string,
+  workspaceId?: string
+): Promise<{ filename: string; size: number; modified: string }[]> {
+  const url = new URL(`${API_URL}/api/files/trash`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list trashed files')
+  return json.data
+}
+
+export async function restoreFileFromTrash(
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<any> {
+  const url = new URL(`${API_URL}/api/files/trash/restore`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ filename })
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to restore file from trash')
+  return json.data
+}
+
+export async function deleteFileFromTrash(
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<any> {
+  const url = new URL(`${API_URL}/api/files/trash/${encodeURIComponent(filename)}`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
+  return json.data
+}
+
+export async function batchMoveFilesToTrash(
+  filenames: string[],
+  accessToken: string,
+  workspaceId?: string
+): Promise<any[]> {
+  const url = new URL(`${API_URL}/api/files/batch/trash`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ filenames })
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to move files to trash')
+  return json.data
+}
+
+export async function uploadFilesBatch(
+  files: Array<{ file: Blob | Uint8Array; filename: string }>,
+  accessToken: string,
+  workspaceId?: string
+): Promise<any[]> {
+  const formData = new FormData()
+
+  for (const { file, filename } of files) {
+    const blob = file instanceof Blob ? file : new Blob([file])
+    formData.append('files', blob, filename)
+  }
+
+  const url = new URL(`${API_URL}/api/files/batch`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}
+
+// Unified note functions
+export async function listNotes(accessToken: string, workspaceId?: string): Promise<string[]> {
+  const url = new URL(`${API_URL}/api/notes`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json: ApiResponse<string[]> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to list notes')
+  return json.data
+}
+
+export async function downloadNote(
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<Uint8Array> {
+  const url = new URL(`${API_URL}/api/notes/${encodeURIComponent(filename)}`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  if (!res.ok) throw new Error('Download failed')
+  return new Uint8Array(await res.arrayBuffer())
+}
+
+export async function uploadNote(
+  file: Blob | Uint8Array,
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<any> {
+  const formData = new FormData()
+  const blob = file instanceof Blob ? file : new Blob([file])
+  formData.append('note', blob, filename)
+
+  const url = new URL(`${API_URL}/api/notes`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: formData
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Upload failed')
+  return json.data
+}

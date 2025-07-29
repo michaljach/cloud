@@ -1,7 +1,7 @@
 import {
-  calculateUserStorageUsage,
-  calculateUserStorageUsageByType
-} from '../../utils/fileStorageUtils'
+  calculateStorageUsageForContext,
+  calculateStorageUsageByTypeForContext
+} from '../../utils/storageUtils'
 import fs from 'fs'
 import path from 'path'
 
@@ -27,16 +27,16 @@ describe('Storage Quota Utils', () => {
     }
   })
 
-  describe('calculateUserStorageUsageByType', () => {
+  describe('calculateStorageUsageByTypeForContext', () => {
     it('should return 0 for non-existent user directory', () => {
-      const usage = calculateUserStorageUsageByType('non-existent-user', 'files')
+      const usage = calculateStorageUsageByTypeForContext('non-existent-user', 'personal', 'files')
       expect(usage).toBe(0)
     })
 
     it('should calculate correct storage usage for files', () => {
       const userId = 'test-user'
       const storageType = 'files'
-      const userDir = path.join(TEST_STORAGE_DIR, userId, storageType)
+      const userDir = path.join(TEST_STORAGE_DIR, 'users', userId, storageType)
 
       // Create test directory structure
       fs.mkdirSync(userDir, { recursive: true })
@@ -48,14 +48,14 @@ describe('Storage Quota Utils', () => {
       fs.writeFileSync(file1Path, 'Hello World') // 11 bytes
       fs.writeFileSync(file2Path, 'Test content') // 12 bytes
 
-      const usage = calculateUserStorageUsageByType(userId, storageType)
+      const usage = calculateStorageUsageByTypeForContext(userId, 'personal', storageType)
       expect(usage).toBe(23) // 11 + 12 = 23 bytes
     })
 
     it('should calculate storage usage including subdirectories', () => {
       const userId = 'test-user'
       const storageType = 'files'
-      const userDir = path.join(TEST_STORAGE_DIR, userId, storageType)
+      const userDir = path.join(TEST_STORAGE_DIR, 'users', userId, storageType)
 
       // Create test directory structure
       fs.mkdirSync(userDir, { recursive: true })
@@ -69,20 +69,20 @@ describe('Storage Quota Utils', () => {
       fs.writeFileSync(file1Path, 'Hello') // 5 bytes
       fs.writeFileSync(file2Path, 'World') // 5 bytes
 
-      const usage = calculateUserStorageUsageByType(userId, storageType)
+      const usage = calculateStorageUsageByTypeForContext(userId, 'personal', storageType)
       expect(usage).toBe(10) // 5 + 5 = 10 bytes
     })
   })
 
-  describe('calculateUserStorageUsage', () => {
+  describe('calculateStorageUsageForContext', () => {
     it('should return 0 for non-existent user directory', () => {
-      const usage = calculateUserStorageUsage('non-existent-user')
+      const usage = calculateStorageUsageForContext('non-existent-user', 'personal')
       expect(usage).toBe(0)
     })
 
     it('should calculate total storage usage across all storage types', () => {
       const userId = 'test-user'
-      const userDir = path.join(TEST_STORAGE_DIR, userId)
+      const userDir = path.join(TEST_STORAGE_DIR, 'users', userId)
 
       // Create multiple storage type directories
       const filesDir = path.join(userDir, 'files')
@@ -98,7 +98,7 @@ describe('Storage Quota Utils', () => {
       fs.writeFileSync(path.join(notesDir, 'note1.txt'), 'Note content') // 12 bytes
       fs.writeFileSync(path.join(photosDir, 'photo1.jpg'), 'Photo data') // 10 bytes
 
-      const usage = calculateUserStorageUsage(userId)
+      const usage = calculateStorageUsageForContext(userId, 'personal')
       expect(usage).toBe(34) // 12 + 12 + 10 = 34 bytes
     })
   })

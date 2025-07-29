@@ -18,8 +18,9 @@ import {
 } from '@repo/ui/components/base/sidebar'
 
 import { NavMain } from './nav-main'
-import { listUserNotes } from '@repo/api'
-import { useUser } from '@repo/auth'
+import { listNotes } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/auth'
+import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
 import { StorageQuota } from './storage-quota'
@@ -39,19 +40,34 @@ const data = {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { accessToken } = useUser()
+  const { currentWorkspace } = useWorkspace()
   const { selectedNote } = useSidebar()
   const [notes, setNotes] = React.useState<string[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
-    if (!accessToken) return
+    if (!accessToken || !currentWorkspace) return
     setLoading(true)
-    listUserNotes(accessToken)
-      .then(setNotes)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [accessToken])
+
+    const fetchNotes = async () => {
+      try {
+        const fetchedNotes = await listNotes(
+          accessToken,
+          currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+        )
+        setNotes(fetchedNotes)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch notes')
+        setNotes([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchNotes()
+  }, [accessToken, currentWorkspace])
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -61,11 +77,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
                 <Box className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Notes</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="px-2 mt-2">
+          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

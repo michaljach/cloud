@@ -11,9 +11,9 @@ import { z } from 'zod'
 import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
 import { CurrentUser } from '../decorators/currentUser'
-import { getUserStorageUsage, getUserFilesStorageUsage } from '@services/filesStorage.service'
-import { getUserNotesStorageUsage } from '@services/notesStorage.service'
-import { getUserPhotosStorageUsage } from '@services/photosStorage.service'
+import { getUserStorageUsage, getUserFilesStorageUsage } from '@services/files.service'
+import { getUserNotesStorageUsage } from '@services/notes.service'
+import { getUserPhotosStorageUsage } from '@services/photos.service'
 import { prisma } from '@lib/prisma'
 
 const client_id = process.env.OAUTH_CLIENT_ID

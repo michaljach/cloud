@@ -1,8 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { useUser } from '@repo/auth'
-import { listUserFiles } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/auth'
+import { listFiles } from '@repo/api'
 import { formatFileSize } from '@repo/utils'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -28,6 +28,7 @@ export const FilesContext = createContext<FilesContextType>({
 
 export function FilesProvider({ children }: { children: React.ReactNode }) {
   const { accessToken } = useUser()
+  const { currentWorkspace } = useWorkspace()
   const [files, setFiles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [trashedFiles, setTrashedFiles] = useState<any[]>([])
@@ -47,9 +48,12 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
   }
 
   const fetchFiles = useCallback(() => {
-    if (!accessToken) return
+    if (!accessToken || !currentWorkspace) return
     setLoading(true)
-    listUserFiles(accessToken, currentPath)
+
+    const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+
+    listFiles(accessToken, currentPath, workspaceId)
       .then((items) => {
         setFiles(
           items
@@ -65,13 +69,16 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => setFiles([]))
       .finally(() => setLoading(false))
-  }, [accessToken, currentPath])
+  }, [accessToken, currentPath, currentWorkspace])
 
   const fetchTrash = useCallback(() => {
-    if (!accessToken) return
-    import('@repo/api').then(({ listUserTrashedFiles }) => {
-      listUserTrashedFiles(accessToken)
-        .then((items) =>
+    if (!accessToken || !currentWorkspace) return
+
+    import('@repo/api').then(({ listTrashedFiles }) => {
+      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+
+      listTrashedFiles(accessToken, workspaceId)
+        .then((items) => {
           setTrashedFiles(
             items.map((item: any) => ({
               id: item.filename || item.name,
@@ -81,11 +88,13 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
               type: 'file'
             }))
           )
-        )
-        .catch(() => setTrashedFiles([]))
+        })
+        .catch(() => {
+          setTrashedFiles([])
+        })
         .finally(() => setLoading(false))
     })
-  }, [accessToken])
+  }, [accessToken, currentWorkspace])
 
   useEffect(() => {
     if (pathname === '/trash') {
@@ -93,7 +102,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
     } else {
       fetchFiles()
     }
-  }, [fetchFiles, fetchTrash, pathname])
+  }, [fetchFiles, fetchTrash, pathname, currentWorkspace])
 
   return (
     <FilesContext.Provider
@@ -128,8 +137,8 @@ export function TrashProvider({ children }: { children: React.ReactNode }) {
 
   const fetchTrash = useCallback(() => {
     if (!accessToken) return
-    import('@repo/api').then(({ listUserTrashedFiles }) => {
-      listUserTrashedFiles(accessToken)
+    import('@repo/api').then(({ listTrashedFiles }) => {
+      listTrashedFiles(accessToken)
         .then((items) => setTrashedFiles(items))
         .catch(() => setTrashedFiles([]))
     })
