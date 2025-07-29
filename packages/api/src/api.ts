@@ -558,12 +558,19 @@ export async function leaveWorkspace(accessToken: string, workspaceId: string): 
 }
 
 export async function getMyWorkspaces(accessToken: string): Promise<WorkspaceMembership[]> {
-  const res = await fetch(`${API_URL}/api/workspaces/my`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<WorkspaceMembership[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
-  return json.data
+  // Get user data from /me endpoint which includes workspaces
+  const userData = await getCurrentUser(accessToken)
+  const userWorkspaces = userData.user.workspaces || []
+
+  // Convert UserWorkspace to WorkspaceMembership format
+  return userWorkspaces.map((uw) => ({
+    id: uw.id,
+    userId: uw.userId,
+    workspaceId: uw.workspaceId,
+    role: uw.role,
+    joinedAt: uw.joinedAt instanceof Date ? uw.joinedAt.toISOString() : uw.joinedAt,
+    workspace: uw.workspace
+  }))
 }
 
 export async function getWorkspaceMembers(

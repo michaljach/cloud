@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useUser } from '@repo/auth'
-import { getMyWorkspaces } from '@repo/api'
+import { convertUserWorkspacesToMemberships } from '@repo/utils'
 import {
   Card,
   CardContent,
@@ -17,36 +17,38 @@ import Link from 'next/link'
 import type { WorkspaceMembership } from '@repo/types'
 
 export default function WorkspacesPage() {
-  const { user, loading, accessToken } = useUser()
+  const { user, loading } = useUser()
   const [workspaces, setWorkspaces] = useState<WorkspaceMembership[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  const refreshWorkspaces = async () => {
-    if (!accessToken) return
+  const refreshWorkspaces = () => {
+    if (!user) return
     try {
-      const fetchedWorkspaces = await getMyWorkspaces(accessToken)
-      setWorkspaces(fetchedWorkspaces)
+      // Convert UserWorkspace to WorkspaceMembership format
+      const userWorkspaces = user.workspaces || []
+      const convertedWorkspaces = convertUserWorkspacesToMemberships(userWorkspaces)
+      setWorkspaces(convertedWorkspaces)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch workspaces')
     }
   }
 
   useEffect(() => {
-    if (!user || !accessToken) return
+    if (!user) return
     refreshWorkspaces()
-  }, [user, accessToken])
+  }, [user])
 
   // Refresh workspaces when the page becomes visible (e.g., after creating a workspace)
   useEffect(() => {
     const handleFocus = () => {
-      if (user && accessToken) {
+      if (user) {
         refreshWorkspaces()
       }
     }
 
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
-  }, [user, accessToken])
+  }, [user])
 
   if (loading) return <div className="p-6">Loading...</div>
   if (error) return <div className="p-6 text-red-600">{error}</div>

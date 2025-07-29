@@ -170,26 +170,6 @@ export async function updateUserWorkspaceRole(
 }
 
 /**
- * Get all workspaces a user belongs to
- * @param userId User ID
- * @returns Array of UserWorkspace relationships
- */
-export async function getUserWorkspaces(userId: string): Promise<UserWorkspace[]> {
-  const userWorkspaces = await prisma.userWorkspace.findMany({
-    where: { userId },
-    include: {
-      workspace: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    }
-  })
-  return userWorkspaces
-}
-
-/**
  * Update a workspace
  * @param id Workspace ID
  * @param name New workspace name

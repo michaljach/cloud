@@ -22,7 +22,6 @@ import {
   addUserToWorkspace,
   removeUserFromWorkspace,
   updateUserWorkspaceRole,
-  getUserWorkspaces,
   updateWorkspace
 } from '@services/workspace.service'
 import { getUserById } from '@services/users.service'
@@ -50,21 +49,6 @@ export default class WorkspaceController {
 
     try {
       const workspaces = await listWorkspaces()
-      return res.json({ success: true, data: workspaces, error: null })
-    } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
-    }
-  }
-
-  /**
-   * GET /api/workspaces/my
-   * Get current user's workspaces
-   */
-  @Get('/my')
-  @UseBefore(authenticate)
-  async getMyWorkspaces(@CurrentUser() oauthUser: User, @Res() res: Response) {
-    try {
-      const workspaces = await getUserWorkspaces(oauthUser.id)
       return res.json({ success: true, data: workspaces, error: null })
     } catch (err: any) {
       return res.status(500).json({ success: false, data: null, error: err.message })

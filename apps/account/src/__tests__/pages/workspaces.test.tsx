@@ -4,12 +4,6 @@ import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { UserProvider } from '@repo/auth'
 import WorkspacesPage from '../../app/(home)/workspaces/page'
 
-// Mock the API functions
-jest.mock('@repo/api', () => ({
-  ...jest.requireActual('@repo/api'),
-  getMyWorkspaces: jest.fn()
-}))
-
 // Mock useUser hook
 jest.mock('@repo/auth', () => ({
   ...jest.requireActual('@repo/auth'),
@@ -24,7 +18,6 @@ jest.mock('next/link', () => {
   }
 })
 
-import { getMyWorkspaces } from '@repo/api'
 import { useUser } from '@repo/auth'
 
 describe('Workspaces Page', () => {
@@ -97,29 +90,6 @@ describe('Workspaces Page', () => {
     })
   })
 
-  describe('Error State', () => {
-    it('shows error message when API call fails', async () => {
-      ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
-        loading: false,
-        accessToken: 'test-token'
-      })
-      ;(getMyWorkspaces as jest.Mock).mockRejectedValue(new Error('API Error'))
-
-      await act(async () => {
-        render(
-          <UserProvider>
-            <WorkspacesPage />
-          </UserProvider>
-        )
-      })
-
-      await waitFor(() => {
-        expect(screen.getByText('API Error')).toBeInTheDocument()
-      })
-    })
-  })
-
   describe('Empty State', () => {
     it('shows empty state when user has no workspaces', async () => {
       ;(useUser as jest.Mock).mockReturnValue({
@@ -127,7 +97,6 @@ describe('Workspaces Page', () => {
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -150,7 +119,6 @@ describe('Workspaces Page', () => {
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -169,12 +137,16 @@ describe('Workspaces Page', () => {
 
   describe('Workspaces List', () => {
     it('displays workspaces when user has workspaces', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue(mockWorkspaces)
 
       await act(async () => {
         render(
@@ -191,12 +163,16 @@ describe('Workspaces Page', () => {
     })
 
     it('displays workspace roles correctly', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue(mockWorkspaces)
 
       await act(async () => {
         render(
@@ -213,13 +189,16 @@ describe('Workspaces Page', () => {
     })
 
     it('displays workspace IDs', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue(mockWorkspaces)
-
       await act(async () => {
         render(
           <UserProvider>
@@ -235,12 +214,16 @@ describe('Workspaces Page', () => {
     })
 
     it('displays join dates', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue(mockWorkspaces)
 
       await act(async () => {
         render(
@@ -264,7 +247,6 @@ describe('Workspaces Page', () => {
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -281,12 +263,16 @@ describe('Workspaces Page', () => {
     })
 
     it('has view details links for each workspace', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue(mockWorkspaces)
 
       await act(async () => {
         render(
@@ -313,7 +299,6 @@ describe('Workspaces Page', () => {
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -330,14 +315,18 @@ describe('Workspaces Page', () => {
     })
   })
 
-  describe('API Integration', () => {
-    it('calls getMyWorkspaces with correct token', async () => {
+  describe('Data Integration', () => {
+    it('uses workspace data from user object', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -348,17 +337,22 @@ describe('Workspaces Page', () => {
       })
 
       await waitFor(() => {
-        expect(getMyWorkspaces).toHaveBeenCalledWith('test-token')
+        expect(screen.getByText('Test Workspace')).toBeInTheDocument()
+        expect(screen.getByText('Another Workspace')).toBeInTheDocument()
       })
     })
 
-    it('refreshes workspaces when component mounts', async () => {
+    it('refreshes workspaces when user data changes', async () => {
+      const userWithWorkspaces = {
+        ...mockUser,
+        workspaces: mockWorkspaces
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspaces,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -369,7 +363,7 @@ describe('Workspaces Page', () => {
       })
 
       await waitFor(() => {
-        expect(getMyWorkspaces).toHaveBeenCalledTimes(1)
+        expect(screen.getByText('Test Workspace')).toBeInTheDocument()
       })
     })
   })

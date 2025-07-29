@@ -1,4 +1,33 @@
-import type { User } from '@repo/types'
+import type { User, UserWorkspace, WorkspaceMembership } from '@repo/types'
+
+/**
+ * Convert UserWorkspace to WorkspaceMembership format
+ * This is needed because UserWorkspace has joinedAt as Date while WorkspaceMembership has it as string
+ */
+export function convertUserWorkspaceToMembership(
+  userWorkspace: UserWorkspace
+): WorkspaceMembership {
+  return {
+    id: userWorkspace.id,
+    userId: userWorkspace.userId,
+    workspaceId: userWorkspace.workspaceId,
+    role: userWorkspace.role,
+    joinedAt:
+      userWorkspace.joinedAt instanceof Date
+        ? userWorkspace.joinedAt.toISOString()
+        : userWorkspace.joinedAt,
+    workspace: userWorkspace.workspace
+  }
+}
+
+/**
+ * Convert array of UserWorkspace to array of WorkspaceMembership
+ */
+export function convertUserWorkspacesToMemberships(
+  userWorkspaces: UserWorkspace[]
+): WorkspaceMembership[] {
+  return userWorkspaces.map(convertUserWorkspaceToMembership)
+}
 
 // System Admin workspace ID constant
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'

@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useUser } from '@repo/auth'
+import { convertUserWorkspaceToMembership } from '@repo/utils'
 import {
-  getMyWorkspaces,
   getWorkspaceMembers,
   updateUserWorkspaceRole,
   removeUserFromWorkspace,
@@ -70,18 +70,21 @@ export default function WorkspaceDetailsPage() {
   const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState<WorkspaceMember | null>(null)
 
-  const refreshWorkspaceData = async () => {
-    if (!accessToken) return
+  const refreshWorkspaceData = useCallback(async () => {
+    if (!user || !accessToken) return
 
     try {
-      // Get user's workspace memberships
-      const userWorkspaces = await getMyWorkspaces(accessToken)
-      const membership = userWorkspaces.find((uw) => uw.workspaceId === workspaceId)
+      // Get user's workspace memberships from user object
+      const userWorkspaces = user.workspaces || []
+      const userMembership = userWorkspaces.find((uw: any) => uw.workspaceId === workspaceId)
 
-      if (!membership) {
+      if (!userMembership) {
         setError('You are not a member of this workspace')
         return
       }
+
+      // Convert UserWorkspace to WorkspaceMembership format
+      const membership = convertUserWorkspaceToMembership(userMembership)
 
       setWorkspaceMembership(membership)
 
@@ -94,7 +97,7 @@ export default function WorkspaceDetailsPage() {
     } finally {
       setIsLoadingMembers(false)
     }
-  }
+  }, [user, accessToken, workspaceId])
 
   const handleUpdateRole = async (userId: string, newRole: 'owner' | 'admin' | 'member') => {
     if (!accessToken || !workspaceId) return
@@ -152,7 +155,7 @@ export default function WorkspaceDetailsPage() {
   useEffect(() => {
     if (!user || !accessToken || !workspaceId) return
     refreshWorkspaceData()
-  }, [user, accessToken, workspaceId])
+  }, [user, accessToken, workspaceId, refreshWorkspaceData])
 
   // Refresh workspace data when the page becomes visible (e.g., after creating a workspace)
   useEffect(() => {

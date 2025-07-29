@@ -9,8 +9,8 @@ import React, {
   ReactNode
 } from 'react'
 import { useUser } from './UserContext'
-import { getMyWorkspaces } from '@repo/api'
 import type { WorkspaceMembership } from '@repo/types'
+import { convertUserWorkspacesToMemberships } from '@repo/utils'
 import Cookies from 'js-cookie'
 import { PERSONAL_WORKSPACE_ID } from './constants'
 
@@ -52,7 +52,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
 
   const fetchWorkspaces = useCallback(async () => {
-    if (!accessToken) {
+    if (!user) {
       setAvailableWorkspaces([personalWorkspace])
       setLoading(false)
       return
@@ -61,7 +61,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
       setError(null)
-      const workspaces = await getMyWorkspaces(accessToken)
+
+      // Use workspace data from user object (from /me endpoint)
+      const userWorkspaces = user.workspaces || []
+
+      // Convert UserWorkspace to WorkspaceMembership format
+      const workspaces = convertUserWorkspacesToMemberships(userWorkspaces)
 
       // Add personal workspace to the beginning
       const allWorkspaces = [personalWorkspace, ...workspaces]
@@ -73,7 +78,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }, [accessToken])
+  }, [user])
 
   const switchToWorkspace = useCallback(
     (workspaceId: string) => {

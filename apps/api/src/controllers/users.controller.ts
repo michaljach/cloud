@@ -23,10 +23,11 @@ import {
   createUser,
   getUserByUsername
 } from '@services/users.service'
-import { getUserWorkspaces } from '@services/workspace.service'
+
 import { isRootAdmin, isAdmin, getAdminWorkspaces } from '../utils'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
+import { prisma } from '@lib/prisma'
 
 @JsonController('/users')
 export default class UsersController {
@@ -216,11 +217,25 @@ export default class UsersController {
 
     // Workspace security check: admin can only edit users in the same workspaces
     if (!isRootAdmin(user)) {
-      const targetUserWorkspaces = await getUserWorkspaces(userId)
+      // Get target user with workspace data
+      const targetUserWithWorkspaces = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          userWorkspaces: {
+            select: {
+              workspaceId: true
+            }
+          }
+        }
+      })
+
+      if (!targetUserWithWorkspaces) {
+        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      }
 
       // Check if there's any overlap in workspaces where current user is admin/owner
       const currentAdminWorkspaceIds = getAdminWorkspaces(user).map((uw) => uw.workspaceId)
-      const targetWorkspaceIds = targetUserWorkspaces.map((uw) => uw.workspaceId)
+      const targetWorkspaceIds = targetUserWithWorkspaces.userWorkspaces.map((uw) => uw.workspaceId)
       const hasOverlap = currentAdminWorkspaceIds.some((id) => targetWorkspaceIds.includes(id))
 
       if (!hasOverlap) {

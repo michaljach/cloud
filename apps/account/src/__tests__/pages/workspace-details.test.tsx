@@ -7,7 +7,6 @@ import WorkspaceDetailsPage from '../../app/(home)/workspaces/[id]/page'
 // Mock the API functions
 jest.mock('@repo/api', () => ({
   ...jest.requireActual('@repo/api'),
-  getMyWorkspaces: jest.fn(),
   getWorkspaceMembers: jest.fn(),
   updateUserWorkspaceRole: jest.fn(),
   removeUserFromWorkspace: jest.fn(),
@@ -55,7 +54,6 @@ jest.mock('@/components/remove-member-dialog', () => ({
 }))
 
 import {
-  getMyWorkspaces,
   getWorkspaceMembers,
   updateUserWorkspaceRole,
   removeUserFromWorkspace,
@@ -159,7 +157,6 @@ describe('Workspace Details Page', () => {
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([])
 
       await act(async () => {
         render(
@@ -173,37 +170,20 @@ describe('Workspace Details Page', () => {
         expect(screen.getByText('You are not a member of this workspace')).toBeInTheDocument()
       })
     })
-
-    it('shows error when API call fails', async () => {
-      ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
-        loading: false,
-        accessToken: 'test-token'
-      })
-      ;(getMyWorkspaces as jest.Mock).mockRejectedValue(new Error('API Error'))
-
-      await act(async () => {
-        render(
-          <UserProvider>
-            <WorkspaceDetailsPage />
-          </UserProvider>
-        )
-      })
-
-      await waitFor(() => {
-        expect(screen.getByText('API Error')).toBeInTheDocument()
-      })
-    })
   })
 
   describe('Workspace Details Display', () => {
     beforeEach(async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
@@ -230,12 +210,16 @@ describe('Workspace Details Page', () => {
 
   describe('Members Table', () => {
     beforeEach(async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
@@ -256,12 +240,16 @@ describe('Workspace Details Page', () => {
 
   describe('Navigation', () => {
     beforeEach(async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
@@ -282,13 +270,17 @@ describe('Workspace Details Page', () => {
   })
 
   describe('API Integration', () => {
-    it('calls getMyWorkspaces with correct token', async () => {
+    it('uses workspace data from user object', async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
@@ -300,17 +292,21 @@ describe('Workspace Details Page', () => {
       })
 
       await waitFor(() => {
-        expect(getMyWorkspaces).toHaveBeenCalledWith('test-token')
+        expect(screen.getByRole('heading', { name: 'Test Workspace' })).toBeInTheDocument()
       })
     })
 
     it('calls getWorkspaceMembers with correct parameters', async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
@@ -329,12 +325,16 @@ describe('Workspace Details Page', () => {
 
   describe('Page Header', () => {
     beforeEach(async () => {
+      const userWithWorkspace = {
+        ...mockUser,
+        workspaces: [mockWorkspaceMembership]
+      }
+
       ;(useUser as jest.Mock).mockReturnValue({
-        user: mockUser,
+        user: userWithWorkspace,
         loading: false,
         accessToken: 'test-token'
       })
-      ;(getMyWorkspaces as jest.Mock).mockResolvedValue([mockWorkspaceMembership])
       ;(getWorkspaceMembers as jest.Mock).mockResolvedValue(mockWorkspaceMembers)
 
       await act(async () => {
