@@ -23,7 +23,6 @@ import {
   DialogDescription
 } from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
-import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
 import { useWorkspace } from '@repo/auth'
 import { FileUpload } from './file-upload'
 import { StorageQuota } from './storage-quota'
@@ -46,9 +45,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="px-2 mt-2">
-          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <div className="px-2">

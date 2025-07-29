@@ -20,7 +20,6 @@ import {
 import { NavMain } from './nav-main'
 import { listNotes } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/auth'
-import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
 import { StorageQuota } from './storage-quota'
@@ -82,9 +81,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="px-2 mt-2">
-          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

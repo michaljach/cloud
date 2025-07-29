@@ -13,7 +13,6 @@ import {
   Building2
 } from 'lucide-react'
 import { useUser, useWorkspace } from '@repo/auth'
-import { WorkspaceSwitcher } from '@repo/ui/components/workspace-switcher'
 
 import {
   Sidebar,
@@ -72,9 +71,6 @@ export function AppSidebarClient({ ...props }: React.ComponentProps<typeof Sideb
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="px-2 mt-2">
-          <WorkspaceSwitcher variant="outline" size="sm" className="w-full" />
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

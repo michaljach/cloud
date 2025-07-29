@@ -48,7 +48,7 @@ export function WorkspaceEditModal({
   onOpenChange,
   onSuccess
 }: WorkspaceEditModalProps) {
-  const { accessToken } = useUser()
+  const { accessToken, refreshStorageQuota } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -84,6 +84,8 @@ export function WorkspaceEditModal({
       // Only make the API call if the name has changed
       if (values.name !== workspace.name) {
         await updateWorkspace(accessToken, workspace.id, values.name)
+        // Refresh user data to update workspace information in the UI
+        await refreshStorageQuota()
         onSuccess()
         onOpenChange(false)
       } else {

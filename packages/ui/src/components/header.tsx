@@ -44,7 +44,7 @@ export function Header({
       <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
       <h3 className="font-medium">{title}</h3>
       {children}
-      <div className="flex justify-end flex-1 items-center">
+      <div className="flex justify-end flex-1 items-center gap-2">
         {appsLinks.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
