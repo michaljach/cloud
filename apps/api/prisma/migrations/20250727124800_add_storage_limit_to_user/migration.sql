@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "storageLimit" INTEGER NOT NULL DEFAULT 1073741824;
