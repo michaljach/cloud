@@ -14,7 +14,6 @@ import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
 import { authenticate } from '@middleware/authenticate'
-import { validate } from '@middleware/validate'
 import fs from 'fs'
 import path from 'path'
 

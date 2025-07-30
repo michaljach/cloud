@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { JsonController, Post, Get, Patch, Body, Req, Res, UseBefore } from 'routing-controllers'
+import { JsonController, Post, Get, Patch, Req, Res, UseBefore } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import OAuth2Server from 'oauth2-server'
 import oauthModel from '@services/oauth.model'

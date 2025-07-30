@@ -1,15 +1,5 @@
 import 'reflect-metadata'
-import {
-  JsonController,
-  Get,
-  Post,
-  Patch,
-  Param,
-  Res,
-  UseBefore,
-  Body,
-  Req
-} from 'routing-controllers'
+import { JsonController, Get, Post, Patch, Param, Res, UseBefore, Req } from 'routing-controllers'
 import type { Response, Request } from 'express'
 import { authenticate } from '@middleware/authenticate'
 import { validate } from '@middleware/validate'
@@ -23,7 +13,6 @@ import {
   createUser,
   getUserByUsername
 } from '@services/users.service'
-
 import { isRootAdmin, isAdmin, getAdminWorkspaces } from '../utils'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'

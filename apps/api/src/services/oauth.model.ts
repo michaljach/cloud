@@ -1,4 +1,3 @@
-import { Request } from 'express'
 import { Token, Client, User as OAuthUser } from 'oauth2-server'
 import bcrypt from 'bcryptjs'
 import { User as SharedUser } from '@repo/types'

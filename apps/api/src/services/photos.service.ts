@@ -3,23 +3,8 @@ import {
   decryptAndReadFile,
   ensureStorageDirForContext,
   getStorageDirForContext,
-  getUserPersonalStorageDir,
-  storageDirExistsForContext,
-  listFilesWithMetadataForContext,
-  fileExistsForContext,
-  getFilePathForContext,
-  deleteFileForContext,
-  getFileMetadataForContext,
-  listFolderContentsWithMetadataForContext,
-  listTrashedFilesForContext,
-  restoreFileFromTrashForContext,
-  deleteFileFromTrashForContext,
-  calculateStorageUsageForContext,
   calculateStorageUsageByTypeForContext
 } from '../utils'
-import type { FileInfo, FolderOrFileInfo } from '@repo/types'
-import fs from 'fs'
-import path from 'path'
 
 const STORAGE_TYPE = 'photos'
 

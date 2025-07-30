@@ -10,7 +10,14 @@ import React, {
   ReactNode
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, loginUser, refreshToken, logoutUser, updateCurrentUser } from '@repo/api'
+import {
+  getCurrentUser,
+  loginUser,
+  refreshToken,
+  logoutUser,
+  updateCurrentUser,
+  apiClient
+} from '@repo/api'
 import type { User, StorageQuotaData } from '@repo/types'
 import Cookies from 'js-cookie'
 
@@ -71,16 +78,73 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return clearRefreshTimeout
   }, [accessTokenExpiresAt])
 
-  // Refresh on window focus if token is expired
-  useEffect(() => {
-    function onFocus() {
-      if (accessTokenExpiresAt && Date.now() > accessTokenExpiresAt - 60_000) {
-        refresh()
+  // Logout method - defined before refresh to avoid hoisting issues
+  const logout = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      if (refreshTokenState) {
+        await logoutUser(refreshTokenState)
+      } else if (accessToken) {
+        await logoutUser(accessToken)
       }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error')
+    } finally {
+      setAccessToken(null)
+      setRefreshTokenState(null)
+      setAccessTokenExpiresAt(null)
+      setRefreshTokenExpiresAt(null)
+      setUser(null)
+      Cookies.remove('accessToken', { path: '/' })
+      Cookies.remove('refreshToken', { path: '/' })
+      clearRefreshTimeout()
+      setLoading(false)
+      router.push('/login')
     }
-    window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
-  }, [accessTokenExpiresAt, refreshTokenState])
+  }, [refreshTokenState, accessToken])
+
+  // Refresh token method - defined before fetchUser to avoid hoisting issues
+  const refresh = useCallback(async () => {
+    if (!refreshTokenState) {
+      await logout()
+      return
+    }
+
+    // Prevent multiple simultaneous refresh attempts
+    // Note: We don't check loading here because refresh() might be called
+    // from fetchUser() which has already set loading to true
+
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await refreshToken(refreshTokenState)
+      setAccessToken(result.accessToken)
+      setRefreshTokenState(result.refreshToken)
+      if (result.accessTokenExpiresAt) {
+        const exp = new Date(result.accessTokenExpiresAt).getTime()
+        setAccessTokenExpiresAt(exp)
+        Cookies.set('accessToken', result.accessToken, {
+          path: '/',
+          expires: new Date(exp)
+        })
+      }
+      if (result.refreshTokenExpiresAt) {
+        const exp = new Date(result.refreshTokenExpiresAt).getTime()
+        setRefreshTokenExpiresAt(exp)
+        Cookies.set('refreshToken', result.refreshToken, {
+          path: '/',
+          expires: new Date(exp)
+        })
+      }
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error'
+      setError(errorMessage)
+      await logout()
+    } finally {
+      setLoading(false)
+    }
+  }, [refreshTokenState, logout, loading])
 
   // Load tokens from cookies on mount
   useEffect(() => {
@@ -106,9 +170,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUser(result.user)
         setStorageQuota(result.storageQuota)
       } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error'
+
+        // Check if it's a token expiration error
+        if (errorMessage.includes('expired') || errorMessage.includes('401')) {
+          // Try to refresh the token
+          if (refreshTokenState) {
+            try {
+              await refresh()
+              return // The refresh will trigger another fetchUser call
+            } catch (refreshError) {
+              // If refresh fails, logout
+              console.error('Token refresh failed:', refreshError)
+              await logout()
+              router.push('/login')
+              return
+            }
+          }
+        }
+
         setUser(null)
         setStorageQuota(null)
-        setError(e instanceof Error ? e.message : 'Unknown error')
+        setError(errorMessage)
         await logout()
         router.push('/login')
       } finally {
@@ -174,66 +257,30 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Logout method
-  const logout = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      if (refreshTokenState) {
-        await logoutUser(refreshTokenState)
-      } else if (accessToken) {
-        await logoutUser(accessToken)
+  // Refresh on window focus if token is expired
+  useEffect(() => {
+    function onFocus() {
+      if (accessTokenExpiresAt && Date.now() > accessTokenExpiresAt - 60_000) {
+        // Only refresh if we have a refresh token and we're not already loading
+        if (refreshTokenState && !loading) {
+          refresh()
+        }
       }
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-    } finally {
-      setAccessToken(null)
-      setRefreshTokenState(null)
-      setAccessTokenExpiresAt(null)
-      setRefreshTokenExpiresAt(null)
-      setUser(null)
-      Cookies.remove('accessToken', { path: '/' })
-      Cookies.remove('refreshToken', { path: '/' })
-      clearRefreshTimeout()
-      setLoading(false)
     }
-  }, [refreshTokenState, accessToken])
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [accessTokenExpiresAt, refreshTokenState, refresh, loading])
 
-  // Refresh token method
-  const refresh = useCallback(async () => {
-    if (!refreshTokenState) {
-      await logout()
-      return
+  // Set up token manager for API client
+  useEffect(() => {
+    const tokenManager = {
+      getAccessToken: () => accessToken,
+      getRefreshToken: () => refreshTokenState,
+      refreshTokens: refresh,
+      logout: logout
     }
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await refreshToken(refreshTokenState)
-      setAccessToken(result.accessToken)
-      setRefreshTokenState(result.refreshToken)
-      if (result.accessTokenExpiresAt) {
-        const exp = new Date(result.accessTokenExpiresAt).getTime()
-        setAccessTokenExpiresAt(exp)
-        Cookies.set('accessToken', result.accessToken, {
-          path: '/',
-          expires: new Date(exp)
-        })
-      }
-      if (result.refreshTokenExpiresAt) {
-        const exp = new Date(result.refreshTokenExpiresAt).getTime()
-        setRefreshTokenExpiresAt(exp)
-        Cookies.set('refreshToken', result.refreshToken, {
-          path: '/',
-          expires: new Date(exp)
-        })
-      }
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-      await logout()
-    } finally {
-      setLoading(false)
-    }
-  }, [refreshTokenState, logout])
+    apiClient.setTokenManager(tokenManager)
+  }, [accessToken, refreshTokenState, refresh, logout])
 
   const value = useMemo(
     () => ({

@@ -7,7 +7,6 @@ import {
   Put,
   Res,
   UseBefore,
-  Body,
   Req,
   Param
 } from 'routing-controllers'

@@ -1,14 +1,6 @@
 import { encryptAndSaveFile, decryptAndReadFile } from '../utils/cryptoStorageUtils'
 import {
-  ensureStorageDirForContext,
   getStorageDirForContext,
-  storageDirExistsForContext,
-  listFilesWithMetadataForContext,
-  fileExistsForContext,
-  getFilePathForContext,
-  deleteFileForContext,
-  getFileMetadataForContext,
-  listFolderContentsWithMetadataForContext,
   listTrashedFilesForContext,
   restoreFileFromTrashForContext,
   deleteFileFromTrashForContext,
@@ -16,9 +8,7 @@ import {
   calculateStorageUsageByTypeForContext,
   batchMoveFilesToTrashForContext
 } from '../utils/storageUtils'
-import type { FileInfo, FolderOrFileInfo } from '@repo/types'
-import fs from 'fs'
-import path from 'path'
+import type { FileInfo } from '@repo/types'
 
 const STORAGE_TYPE = 'files'
 
