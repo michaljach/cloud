@@ -283,7 +283,7 @@ export async function batchMoveUserFilesToTrash(
   filenames: string[],
   accessToken: string
 ): Promise<any[]> {
-  const res = await fetch(`${API_URL}/api/files/batch-delete`, {
+  const res = await fetch(`${API_URL}/api/files/batch/trash`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

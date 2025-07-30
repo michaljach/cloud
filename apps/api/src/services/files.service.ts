@@ -6,25 +6,21 @@ import {
   calculateStorageUsageForContext,
   calculateStorageUsageByTypeForContext,
   batchMoveFilesToTrashForContext,
-  encryptAndSaveFile,
-  decryptAndReadFile
+  saveFile,
+  readFile
 } from '../utils'
 import type { FileInfo } from '@repo/types'
 
 const STORAGE_TYPE = 'files'
 
-export function encryptAndSaveUserFile(
-  fileBuffer: Buffer,
-  filename: string,
-  userId: string
-): string {
+export function saveUserFile(fileBuffer: Buffer, filename: string, userId: string): string {
   const userDir = getStorageDirForContext(userId, 'personal', STORAGE_TYPE)
-  return encryptAndSaveFile({ fileBuffer, filename, dir: userDir })
+  return saveFile({ fileBuffer, filename, dir: userDir })
 }
 
-export function decryptAndReadUserFile(filename: string, userId: string): Buffer {
+export function readUserFile(filename: string, userId: string): Buffer {
   const userDir = getStorageDirForContext(userId, 'personal', STORAGE_TYPE)
-  return decryptAndReadFile({ filename, dir: userDir })
+  return readFile({ filename, dir: userDir })
 }
 
 export function listUserTrashedFiles(userId: string): FileInfo[] {

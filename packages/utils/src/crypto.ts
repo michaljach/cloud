@@ -27,13 +27,6 @@ export function getEncryptionKey(): Uint8Array {
 }
 
 /**
- * Get the encryption key as Buffer (for Node.js crypto operations)
- */
-export function getEncryptionKeyBuffer(): Buffer {
-  return Buffer.from(getEncryptionKey())
-}
-
-/**
  * Encrypts a Uint8Array or File using AES-GCM with the provided key.
  * @param input - The data to encrypt (Uint8Array or File)
  * @param key - 32-byte Uint8Array key

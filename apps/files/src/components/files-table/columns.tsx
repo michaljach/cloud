@@ -21,8 +21,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
 import { useUser } from '@repo/contexts'
 import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
-import { decryptFile, getEncryptionKey } from '@repo/utils'
-import { formatDate, formatFileSize } from '@repo/utils'
+
+import { formatDate, formatFileSize, decryptFile, getEncryptionKey } from '@repo/utils'
 import { useContext } from 'react'
 import { FilesContext } from '../files-context'
 import React from 'react'
@@ -114,11 +114,11 @@ export const columns: ColumnDef<FileRow>[] = [
       const { accessToken, refreshStorageQuota } = useUser()
       const { currentPath, refreshFiles } = useContext(FilesContext)
       const [dialogOpen, setDialogOpen] = React.useState(false)
-      const encryptionKey = getEncryptionKey()
       const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
       const handleDownload = async () => {
         if (!accessToken) return
         if (file.type === 'file') {
+          const encryptionKey = getEncryptionKey()
           const encrypted = await downloadEncryptedUserFile(fullPath, accessToken)
           const decrypted = await decryptFile(encrypted, encryptionKey)
           const blob = new Blob([decrypted])

@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { encryptAndSaveNote, decryptAndReadNote } from '@services/notes.service'
+import { saveNote, readNote } from '@services/notes.service'
 import {
   listFilesForContext,
   getFilePathForContext,
@@ -77,7 +77,7 @@ export default class NotesController {
 
       if (workspaceId === PERSONAL_WORKSPACE_ID) {
         // Use personal storage with encryption
-        encryptAndSaveNote(fileBuffer, req.file.originalname, user.id)
+        saveNote(fileBuffer, req.file.originalname, user.id)
       } else {
         // Use workspace storage (separate from user storage)
         const storageDir = ensureStorageDirForContext(user.id, workspaceId, 'notes')
@@ -152,7 +152,7 @@ export default class NotesController {
       if (workspaceId === PERSONAL_WORKSPACE_ID) {
         // Use personal storage with decryption
         const decodedFilename = base64urlDecode(params.data.filename)
-        data = decryptAndReadNote(decodedFilename, user.id)
+        data = readNote(decodedFilename, user.id)
       } else {
         // Use workspace storage (separate from user storage)
         const filePath = getFilePathForContext(user.id, workspaceId, 'notes', params.data.filename)

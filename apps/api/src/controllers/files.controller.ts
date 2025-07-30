@@ -3,8 +3,8 @@ import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'r
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
 import {
-  encryptAndSaveUserFile,
-  decryptAndReadUserFile,
+  saveUserFile,
+  readUserFile,
   listUserTrashedFiles,
   restoreUserFileFromTrash,
   deleteUserFileFromTrash,
@@ -79,8 +79,8 @@ export default class UnifiedFilesController {
         const fileBuffer = fs.readFileSync(file.path)
 
         if (workspaceId === PERSONAL_WORKSPACE_ID) {
-          // Use personal storage with encryption
-          encryptAndSaveUserFile(fileBuffer, file.originalname, user.id)
+          // Use personal storage (client-side encrypted data)
+          saveUserFile(fileBuffer, file.originalname, user.id)
         } else {
           // Use workspace storage without encryption
           const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')
@@ -229,7 +229,7 @@ export default class UnifiedFilesController {
       let data: Buffer
       if (workspaceId === PERSONAL_WORKSPACE_ID) {
         // Use personal storage with decryption
-        data = decryptAndReadUserFile(params.data.filename, user.id)
+        data = readUserFile(params.data.filename, user.id)
       } else {
         // Use workspace storage without decryption
         const workspaceStorageDir = path.join(getStorageDir(), 'workspaces', workspaceId, 'files')

@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { encryptAndSavePhoto, decryptAndReadPhoto } from '@services/photos.service'
+import { savePhoto, readPhoto } from '@services/photos.service'
 import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
@@ -57,7 +57,7 @@ export default class PhotosController {
     try {
       // Read file from disk and encrypt it
       const fileBuffer = fs.readFileSync(req.file.path)
-      encryptAndSavePhoto(fileBuffer, req.file.originalname, user.id)
+      savePhoto(fileBuffer, req.file.originalname, user.id)
 
       // Clean up temporary file
       fs.unlinkSync(req.file.path)
@@ -97,7 +97,7 @@ export default class PhotosController {
       return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
     try {
-      const data = decryptAndReadPhoto(params.data.filename, user.id)
+      const data = readPhoto(params.data.filename, user.id)
       res.setHeader('Content-Disposition', `attachment; filename="${params.data.filename}"`)
       return res.send(data)
     } catch (e) {

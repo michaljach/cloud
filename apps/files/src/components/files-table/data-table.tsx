@@ -169,13 +169,12 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
     setDownloading(true)
 
-    const encryptionKey = getEncryptionKey()
-
     // Show initial toast
     const toastId = toast.loading(`Downloading ${selectedFileFiles.length} file(s)...`)
 
     try {
       // Download and decrypt all files in parallel
+      const encryptionKey = getEncryptionKey()
       const downloadPromises = selectedFileFiles.map(async (file) => {
         const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
         const workspaceId = currentWorkspace?.id === 'personal' ? undefined : currentWorkspace?.id
