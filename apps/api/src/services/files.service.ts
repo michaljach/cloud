@@ -1,4 +1,3 @@
-import { encryptAndSaveFile, decryptAndReadFile } from '../utils/cryptoStorageUtils'
 import {
   getStorageDirForContext,
   listTrashedFilesForContext,
@@ -6,8 +5,10 @@ import {
   deleteFileFromTrashForContext,
   calculateStorageUsageForContext,
   calculateStorageUsageByTypeForContext,
-  batchMoveFilesToTrashForContext
-} from '../utils/storageUtils'
+  batchMoveFilesToTrashForContext,
+  encryptAndSaveFile,
+  decryptAndReadFile
+} from '../utils'
 import type { FileInfo } from '@repo/types'
 
 const STORAGE_TYPE = 'files'

@@ -7,7 +7,7 @@ import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
 import React from 'react'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api'
-import { encryptFile, decryptFile } from '@repo/utils'
+import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
 
@@ -104,7 +104,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         toast.error('Login required to upload')
         return
       }
-      const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+      const encryptionKey = getEncryptionKey()
       const files = Array.from(e.dataTransfer.files) as File[]
 
       // Show initial toast
@@ -122,7 +122,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         // Encrypt all files in parallel
         const encryptedFiles = await Promise.all(
           fileData.map(async ({ arrayBuffer, filename }) => {
-            const encrypted = await encryptFile(new Uint8Array(arrayBuffer), HARDCODED_KEY)
+            const encrypted = await encryptFile(new Uint8Array(arrayBuffer), encryptionKey)
             return { file: encrypted, filename }
           })
         )
@@ -169,7 +169,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
     setDownloading(true)
 
-    const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+    const encryptionKey = getEncryptionKey()
 
     // Show initial toast
     const toastId = toast.loading(`Downloading ${selectedFileFiles.length} file(s)...`)
@@ -180,7 +180,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
         const workspaceId = currentWorkspace?.id === 'personal' ? undefined : currentWorkspace?.id
         const encrypted = await downloadFile(fullPath, accessToken, workspaceId)
-        const decrypted = await decryptFile(encrypted, HARDCODED_KEY)
+        const decrypted = await decryptFile(encrypted, encryptionKey)
         return { filename: file.filename, data: decrypted }
       })
 

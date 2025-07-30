@@ -1,3 +1,38 @@
+export const ALGORITHM = 'aes-256-gcm'
+
+/**
+ * Get the encryption key from environment variables
+ * Falls back to a default key if not set (for development only)
+ */
+export function getEncryptionKey(): Uint8Array {
+  // In browser environment, use NEXT_PUBLIC_ prefix
+  const key =
+    typeof window !== 'undefined'
+      ? process.env.NEXT_PUBLIC_ENCRYPTION_KEY
+      : process.env.ENCRYPTION_KEY
+
+  if (key) {
+    return new TextEncoder().encode(key)
+  }
+
+  // Fallback for development (should be replaced with proper env var)
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      '⚠️  Using fallback encryption key. Set ENCRYPTION_KEY environment variable for production.'
+    )
+    return new TextEncoder().encode('12345678901234567890123456789012')
+  }
+
+  throw new Error('ENCRYPTION_KEY environment variable is required')
+}
+
+/**
+ * Get the encryption key as Buffer (for Node.js crypto operations)
+ */
+export function getEncryptionKeyBuffer(): Buffer {
+  return Buffer.from(getEncryptionKey())
+}
+
 /**
  * Encrypts a Uint8Array or File using AES-GCM with the provided key.
  * @param input - The data to encrypt (Uint8Array or File)

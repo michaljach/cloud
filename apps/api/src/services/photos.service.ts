@@ -1,9 +1,9 @@
 import {
-  encryptAndSaveFile,
-  decryptAndReadFile,
   ensureStorageDirForContext,
   getStorageDirForContext,
-  calculateStorageUsageByTypeForContext
+  calculateStorageUsageByTypeForContext,
+  encryptAndSaveFile,
+  decryptAndReadFile
 } from '../utils'
 
 const STORAGE_TYPE = 'photos'

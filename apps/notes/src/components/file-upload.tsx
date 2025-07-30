@@ -7,9 +7,7 @@ import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'
 import { Label } from '@repo/ui/components/base/label'
 import { uploadEncryptedNote } from '@repo/api/src/api'
-import { encryptFile } from '@repo/utils'
-
-const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+import { encryptFile, getEncryptionKey } from '@repo/utils'
 
 function FileUpload() {
   const [file, setFile] = useState<File | null>(null)
@@ -24,7 +22,8 @@ function FileUpload() {
     }
     setStatus('Encrypting...')
     try {
-      const encrypted = await encryptFile(file, HARDCODED_KEY)
+      const encryptionKey = getEncryptionKey()
+      const encrypted = await encryptFile(file, encryptionKey)
       setStatus('Uploading...')
       await uploadEncryptedNote(encrypted, file.name, accessToken)
       setStatus('Upload successful!')

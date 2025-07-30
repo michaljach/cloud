@@ -3,7 +3,7 @@
 import React, { useState, useContext } from 'react'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { uploadFilesBatch } from '@repo/api'
-import { encryptFile } from '@repo/utils'
+import { encryptFile, getEncryptionKey } from '@repo/utils'
 import { FilesContext } from './files-context'
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
@@ -37,10 +37,10 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
 
     setStatus('Encrypting...')
     try {
-      const HARDCODED_KEY = new TextEncoder().encode('12345678901234567890123456789012') // 32 bytes
+      const encryptionKey = getEncryptionKey()
       const encryptedFiles = await Promise.all(
         selectedFiles.map(async (file) => {
-          const encrypted = await encryptFile(file, HARDCODED_KEY)
+          const encrypted = await encryptFile(file, encryptionKey)
           return { file: encrypted, filename: file.name }
         })
       )

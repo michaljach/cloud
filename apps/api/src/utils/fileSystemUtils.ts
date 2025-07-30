@@ -1,19 +1,25 @@
+import { getEncryptionKeyBuffer } from '@repo/utils'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 
 export const ALGORITHM = 'aes-256-gcm'
-export const KEY = Buffer.from('12345678901234567890123456789012') // 32 bytes
 
+/**
+ * Ensure directory exists (synchronous)
+ */
 export function ensureDirSync(dir: string) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 }
 
+/**
+ * Encrypt and save file to disk
+ */
 export function encryptAndSaveFile({
   fileBuffer,
   filename,
   dir,
-  key = KEY
+  key = getEncryptionKeyBuffer()
 }: {
   fileBuffer: Buffer
   filename: string
@@ -31,10 +37,13 @@ export function encryptAndSaveFile({
   return filename
 }
 
+/**
+ * Decrypt and read file from disk
+ */
 export function decryptAndReadFile({
   filename,
   dir,
-  key = KEY
+  key = getEncryptionKeyBuffer()
 }: {
   filename: string
   dir: string
