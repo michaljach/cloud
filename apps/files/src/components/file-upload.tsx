@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useContext } from 'react'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import { uploadFilesBatch } from '@repo/api'
 import { encryptFile } from '@repo/utils'
 import { FilesContext } from './files-context'

@@ -4,7 +4,7 @@ import { Mail } from 'lucide-react'
 import Link from 'next/link'
 import { SidebarMenuSubItem, SidebarMenuSubButton } from '@repo/ui/components/base/sidebar'
 import { Badge } from '@repo/ui/components/base/badge'
-import { useInvites } from '@repo/auth'
+import { useInvites } from '@repo/contexts'
 
 export function InvitationsSidebarItem() {
   const { inviteCount, loading } = useInvites()

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { updateWorkspace } from '@repo/api'
 import {
   Dialog,

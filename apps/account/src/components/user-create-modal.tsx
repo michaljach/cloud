@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { createUser } from '@repo/api'
 
 const createUserSchema = z.object({

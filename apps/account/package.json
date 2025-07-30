@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@repo/api": "*",
-    "@repo/auth": "*",
+    "@repo/contexts": "*",
     "@repo/types": "*",
     "@repo/ui": "*",
     "@tailwindcss/postcss": "^4.1.6",

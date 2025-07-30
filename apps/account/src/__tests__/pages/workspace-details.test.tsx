@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
-import { UserProvider } from '@repo/auth'
+import { UserProvider } from '@repo/contexts'
 import WorkspaceDetailsPage from '../../app/(home)/workspaces/[id]/page'
 
 // Mock the API functions
@@ -14,8 +14,8 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock useUser hook
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
+jest.mock('@repo/contexts', () => ({
+  ...jest.requireActual('@repo/contexts'),
   useUser: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
@@ -59,7 +59,7 @@ import {
   removeUserFromWorkspace,
   leaveWorkspace
 } from '@repo/api'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 
 describe('Workspace Details Page', () => {
   const mockUser = {

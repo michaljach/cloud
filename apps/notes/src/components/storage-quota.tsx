@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { HardDrive, FileText, Image } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
 import { Skeleton } from '@repo/ui/components/base/skeleton'

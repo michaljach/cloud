@@ -19,7 +19,7 @@ import {
 } from '@repo/ui/components/base/dialog'
 import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
 import { decryptFile } from '@repo/utils'
 import { formatDate, formatFileSize } from '@repo/utils'

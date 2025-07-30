@@ -1,5 +1,5 @@
 {
-  "name": "@repo/auth",
+  "name": "@repo/contexts",
   "version": "0.1.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -7,7 +7,8 @@
     "dist"
   ],
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "js-cookie": "^3.0.5",

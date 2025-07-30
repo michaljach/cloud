@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { UserDropdown } from '@repo/ui/components/user-dropdown'
 
@@ -24,8 +24,8 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock useUser and useWorkspace to provide workspace data
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
+jest.mock('@repo/contexts', () => ({
+  ...jest.requireActual('@repo/contexts'),
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -55,7 +55,7 @@ import {
   removeUserFromWorkspace
 } from '@repo/api'
 
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 
 describe('Workspace Integration Scenarios', () => {
   beforeEach(() => {

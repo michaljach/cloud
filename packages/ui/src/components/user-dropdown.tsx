@@ -26,7 +26,7 @@ import {
   Check
 } from 'lucide-react'
 import { User as UserType } from '@repo/types'
-import { useWorkspace } from '@repo/auth'
+import { useWorkspace } from '@repo/contexts'
 import type { WorkspaceMembership } from '@repo/types'
 
 export function UserDropdown({

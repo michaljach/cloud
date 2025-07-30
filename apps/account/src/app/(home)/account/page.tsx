@@ -1,4 +1,4 @@
-import { getServerUser } from '@repo/auth'
+import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
 import { DetailsForm } from '@/components/details-form'
 

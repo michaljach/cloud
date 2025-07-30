@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { convertUserWorkspacesToMemberships } from '@repo/utils'
 import {
   Card,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { convertUserWorkspaceToMembership } from '@repo/utils'
 import {
   getWorkspaceMembers,

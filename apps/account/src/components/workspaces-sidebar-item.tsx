@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { Building2, PlusCircle, ShieldUser } from 'lucide-react'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import {
   SidebarMenu,
   SidebarMenuItem,

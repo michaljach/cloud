@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/auth'
+import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/contexts'
 import { getMyInvites } from '@repo/api'
 
 // Mock the API
@@ -10,8 +10,8 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock the auth hooks
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
+jest.mock('@repo/contexts', () => ({
+  ...jest.requireActual('@repo/contexts'),
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   useInvites: jest.fn(),
@@ -20,7 +20,7 @@ jest.mock('@repo/auth', () => ({
   InviteProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 
 // Test component that uses the invite context
 function TestInviteComponent() {

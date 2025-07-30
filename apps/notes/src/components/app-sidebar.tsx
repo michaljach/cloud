@@ -19,7 +19,7 @@ import {
 
 import { NavMain } from './nav-main'
 import { listNotes } from '@repo/api'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
 import { StorageQuota } from './storage-quota'

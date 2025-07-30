@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@repo/ui/components/base/card'
 import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'

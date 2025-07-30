@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useUser, useInvites } from '@repo/auth'
+import { useUser, useInvites } from '@repo/contexts'
 import {
   Card,
   CardContent,

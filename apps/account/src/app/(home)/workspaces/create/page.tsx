@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import { createWorkspace } from '@repo/api'
 import { Button } from '@repo/ui/components/base/button'
 import {

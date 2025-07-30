@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Editor } from './editor'
 import { downloadNote, uploadNote } from '@repo/api'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import { base64urlDecode } from '@repo/utils'
 
 interface NoteEditorContainerProps {

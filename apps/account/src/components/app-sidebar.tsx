@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { LayoutDashboard, Users, Settings, HelpCircle, Box, PlusCircle, Mail } from 'lucide-react'
-import { getServerUser } from '@repo/auth'
+import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
 
 import {

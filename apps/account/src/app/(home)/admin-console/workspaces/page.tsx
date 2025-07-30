@@ -9,7 +9,7 @@ import {
   TableRow,
   TableCell
 } from '@repo/ui/components/base/table'
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 import {
   getWorkspaces,
   createWorkspace,

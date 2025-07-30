@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import { listFiles } from '@repo/api'
 import { formatFileSize } from '@repo/utils'
 import { usePathname, useRouter } from 'next/navigation'

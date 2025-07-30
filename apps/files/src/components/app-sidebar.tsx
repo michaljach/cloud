@@ -23,7 +23,7 @@ import {
   DialogDescription
 } from '@repo/ui/components/base/dialog'
 import { Button } from '@repo/ui/components/base/button'
-import { useWorkspace } from '@repo/auth'
+import { useWorkspace } from '@repo/contexts'
 import { FileUpload } from './file-upload'
 import { StorageQuota } from './storage-quota'
 import Link from 'next/link'

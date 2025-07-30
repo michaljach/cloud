@@ -1,12 +1,12 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
-import { UserProvider } from '@repo/auth'
+import { UserProvider } from '@repo/contexts'
 import WorkspacesPage from '../../app/(home)/workspaces/page'
 
 // Mock useUser hook
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
+jest.mock('@repo/contexts', () => ({
+  ...jest.requireActual('@repo/contexts'),
   useUser: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
@@ -18,7 +18,7 @@ jest.mock('next/link', () => {
   }
 })
 
-import { useUser } from '@repo/auth'
+import { useUser } from '@repo/contexts'
 
 describe('Workspaces Page', () => {
   const mockUser = {

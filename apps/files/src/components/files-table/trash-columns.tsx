@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { Button } from '@repo/ui/components/base/button'
-import { useUser, useWorkspace } from '@repo/auth'
+import { useUser, useWorkspace } from '@repo/contexts'
 import { restoreFileFromTrash, deleteFileFromTrash } from '@repo/api'
 import { formatFileSize, formatDate } from '@repo/utils'
 import React from 'react'

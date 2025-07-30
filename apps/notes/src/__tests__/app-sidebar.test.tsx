@@ -2,16 +2,16 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { AppSidebar } from '../components/app-sidebar'
-import { UserProvider, WorkspaceProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock useUser and useWorkspace to provide fake data
-jest.mock('@repo/auth', () => {
+jest.mock('@repo/contexts', () => {
   const mockUseUser = jest.fn()
   const mockUseWorkspace = jest.fn()
 
   return {
-    ...jest.requireActual('@repo/auth'),
+    ...jest.requireActual('@repo/contexts'),
     useUser: mockUseUser,
     useWorkspace: mockUseWorkspace,
     UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -42,7 +42,7 @@ describe('AppSidebar', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Set default mocks
-    const authModule = require('@repo/auth')
+    const authModule = require('@repo/contexts')
     authModule.__mockUseUser.mockReturnValue({ accessToken: null })
     authModule.__mockUseWorkspace.mockReturnValue({
       currentWorkspace: null,
@@ -70,7 +70,7 @@ describe('AppSidebar', () => {
 
   // Helper to update mocks for different scenarios
   function setupMocks(accessToken: string | null, currentWorkspace: any) {
-    const authModule = require('@repo/auth')
+    const authModule = require('@repo/contexts')
     authModule.__mockUseUser.mockReturnValue({ accessToken })
     authModule.__mockUseWorkspace.mockReturnValue({
       currentWorkspace,

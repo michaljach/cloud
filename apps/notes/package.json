@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@repo/contexts": "*",
     "@repo/types": "*",
     "@repo/ui": "*",
     "@tailwindcss/postcss": "^4.1.6",

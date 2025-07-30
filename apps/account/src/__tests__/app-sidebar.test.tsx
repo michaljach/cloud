@@ -1,13 +1,13 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { WorkspacesSidebarItem } from '@/components/workspaces-sidebar-item'
 
 // Mock the auth hooks
-jest.mock('@repo/auth', () => ({
-  ...jest.requireActual('@repo/auth'),
+jest.mock('@repo/contexts', () => ({
+  ...jest.requireActual('@repo/contexts'),
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   useInvites: jest.fn(),
@@ -23,7 +23,7 @@ jest.mock('next/navigation', () => ({
   })
 }))
 
-import { useUser, useWorkspace, useInvites } from '@repo/auth'
+import { useUser, useWorkspace, useInvites } from '@repo/contexts'
 
 describe('Sidebar Components', () => {
   beforeEach(() => {
