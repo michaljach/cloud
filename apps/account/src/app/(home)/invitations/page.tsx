@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useUser } from '@repo/auth'
+import { useState } from 'react'
+import { useUser, useInvites } from '@repo/auth'
 import {
   Card,
   CardContent,
@@ -12,54 +12,33 @@ import {
 import { Button } from '@repo/ui/components/base/button'
 import { Badge } from '@repo/ui/components/base/badge'
 import { Separator } from '@repo/ui/components/base/separator'
-import { acceptWorkspaceInvite, declineWorkspaceInvite, getMyInvites } from '@repo/api'
+import { acceptWorkspaceInvite, declineWorkspaceInvite } from '@repo/api'
 import { Mail, Check, X, Clock, Building2, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { WorkspaceInvite } from '@repo/types'
 
 export default function InvitationsPage() {
-  const { user, loading, accessToken } = useUser()
-  const [invites, setInvites] = useState<WorkspaceInvite[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user, accessToken } = useUser()
+  const { invites, loading, error, refreshInvites } = useInvites()
   const [processingInviteId, setProcessingInviteId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const router = useRouter()
-
-  const loadInvites = async () => {
-    if (!accessToken) return
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const invitesData = await getMyInvites(accessToken)
-      setInvites(invitesData)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load invitations')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!user || !accessToken) return
-    loadInvites()
-  }, [user, accessToken])
 
   const handleAcceptInvite = async (inviteId: string) => {
     if (!accessToken) return
     try {
       setProcessingInviteId(inviteId)
-      setError(null)
+      setActionError(null)
 
       const result = await acceptWorkspaceInvite(accessToken, inviteId)
 
       // Refresh the invites list
-      await loadInvites()
+      await refreshInvites()
 
       // Navigate to the workspace
       router.push(`/workspaces/${result.userWorkspace.workspace.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept invitation')
+      setActionError(err instanceof Error ? err.message : 'Failed to accept invitation')
     } finally {
       setProcessingInviteId(null)
     }
@@ -69,14 +48,14 @@ export default function InvitationsPage() {
     if (!accessToken) return
     try {
       setProcessingInviteId(inviteId)
-      setError(null)
+      setActionError(null)
 
       await declineWorkspaceInvite(accessToken, inviteId)
 
       // Refresh the invites list
-      await loadInvites()
+      await refreshInvites()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to decline invitation')
+      setActionError(err instanceof Error ? err.message : 'Failed to decline invitation')
     } finally {
       setProcessingInviteId(null)
     }
@@ -139,7 +118,7 @@ export default function InvitationsPage() {
     )
   }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center py-8">Loading invitations...</div>
@@ -157,9 +136,9 @@ export default function InvitationsPage() {
         <p className="text-muted-foreground">Manage your workspace invitations and join requests</p>
       </div>
 
-      {error && (
+      {(error || actionError) && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-600">{error || actionError}</p>
         </div>
       )}
 

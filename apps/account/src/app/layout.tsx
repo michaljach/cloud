@@ -1,7 +1,7 @@
 import './globals.css'
 import '@repo/ui/styles.css'
 import type { Metadata } from 'next'
-import { UserProvider, WorkspaceProvider } from '@repo/auth'
+import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/auth'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -13,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <UserProvider>
-          <WorkspaceProvider>{children}</WorkspaceProvider>
+          <WorkspaceProvider>
+            <InviteProvider>{children}</InviteProvider>
+          </WorkspaceProvider>
         </UserProvider>
       </body>
     </html>

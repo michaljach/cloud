@@ -1,4 +1,5 @@
 export { useUser, UserProvider } from './UserContext'
 export { getServerUser } from './getServerUser'
 export { useWorkspace, WorkspaceProvider } from './WorkspaceContext'
+export { useInvites, InviteProvider } from './InviteContext'
 export { PERSONAL_WORKSPACE_ID } from './constants'

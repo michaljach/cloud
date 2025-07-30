@@ -1,15 +1,5 @@
 import * as React from 'react'
-import {
-  LayoutDashboard,
-  Users,
-  Settings,
-  HelpCircle,
-  Box,
-  PlusCircle,
-  Mail,
-  ShieldUser,
-  Building2
-} from 'lucide-react'
+import { LayoutDashboard, Users, Settings, HelpCircle, Box, PlusCircle, Mail } from 'lucide-react'
 import { getServerUser } from '@repo/auth'
 import { cookies } from 'next/headers'
 
@@ -29,33 +19,11 @@ import {
 } from '@repo/ui/components/base/sidebar'
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
-import { InvitationsSidebarItem } from './invitations-sidebar-item'
-
-// Utility functions for user permissions
-const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
-
-function isRootAdmin(user: any): boolean {
-  return (
-    user?.workspaces?.some(
-      (uw: any) => uw.role === 'owner' && uw.workspace.id === SYSTEM_ADMIN_WORKSPACE_ID
-    ) ?? false
-  )
-}
-
-function isAdmin(user: any): boolean {
-  return user?.workspaces?.some((uw: any) => uw.role === 'admin' || uw.role === 'owner') ?? false
-}
-
-function hasWorkspaces(user: any): boolean {
-  return (user?.workspaces?.length ?? 0) > 0
-}
+import { WorkspacesSidebarItem } from './workspaces-sidebar-item'
 
 export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const cookiesStore = await cookies()
   const user = await getServerUser({ cookies: () => cookiesStore })
-  const userIsRootAdmin = isRootAdmin(user)
-  const userIsAdmin = isAdmin(user)
-  const userHasWorkspaces = hasWorkspaces(user)
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -111,71 +79,8 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
               </SidebarMenuItem>
             </SidebarMenu>
 
-            {/* My Workspaces - Always show Create Workspace and Invitations */}
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="My Workspaces">
-                  <Link href="/workspaces">
-                    <Building2 />
-                    <span className="font-medium">My Workspaces</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuSub>
-                  {userHasWorkspaces &&
-                    user?.workspaces?.map((userWorkspace: any) => (
-                      <SidebarMenuSubItem key={userWorkspace.workspace.id}>
-                        <SidebarMenuSubButton asChild>
-                          <Link href={`/workspaces/${userWorkspace.workspace.id}`}>
-                            {userWorkspace.workspace.name}
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton asChild>
-                      <Link href="/workspaces/create">
-                        <div className="flex items-center gap-1">
-                          <PlusCircle className="w-4 h-4" />
-                          Create Workspace
-                        </div>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <InvitationsSidebarItem />
-                </SidebarMenuSub>
-              </SidebarMenuItem>
-            </SidebarMenu>
-            {userIsRootAdmin && (
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Administration console">
-                    <Link href="/admin-console">
-                      <ShieldUser />
-                      <span className="font-medium">Administration console</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild>
-                        <Link href="/admin-console/users">Users</Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild>
-                        <Link href="/admin-console/workspaces">Workspaces</Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton asChild>
-                        <Link href="/admin-console/settings">Settings</Link>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            )}
+            {/* Dynamic Workspaces Section - Client Component */}
+            <WorkspacesSidebarItem />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
