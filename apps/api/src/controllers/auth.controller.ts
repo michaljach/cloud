@@ -197,6 +197,64 @@ export default class AuthController {
   }
 
   /**
+   * POST /api/auth/change-password
+   * Change current user's password (requires authentication)
+   */
+  @Post('/change-password')
+  @UseBefore(authenticate)
+  @UseBefore(
+    validate(
+      z.object({
+        currentPassword: z.string().min(1, 'Current password is required'),
+        newPassword: z.string().min(6, 'New password must be at least 6 characters')
+      })
+    )
+  )
+  async changePassword(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    try {
+      const { currentPassword, newPassword } = req.body
+
+      // Get the user with their current password hash
+      const prismaUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { id: true, username: true, password: true, fullName: true, storageLimit: true }
+      })
+
+      if (!prismaUser) {
+        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, prismaUser.password)
+      if (!isCurrentPasswordValid) {
+        return res
+          .status(400)
+          .json({ success: false, data: null, error: 'Current password is incorrect' })
+      }
+
+      // Hash the new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10)
+
+      // Update the user's password
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedNewPassword }
+      })
+
+      const safeUser: User = {
+        id: prismaUser.id,
+        username: prismaUser.username,
+        fullName: prismaUser.fullName,
+        storageLimit: prismaUser.storageLimit
+      }
+
+      return res.json({ success: true, data: { user: safeUser }, error: null })
+    } catch (err) {
+      return handleError(res, err, 500)
+    }
+  }
+
+  /**
    * POST /api/auth/logout
    * Logout and revoke token
    */

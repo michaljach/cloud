@@ -1,5 +1,14 @@
 import * as React from 'react'
-import { LayoutDashboard, Users, Settings, HelpCircle, Box, PlusCircle, Mail } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  HelpCircle,
+  Box,
+  PlusCircle,
+  Mail,
+  Lock
+} from 'lucide-react'
 import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
 
@@ -73,6 +82,11 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton asChild>
                       <Link href="/account">Personal information</Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton asChild>
+                      <Link href="/account/password">Change password</Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>

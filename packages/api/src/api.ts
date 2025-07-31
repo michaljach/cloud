@@ -428,6 +428,27 @@ export async function resetUserPassword(
 }
 
 /**
+ * Change current user's password
+ */
+export async function changePassword(
+  accessToken: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ user: User }> {
+  const res = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ currentPassword, newPassword })
+  })
+  const json: ApiResponse<{ user: User }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to change password')
+  return json.data
+}
+
+/**
  * List all workspaces (root_admin only)
  */
 export async function getWorkspaces(accessToken: string): Promise<Workspace[]> {
