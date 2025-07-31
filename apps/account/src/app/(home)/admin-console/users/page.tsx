@@ -23,6 +23,7 @@ import { Badge } from '@repo/ui/components/base/badge'
 import { Icon } from '@repo/ui/components/base/icons'
 import { UserCreateModal } from '../../../../components/user-create-modal'
 import { UserEditModal } from '../../../../components/user-edit-modal'
+import { UserResetPasswordModal } from '../../../../components/user-reset-password-modal'
 import { formatFileSize } from '@repo/utils'
 import type { User } from '@repo/types'
 
@@ -48,6 +49,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editUser, setEditUser] = useState<User | null>(null)
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
 
   const refreshUsers = async () => {
     if (!accessToken) return
@@ -75,6 +77,15 @@ export default function UsersPage() {
   const handleUpdateSuccess = () => {
     refreshUsers()
     setEditUser(null)
+  }
+
+  const handleResetPassword = (user: User) => {
+    setResetPasswordUser(user)
+  }
+
+  const handleResetPasswordSuccess = () => {
+    refreshUsers()
+    setResetPasswordUser(null)
   }
 
   useEffect(() => {
@@ -179,9 +190,19 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>{formatFileSize(u.storageLimit * 1024 * 1024)}</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => handleEditUser(u)}>
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleEditUser(u)}>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleResetPassword(u)}
+                        title="Reset password"
+                      >
+                        <Icon.Key className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -202,6 +223,15 @@ export default function UsersPage() {
           open={!!editUser}
           onOpenChange={(open) => !open && setEditUser(null)}
           onSuccess={handleUpdateSuccess}
+        />
+      )}
+
+      {resetPasswordUser && (
+        <UserResetPasswordModal
+          user={resetPasswordUser}
+          open={!!resetPasswordUser}
+          onOpenChange={(open) => !open && setResetPasswordUser(null)}
+          onSuccess={handleResetPasswordSuccess}
         />
       )}
     </div>

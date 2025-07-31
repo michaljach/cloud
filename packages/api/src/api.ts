@@ -407,6 +407,27 @@ export async function updateUser(
 }
 
 /**
+ * Reset a user's password (root_admin only)
+ */
+export async function resetUserPassword(
+  accessToken: string,
+  userId: string,
+  newPassword: string
+): Promise<{ user: User }> {
+  const res = await fetch(`${API_URL}/api/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ password: newPassword })
+  })
+  const json: ApiResponse<{ user: User }> = await res.json()
+  if (!json.success) throw new Error(json.error || 'Failed to reset user password')
+  return json.data
+}
+
+/**
  * List all workspaces (root_admin only)
  */
 export async function getWorkspaces(accessToken: string): Promise<Workspace[]> {

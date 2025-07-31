@@ -268,4 +268,63 @@ export default class UsersController {
       return res.status(500).json({ success: false, data: null, error: err.message })
     }
   }
+
+  /**
+   * POST /api/users/:userId/reset-password
+   * Reset a user's password (root_admin only)
+   */
+  @Post('/:userId/reset-password')
+  @UseBefore(authenticate)
+  @UseBefore(
+    validate(
+      z.object({
+        password: z.string().min(6, 'Password must be at least 6 characters')
+      })
+    )
+  )
+  async resetPassword(
+    @CurrentUser() oauthUser: User,
+    @Param('userId') userId: string,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const user = await getUserById(oauthUser.id)
+    if (!user) {
+      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+    }
+
+    if (!isRootAdmin(user)) {
+      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+    }
+
+    const { password } = req.body
+
+    try {
+      // Check if target user exists
+      const targetUser = await getUserById(userId)
+      if (!targetUser) {
+        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(password, 10)
+
+      // Update the user's password
+      await prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword }
+      })
+
+      // Get the updated user data
+      const updatedUser = await getUserById(userId)
+
+      return res.json({
+        success: true,
+        data: { user: updatedUser },
+        error: null
+      })
+    } catch (err: any) {
+      return res.status(500).json({ success: false, data: null, error: err.message })
+    }
+  }
 }
