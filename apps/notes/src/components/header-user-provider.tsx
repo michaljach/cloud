@@ -4,6 +4,7 @@ import { Header } from '@repo/ui/components/header'
 import { useUser } from '@repo/contexts'
 import { useRouter } from 'next/navigation'
 import React from 'react'
+import { SaveStatusIndicator } from './save-status-indicator'
 
 const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
 
@@ -42,6 +43,7 @@ export function HeaderUserProvider({ title, children }: HeaderUserProviderProps)
         { label: 'Account', href: accountUrl || '/account' }
       ]}
     >
+      <SaveStatusIndicator />
       {children}
     </Header>
   )

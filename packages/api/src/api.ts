@@ -874,3 +874,20 @@ export async function uploadNote(
   if (!json.success) throw new Error(json.error || 'Upload failed')
   return json.data
 }
+
+export async function createEmptyNote(
+  accessToken: string,
+  workspaceId?: string
+): Promise<{ filename: string }> {
+  // Generate a unique filename with timestamp
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+  const filename = `note-${timestamp}.md`
+
+  // Create empty content
+  const emptyContent = new TextEncoder().encode('')
+
+  // Upload the empty note
+  const result = await uploadNote(emptyContent, filename, accessToken, workspaceId)
+
+  return { filename }
+}

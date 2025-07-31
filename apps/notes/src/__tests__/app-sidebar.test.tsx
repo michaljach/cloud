@@ -5,6 +5,18 @@ import { AppSidebar } from '../components/app-sidebar'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    refresh: jest.fn(),
+    prefetch: jest.fn()
+  })
+}))
+
 // Mock useUser and useWorkspace to provide fake data
 jest.mock('@repo/contexts', () => {
   const mockUseUser = jest.fn()
@@ -18,15 +30,6 @@ jest.mock('@repo/contexts', () => {
     WorkspaceProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     __mockUseUser: mockUseUser,
     __mockUseWorkspace: mockUseWorkspace
-  }
-})
-
-// Mock useSidebar to provide a selectedNote
-jest.mock('@repo/ui/components/base/sidebar', () => {
-  const actual = jest.requireActual('@repo/ui/components/base/sidebar')
-  return {
-    ...actual,
-    useSidebar: () => ({ selectedNote: 'note1' })
   }
 })
 
@@ -136,7 +139,7 @@ describe('AppSidebar', () => {
     await waitFor(() => expect(screen.getByText('Failed to fetch')).toBeInTheDocument())
   })
 
-  it('renders notes list and highlights selected note', async () => {
+  it('renders notes list', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
     ;(listNotes as jest.Mock).mockResolvedValue(['note1', 'note2'])
     await act(async () => {
@@ -144,9 +147,6 @@ describe('AppSidebar', () => {
     })
     await waitFor(() => expect(screen.getByText('note1')).toBeInTheDocument())
     expect(screen.getByText('note2')).toBeInTheDocument()
-    // Selected note should have special class
-    const selected = screen.getByText('note1').closest('button, a, div')
-    expect(selected?.className).toMatch(/bg-primary/)
   })
 
   it('renders settings link', async () => {

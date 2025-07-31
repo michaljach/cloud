@@ -46,7 +46,7 @@ const upload = multer({
 const noteSchema = z.object({
   originalname: z.string().min(1, 'Filename is required'),
   path: z.string().min(1, 'File path is required'),
-  size: z.number().min(1, 'File size must be greater than 0')
+  size: z.number().min(0, 'File size must be non-negative')
 })
 
 @JsonController('/notes')
@@ -151,8 +151,7 @@ export default class NotesController {
       let data: Buffer
       if (workspaceId === PERSONAL_WORKSPACE_ID) {
         // Use personal storage with decryption
-        const decodedFilename = base64urlDecode(params.data.filename)
-        data = readNote(decodedFilename, user.id)
+        data = readNote(params.data.filename, user.id)
       } else {
         // Use workspace storage (separate from user storage)
         const filePath = getFilePathForContext(user.id, workspaceId, 'notes', params.data.filename)

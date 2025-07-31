@@ -11,7 +11,8 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: ['/node_modules/', '/.next/']
+  testPathIgnorePatterns: ['/node_modules/', '/.next/'],
+  testMatch: ['**/__tests__/**/*.test.(ts|tsx|js|jsx)', '**/*.(test|spec).(ts|tsx|js|jsx)']
 }
 
 module.exports = createJestConfig(customJestConfig)

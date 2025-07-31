@@ -44,29 +44,34 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const [notes, setNotes] = React.useState<string[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = React.useState(0)
 
-  React.useEffect(() => {
+  const fetchNotes = React.useCallback(async () => {
     if (!accessToken || !currentWorkspace) return
     setLoading(true)
 
-    const fetchNotes = async () => {
-      try {
-        const fetchedNotes = await listNotes(
-          accessToken,
-          currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-        )
-        setNotes(fetchedNotes)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch notes')
-        setNotes([])
-      } finally {
-        setLoading(false)
-      }
+    try {
+      const fetchedNotes = await listNotes(
+        accessToken,
+        currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+      )
+      setNotes(fetchedNotes)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch notes')
+      setNotes([])
+    } finally {
+      setLoading(false)
     }
-
-    fetchNotes()
   }, [accessToken, currentWorkspace])
+
+  React.useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes, refreshKey])
+
+  const refreshNotes = React.useCallback(() => {
+    setRefreshKey((prev) => prev + 1)
+  }, [])
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -83,7 +88,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} onNoteCreated={refreshNotes} />
         <SidebarGroup>
           <SidebarGroupLabel>Notes</SidebarGroupLabel>
           <SidebarGroupContent>
