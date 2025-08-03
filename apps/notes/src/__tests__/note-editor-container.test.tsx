@@ -8,6 +8,11 @@ import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { downloadNote, uploadNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
 
+// Mock Next.js navigation
+jest.mock('next/navigation', () => ({
+  usePathname: jest.fn()
+}))
+
 // Mock the API functions
 jest.mock('@repo/api', () => ({
   downloadNote: jest.fn(),
@@ -31,6 +36,7 @@ jest.mock('@repo/utils', () => ({
 const mockDownloadNote = downloadNote as jest.MockedFunction<typeof downloadNote>
 const mockUploadNote = uploadNote as jest.MockedFunction<typeof uploadNote>
 const mockBase64urlEncode = base64urlEncode as jest.MockedFunction<typeof base64urlEncode>
+const mockUsePathname = require('next/navigation').usePathname as jest.MockedFunction<() => string>
 
 describe('NoteEditorContainer', () => {
   const mockUser = {
@@ -75,6 +81,9 @@ describe('NoteEditorContainer', () => {
 
     mockBase64urlEncode.mockReturnValue(mockEncodedFilename)
     require('@repo/utils').base64urlDecode.mockReturnValue(mockFilename)
+
+    // Setup default pathname mock - on the correct note page
+    mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
   })
 
   function renderNoteEditor() {
@@ -174,5 +183,190 @@ describe('NoteEditorContainer', () => {
       },
       { timeout: 2000 }
     )
+  })
+
+  describe('route-based loading logic', () => {
+    it('does not load note when not on the correct note page', async () => {
+      // Mock being on home page instead of note page
+      mockUsePathname.mockReturnValue('/')
+
+      renderNoteEditor()
+
+      // Should not show loading state
+      expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
+
+      // Should not call downloadNote
+      expect(mockDownloadNote).not.toHaveBeenCalled()
+    })
+
+    it('does not load note when on a different note page', async () => {
+      // Mock being on a different note page
+      mockUsePathname.mockReturnValue('/note/different-note')
+
+      renderNoteEditor()
+
+      // Should not show loading state
+      expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
+
+      // Should not call downloadNote
+      expect(mockDownloadNote).not.toHaveBeenCalled()
+    })
+
+    it('loads note when on the correct note page', async () => {
+      // Mock being on the correct note page
+      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+      const mockContent = '# Test Note'
+      const mockContentBuffer = new TextEncoder().encode(mockContent)
+      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
+
+      await act(async () => {
+        renderNoteEditor()
+      })
+
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue(mockContent)
+      })
+
+      expect(mockDownloadNote).toHaveBeenCalledTimes(1)
+    })
+
+    it('clears content and error when navigating away from note page', async () => {
+      // First render on the correct note page with content
+      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+      const mockContent = '# Test Note'
+      const mockContentBuffer = new TextEncoder().encode(mockContent)
+      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
+
+      const { rerender } = render(
+        <SaveStatusProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SaveStatusProvider>
+      )
+
+      // Wait for content to load
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue(mockContent)
+      })
+
+      // Now navigate away from the note page
+      mockUsePathname.mockReturnValue('/')
+
+      rerender(
+        <SaveStatusProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SaveStatusProvider>
+      )
+
+      // Content should be cleared
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue('')
+      })
+    })
+
+    it('does not save when not on the correct note page', async () => {
+      // Mock being on home page
+      mockUsePathname.mockReturnValue('/')
+
+      renderNoteEditor()
+
+      const textarea = screen.getByRole('textbox')
+
+      // Type to trigger save
+      await act(async () => {
+        await userEvent.type(textarea, 'test content')
+      })
+
+      // Wait a bit for any potential save attempts
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Should not call uploadNote
+      expect(mockUploadNote).not.toHaveBeenCalled()
+    })
+
+    it('saves when on the correct note page', async () => {
+      // Mock being on the correct note page
+      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+      const mockContent = '# Test Note'
+      const mockContentBuffer = new TextEncoder().encode(mockContent)
+      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
+      mockUploadNote.mockResolvedValue({ filename: mockFilename })
+
+      await act(async () => {
+        renderNoteEditor()
+      })
+
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue(mockContent)
+      })
+
+      const textarea = screen.getByRole('textbox')
+
+      // Type to trigger save
+      await act(async () => {
+        await userEvent.type(textarea, ' updated')
+      })
+
+      // Wait for save
+      await waitFor(
+        () => {
+          expect(mockUploadNote).toHaveBeenCalledTimes(1)
+        },
+        { timeout: 2000 }
+      )
+    })
+
+    it('handles route changes during loading', async () => {
+      // Start on the correct note page
+      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+      // Mock a slow download that never resolves
+      mockDownloadNote.mockImplementation(() => new Promise(() => {}))
+
+      const { rerender } = render(
+        <SaveStatusProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SaveStatusProvider>
+      )
+
+      // Should show loading state
+      expect(screen.getByText('Loading note...')).toBeInTheDocument()
+
+      // Navigate away while loading
+      mockUsePathname.mockReturnValue('/')
+
+      rerender(
+        <SaveStatusProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SaveStatusProvider>
+      )
+
+      // Should not show loading state anymore
+      await waitFor(() => {
+        expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
+      })
+    })
   })
 })

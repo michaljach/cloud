@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { Editor } from './editor'
 import { downloadNote, uploadNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/contexts'
@@ -15,6 +16,7 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
   const { accessToken } = useUser()
   const { currentWorkspace } = useWorkspace()
   const { setSaveStatus, setSaveStatusText } = useSaveStatus()
+  const pathname = usePathname()
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,8 +25,22 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
 
   const decodedFilename = base64urlDecode(filename)
 
+  // Check if we're on the correct note page
+  const isOnNotePage = pathname === `/note/${filename}`
+
+  // Clear content and error when not on the note page
   useEffect(() => {
-    if (!accessToken || !currentWorkspace) return
+    if (!isOnNotePage) {
+      setContent('')
+      setError(null)
+      setLoading(false)
+      setSaveStatus('idle')
+      setSaveStatusText('')
+    }
+  }, [isOnNotePage, setSaveStatus, setSaveStatusText])
+
+  useEffect(() => {
+    if (!accessToken || !currentWorkspace || !isOnNotePage) return
 
     const fetchNote = async () => {
       try {
@@ -51,11 +67,18 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
     }
 
     fetchNote()
-  }, [accessToken, currentWorkspace, decodedFilename, setSaveStatus, setSaveStatusText])
+  }, [
+    accessToken,
+    currentWorkspace,
+    decodedFilename,
+    setSaveStatus,
+    setSaveStatusText,
+    isOnNotePage
+  ])
 
   const saveNote = useCallback(
     async (newContent: string) => {
-      if (!accessToken || !currentWorkspace) return
+      if (!accessToken || !currentWorkspace || !isOnNotePage) return
 
       try {
         setSaveStatus('saving')
@@ -86,7 +109,7 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
         }, 5000)
       }
     },
-    [accessToken, currentWorkspace, decodedFilename, setSaveStatus, setSaveStatusText]
+    [accessToken, currentWorkspace, decodedFilename, setSaveStatus, setSaveStatusText, isOnNotePage]
   )
 
   const handleContentChange = useCallback(

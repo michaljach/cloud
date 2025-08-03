@@ -8,6 +8,11 @@ import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { downloadNote, uploadNote } from '@repo/api'
 import { base64urlDecode } from '@repo/utils'
 
+// Mock Next.js navigation
+jest.mock('next/navigation', () => ({
+  usePathname: jest.fn()
+}))
+
 // Mock the API functions
 jest.mock('@repo/api', () => ({
   downloadNote: jest.fn(),
@@ -30,6 +35,7 @@ jest.mock('@repo/utils', () => ({
 
 const mockDownloadNote = downloadNote as jest.MockedFunction<typeof downloadNote>
 const mockUploadNote = uploadNote as jest.MockedFunction<typeof uploadNote>
+const mockUsePathname = require('next/navigation').usePathname as jest.MockedFunction<() => string>
 
 // Test component to check save status
 function SaveStatusChecker() {
@@ -84,6 +90,9 @@ describe('Saving Integration', () => {
     })
 
     require('@repo/utils').base64urlDecode.mockReturnValue(mockFilename)
+
+    // Setup default pathname mock - on the correct note page
+    mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
   })
 
   function renderWithSaveStatus() {

@@ -13,6 +13,7 @@ import type { WorkspaceMembership } from '@repo/types'
 import { convertUserWorkspacesToMemberships } from '@repo/utils'
 import Cookies from 'js-cookie'
 import { PERSONAL_WORKSPACE_ID } from './constants'
+import { useRouter } from 'next/navigation'
 
 export interface PersonalWorkspace {
   id: typeof PERSONAL_WORKSPACE_ID
@@ -35,6 +36,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user, accessToken } = useUser()
+  const router = useRouter()
   const [currentWorkspace, setCurrentWorkspace] = useState<
     WorkspaceMembership | PersonalWorkspace | null
   >(null)
@@ -87,15 +89,28 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         setCurrentWorkspace(workspace)
         // Store in cookie for persistence
         Cookies.set('currentWorkspaceId', workspaceId, { expires: 30, path: '/' })
+
+        // Clear selected note when switching workspaces
+        // We need to access the sidebar context to clear the note selection
+        // This will be handled by the SidebarProvider when it detects workspace changes
+
+        // Redirect to home to prevent the previous note from loading
+        router.push('/')
       }
     },
-    [availableWorkspaces]
+    [availableWorkspaces, router]
   )
 
   const switchToPersonal = useCallback(() => {
     setCurrentWorkspace(personalWorkspace)
     Cookies.set('currentWorkspaceId', PERSONAL_WORKSPACE_ID, { expires: 30, path: '/' })
-  }, [])
+
+    // Clear selected note when switching to personal workspace
+    // This will be handled by the SidebarProvider when it detects workspace changes
+
+    // Redirect to home to prevent the previous note from loading
+    router.push('/')
+  }, [router])
 
   // Fetch workspaces when user or accessToken changes
   useEffect(() => {

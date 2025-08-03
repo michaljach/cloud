@@ -6,6 +6,7 @@ import type {
   WorkspaceMember,
   ApiResponse
 } from '@repo/types'
+import { apiClient } from './apiClient'
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
@@ -821,17 +822,9 @@ export async function uploadFilesBatch(
 }
 
 // Unified note functions
-export async function listNotes(accessToken: string, workspaceId?: string): Promise<string[]> {
-  const url = new URL(`${API_URL}/api/notes`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<string[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to list notes')
-  return json.data
+export async function listNotes(workspaceId?: string): Promise<string[]> {
+  const endpoint = `/api/notes${workspaceId ? `?workspaceId=${workspaceId}` : ''}`
+  return await apiClient.get<string[]>(endpoint)
 }
 
 export async function downloadNote(

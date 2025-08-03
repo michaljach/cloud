@@ -1,29 +1,28 @@
 'use client'
 
 import * as React from 'react'
-import { Settings, Box } from 'lucide-react'
-
+import { Box, Settings } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
   useSidebar
 } from '@repo/ui/components/base/sidebar'
-
-import { NavMain } from './nav-main'
-import { listNotes } from '@repo/api'
-import { useUser, useWorkspace } from '@repo/contexts'
+import { Skeleton } from '@repo/ui/components/base/skeleton'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
+import { useWorkspace } from '@repo/contexts'
+import { listNotes } from '@repo/api'
+import { NavMain } from './nav-main'
 import { StorageQuota } from './storage-quota'
-import { Skeleton } from '@repo/ui/components/base/skeleton'
 
 const data = {
   user: {
@@ -38,23 +37,43 @@ const data = {
 }
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { accessToken } = useUser()
   const { currentWorkspace } = useWorkspace()
-  const { selectedNote } = useSidebar()
+  const { selectedNote, setSelectedNote } = useSidebar()
   const [notes, setNotes] = React.useState<string[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [refreshKey, setRefreshKey] = React.useState(0)
+  const router = useRouter()
+  const prevWorkspaceRef = React.useRef<string | null>(null)
+
+  // Clear selected note when workspace changes
+  React.useEffect(() => {
+    if (selectedNote && currentWorkspace?.id) {
+      setSelectedNote(null)
+    }
+  }, [currentWorkspace, selectedNote, setSelectedNote])
+
+  // Redirect to home if workspace changes to a different one
+  React.useEffect(() => {
+    const currentWorkspaceId = currentWorkspace?.id || null
+    const prevWorkspaceId = prevWorkspaceRef.current
+
+    if (prevWorkspaceId && currentWorkspaceId && prevWorkspaceId !== currentWorkspaceId) {
+      // Workspace changed, redirect to home
+      router.push('/')
+    }
+
+    // Update the ref with current workspace
+    prevWorkspaceRef.current = currentWorkspaceId
+  }, [currentWorkspace?.id, router])
 
   const fetchNotes = React.useCallback(async () => {
-    if (!accessToken || !currentWorkspace) return
+    if (!currentWorkspace) return
     setLoading(true)
 
     try {
-      const fetchedNotes = await listNotes(
-        accessToken,
-        currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-      )
+      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+      const fetchedNotes = await listNotes(workspaceId)
       setNotes(fetchedNotes)
       setError(null)
     } catch (err) {
@@ -63,7 +82,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     } finally {
       setLoading(false)
     }
-  }, [accessToken, currentWorkspace])
+  }, [currentWorkspace])
 
   React.useEffect(() => {
     fetchNotes()
