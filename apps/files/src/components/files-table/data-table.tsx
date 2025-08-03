@@ -10,6 +10,7 @@ import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api
 import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
+import { FilePreview } from '../file-preview'
 
 import {
   Table,
@@ -49,6 +50,10 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const [dragActive, setDragActive] = React.useState(false)
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = React.useState(false)
   const [downloading, setDownloading] = React.useState(false)
+  const [previewFile, setPreviewFile] = React.useState<{
+    filename: string
+    filePath: string
+  } | null>(null)
 
   // Use provided data if available, otherwise use files from context
   const table = useReactTable({
@@ -63,6 +68,14 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       setCurrentPath(
         currentPath ? `${currentPath}/${row.original.filename}` : row.original.filename
       )
+    } else if (row.original.type === 'file') {
+      const filePath = currentPath
+        ? `${currentPath}/${row.original.filename}`
+        : row.original.filename
+      setPreviewFile({
+        filename: row.original.filename,
+        filePath
+      })
     }
   }
 
@@ -323,7 +336,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 Delete Selected ({selectedFiles.length})
               </Button>
               <Dialog open={batchDeleteDialogOpen} onOpenChange={setBatchDeleteDialogOpen}>
-                <DialogContent showCloseButton>
+                <DialogContent showCloseButton className="max-w-lg">
                   <DialogTitle>Move to Trash</DialogTitle>
                   <DialogDescription>
                     Are you sure you want to move <b>{selectedFiles.length}</b> files to Trash? You
@@ -395,7 +408,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onDoubleClick={() => handleRowDoubleClick(row)}
-                  className={row.original.type === 'folder' ? 'cursor-pointer' : ''}
+                  className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -414,6 +427,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           </TableBody>
         </Table>
       </div>
+
+      {/* File Preview Dialog */}
+      {previewFile && (
+        <FilePreview
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          filename={previewFile.filename}
+          filePath={previewFile.filePath}
+        />
+      )}
     </div>
   )
 }

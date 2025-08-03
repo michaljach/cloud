@@ -92,7 +92,7 @@ export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
               Delete
             </Button>
             <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
-              <DialogContent showCloseButton>
+              <DialogContent showCloseButton className="max-w-lg">
                 <DialogTitle>Restore File</DialogTitle>
                 <DialogDescription>
                   Are you sure you want to restore <b>{row.original.filename}</b> from Trash?

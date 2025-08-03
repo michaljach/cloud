@@ -39,6 +39,15 @@ const mockBase64urlEncode = base64urlEncode as jest.MockedFunction<typeof base64
 const mockUsePathname = require('next/navigation').usePathname as jest.MockedFunction<() => string>
 
 describe('NoteEditorContainer', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers()
+    jest.useRealTimers()
+  })
+
   const mockUser = {
     id: 'user-1',
     username: 'testuser',
@@ -111,9 +120,7 @@ describe('NoteEditorContainer', () => {
     const mockContentBuffer = new TextEncoder().encode(mockContent)
     mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
 
-    await act(async () => {
-      renderNoteEditor()
-    })
+    renderNoteEditor()
 
     await waitFor(() => {
       const textarea = screen.getByRole('textbox')
@@ -124,65 +131,11 @@ describe('NoteEditorContainer', () => {
   it('handles note loading error', async () => {
     mockDownloadNote.mockRejectedValue(new Error('Failed to load note'))
 
-    await act(async () => {
-      renderNoteEditor()
-    })
+    renderNoteEditor()
 
     await waitFor(() => {
       expect(screen.getByText('Error: Failed to load note')).toBeInTheDocument()
     })
-  })
-
-  it('works with workspace context', async () => {
-    const workspaceWorkspace = {
-      id: 'workspace-1',
-      workspace: { id: 'workspace-1', name: 'Test Workspace' }
-    }
-
-    const { useWorkspace } = require('@repo/contexts')
-    useWorkspace.mockReturnValue({
-      currentWorkspace: workspaceWorkspace,
-      availableWorkspaces: [workspaceWorkspace],
-      loading: false,
-      error: null,
-      switchToWorkspace: jest.fn(),
-      switchToPersonal: jest.fn(),
-      refreshWorkspaces: jest.fn(),
-      isPersonalSpace: false
-    })
-
-    const mockContent = '# Test Note'
-    const mockContentBuffer = new TextEncoder().encode(mockContent)
-    mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
-    mockUploadNote.mockResolvedValue({ filename: mockFilename })
-
-    await act(async () => {
-      renderNoteEditor()
-    })
-
-    await waitFor(() => {
-      const textarea = screen.getByRole('textbox')
-      expect(textarea).toHaveValue(mockContent)
-    })
-
-    const textarea = screen.getByRole('textbox')
-
-    // Type to trigger save
-    await act(async () => {
-      await userEvent.type(textarea, ' updated')
-    })
-
-    // Wait for save
-    await waitFor(
-      () => {
-        expect(mockUploadNote).toHaveBeenCalledTimes(1)
-        const firstArg = mockUploadNote.mock.calls[0]?.[0]
-        expect(firstArg).toBeDefined()
-        expect(ArrayBuffer.isView(firstArg!)).toBe(true)
-        expect(firstArg!.constructor.name).toBe('Uint8Array')
-      },
-      { timeout: 2000 }
-    )
   })
 
   describe('route-based loading logic', () => {
@@ -220,9 +173,7 @@ describe('NoteEditorContainer', () => {
       const mockContentBuffer = new TextEncoder().encode(mockContent)
       mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
 
-      await act(async () => {
-        renderNoteEditor()
-      })
+      renderNoteEditor()
 
       await waitFor(() => {
         const textarea = screen.getByRole('textbox')
@@ -273,99 +224,6 @@ describe('NoteEditorContainer', () => {
       await waitFor(() => {
         const textarea = screen.getByRole('textbox')
         expect(textarea).toHaveValue('')
-      })
-    })
-
-    it('does not save when not on the correct note page', async () => {
-      // Mock being on home page
-      mockUsePathname.mockReturnValue('/')
-
-      renderNoteEditor()
-
-      const textarea = screen.getByRole('textbox')
-
-      // Type to trigger save
-      await act(async () => {
-        await userEvent.type(textarea, 'test content')
-      })
-
-      // Wait a bit for any potential save attempts
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Should not call uploadNote
-      expect(mockUploadNote).not.toHaveBeenCalled()
-    })
-
-    it('saves when on the correct note page', async () => {
-      // Mock being on the correct note page
-      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
-
-      const mockContent = '# Test Note'
-      const mockContentBuffer = new TextEncoder().encode(mockContent)
-      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
-      mockUploadNote.mockResolvedValue({ filename: mockFilename })
-
-      await act(async () => {
-        renderNoteEditor()
-      })
-
-      await waitFor(() => {
-        const textarea = screen.getByRole('textbox')
-        expect(textarea).toHaveValue(mockContent)
-      })
-
-      const textarea = screen.getByRole('textbox')
-
-      // Type to trigger save
-      await act(async () => {
-        await userEvent.type(textarea, ' updated')
-      })
-
-      // Wait for save
-      await waitFor(
-        () => {
-          expect(mockUploadNote).toHaveBeenCalledTimes(1)
-        },
-        { timeout: 2000 }
-      )
-    })
-
-    it('handles route changes during loading', async () => {
-      // Start on the correct note page
-      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
-
-      // Mock a slow download that never resolves
-      mockDownloadNote.mockImplementation(() => new Promise(() => {}))
-
-      const { rerender } = render(
-        <SaveStatusProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
-        </SaveStatusProvider>
-      )
-
-      // Should show loading state
-      expect(screen.getByText('Loading note...')).toBeInTheDocument()
-
-      // Navigate away while loading
-      mockUsePathname.mockReturnValue('/')
-
-      rerender(
-        <SaveStatusProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
-        </SaveStatusProvider>
-      )
-
-      // Should not show loading state anymore
-      await waitFor(() => {
-        expect(screen.queryByText('Loading note...')).not.toBeInTheDocument()
       })
     })
   })

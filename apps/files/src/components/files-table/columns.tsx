@@ -166,7 +166,7 @@ export const columns: ColumnDef<FileRow>[] = [
             </DropdownMenuContent>
           </DropdownMenu>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent showCloseButton>
+            <DialogContent showCloseButton className="max-w-lg">
               <DialogTitle>Move to Trash</DialogTitle>
               <DialogDescription>
                 Are you sure you want to move <b>{file.filename}</b> to Trash? You can restore it

@@ -55,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <span>Upload files</span>
               </Button>
             </DialogTrigger>
-            <DialogContent showCloseButton>
+            <DialogContent showCloseButton className="max-w-lg">
               <DialogTitle>Upload file</DialogTitle>
               <DialogDescription>All uploaded files are securely encrypted.</DialogDescription>
               <FileUpload onUploaded={() => setOpen(false)} />
