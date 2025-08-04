@@ -2,7 +2,7 @@
 
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useContext, useMemo } from 'react'
-import { FilesContext } from '../files-context'
+import { FilesContext } from '@/providers/files-context-provider'
 import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
 import React from 'react'
 import { useUser, useWorkspace } from '@repo/contexts'
@@ -10,7 +10,7 @@ import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api
 import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
-import { FilePreview } from '../file-preview'
+import { FilePreview } from '@/components/dialogs/file-preview-dialog'
 
 import {
   Table,

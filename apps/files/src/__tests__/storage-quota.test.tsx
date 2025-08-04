@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import { StorageQuota } from '../components/storage-quota'
+import { StorageQuota } from '@/components/layout/storage-quota'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 
 // Mock Next.js navigation

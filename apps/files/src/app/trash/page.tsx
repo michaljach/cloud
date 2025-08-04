@@ -1,5 +1,5 @@
-import TrashClientPage from './TrashClientPage'
+import { TrashTable } from '@/components/tables/trash-table/trash-table'
 
 export default function TrashPage() {
-  return <TrashClientPage />
+  return <TrashTable />
 }

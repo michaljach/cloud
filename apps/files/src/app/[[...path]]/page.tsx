@@ -1,5 +1,5 @@
-import { columns } from '@/components/files-table/columns'
-import { DataTable } from '@/components/files-table/data-table'
+import { columns } from '@/components/tables/files-table/files-columns-config'
+import { DataTable } from '@/components/tables/files-table/files-table'
 
 export default function FileExplorerPage() {
   // Next.js catch-all route: params.path is string[] | undefined

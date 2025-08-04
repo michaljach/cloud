@@ -2,9 +2,9 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { DataTable } from '../components/files-table/data-table'
-import { columns } from '../components/files-table/columns'
-import { FilesProvider } from '../components/files-context'
+import { DataTable } from '@/components/tables/files-table/files-table'
+import { columns } from '@/components/tables/files-table/files-columns-config'
+import { FilesProvider } from '@/providers/files-context-provider'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 
 // Mock Next.js navigation
@@ -48,7 +48,7 @@ jest.mock('@repo/utils', () => ({
 }))
 
 // Mock the file preview component
-jest.mock('../components/file-preview', () => ({
+jest.mock('@/components/dialogs/file-preview-dialog', () => ({
   FilePreview: ({ isOpen, onClose, filename, filePath }: any) =>
     isOpen ? (
       <div data-testid="file-preview">

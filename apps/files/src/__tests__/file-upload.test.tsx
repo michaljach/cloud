@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FileUpload } from '../components/file-upload'
+import { FileUpload } from '@/components/forms/file-upload-form'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 
 // Mock Next.js navigation
@@ -37,7 +37,7 @@ jest.mock('@repo/utils', () => ({
 }))
 
 // Mock the files context
-jest.mock('../components/files-context', () => ({
+jest.mock('@/providers/files-context-provider', () => ({
   FilesContext: React.createContext({
     refreshFiles: jest.fn()
   })

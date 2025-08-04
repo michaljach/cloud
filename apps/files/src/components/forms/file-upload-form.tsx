@@ -4,7 +4,7 @@ import React, { useState, useContext } from 'react'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { uploadFilesBatch } from '@repo/api'
 import { encryptFile, getEncryptionKey } from '@repo/utils'
-import { FilesContext } from './files-context'
+import { FilesContext } from '@/providers/files-context-provider'
 import { toast } from 'sonner'
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
