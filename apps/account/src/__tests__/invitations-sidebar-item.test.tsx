@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
 import { useInvites } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { InvitationsSidebarItem } from '@/components/sidebar/invitations-sidebar-item'
+import { PageSidebarInvitations } from '@/components/layout/page-sidebar-invitations'
 
 // Mock the auth hooks
 jest.mock('@repo/contexts', () => ({
@@ -19,7 +19,7 @@ jest.mock('@repo/contexts', () => ({
 
 import { useUser, useWorkspace, useInvites } from '@repo/contexts'
 
-describe('InvitationsSidebarItem', () => {
+describe('PageSidebarInvitations', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -39,7 +39,7 @@ describe('InvitationsSidebarItem', () => {
         <WorkspaceProvider>
           <InviteProvider>
             <SidebarProvider>
-              <InvitationsSidebarItem />
+              <PageSidebarInvitations />
             </SidebarProvider>
           </InviteProvider>
         </WorkspaceProvider>
@@ -66,7 +66,7 @@ describe('InvitationsSidebarItem', () => {
         <WorkspaceProvider>
           <InviteProvider>
             <SidebarProvider>
-              <InvitationsSidebarItem />
+              <PageSidebarInvitations />
             </SidebarProvider>
           </InviteProvider>
         </WorkspaceProvider>
@@ -92,7 +92,7 @@ describe('InvitationsSidebarItem', () => {
         <WorkspaceProvider>
           <InviteProvider>
             <SidebarProvider>
-              <InvitationsSidebarItem />
+              <PageSidebarInvitations />
             </SidebarProvider>
           </InviteProvider>
         </WorkspaceProvider>
@@ -124,7 +124,7 @@ describe('InvitationsSidebarItem', () => {
         <WorkspaceProvider>
           <InviteProvider>
             <SidebarProvider>
-              <InvitationsSidebarItem />
+              <PageSidebarInvitations />
             </SidebarProvider>
           </InviteProvider>
         </WorkspaceProvider>

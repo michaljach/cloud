@@ -1,6 +1,6 @@
 import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
-import { AccountDetailsClient } from '@/components/account/account-details-client'
+import { AccountDetailsForm } from '@/components/forms/account-details-form'
 
 export default async function AccountPage() {
   const cookiesStore = await cookies()
@@ -27,7 +27,7 @@ export default async function AccountPage() {
         <p className="text-muted-foreground">Manage your account information and preferences</p>
       </div>
 
-      <AccountDetailsClient user={user} />
+      <AccountDetailsForm user={user} />
     </div>
   )
 }

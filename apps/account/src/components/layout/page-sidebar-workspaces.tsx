@@ -12,7 +12,7 @@ import {
   SidebarMenuSubItem
 } from '@repo/ui/components/base/sidebar'
 import Link from 'next/link'
-import { InvitationsSidebarItem } from './invitations-sidebar-item'
+import { PageSidebarInvitations } from './page-sidebar-invitations'
 
 // Utility functions for user permissions
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
@@ -29,7 +29,7 @@ function hasWorkspaces(user: any): boolean {
   return (user?.workspaces?.length ?? 0) > 0
 }
 
-export function WorkspacesSidebarItem() {
+export function PageSidebarWorkspaces() {
   const { user, loading } = useUser()
   const { currentWorkspace } = useWorkspace()
   const userIsRootAdmin = isRootAdmin(user)
@@ -78,7 +78,7 @@ export function WorkspacesSidebarItem() {
                     </Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
-                <InvitationsSidebarItem />
+                <PageSidebarInvitations />
               </>
             )}
           </SidebarMenuSub>

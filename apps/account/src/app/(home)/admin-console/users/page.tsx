@@ -1,4 +1,5 @@
-import { AdminUsersClient } from '@/components/admin/admin-users-client'
+import { AdminUsersProvider } from '@/providers/admin-users-provider'
+import { AdminUsersContent } from '@/components/admin/admin-users-client'
 
 export default function UsersPage() {
   return (
@@ -10,7 +11,9 @@ export default function UsersPage() {
         </p>
       </div>
 
-      <AdminUsersClient />
+      <AdminUsersProvider>
+        <AdminUsersContent />
+      </AdminUsersProvider>
     </div>
   )
 }

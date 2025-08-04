@@ -1,4 +1,5 @@
-import { AdminWorkspacesClient } from '@/components/admin/admin-workspaces-client'
+import { AdminWorkspacesProvider } from '@/providers/admin-workspaces-provider'
+import { AdminWorkspacesContent } from '@/components/admin/admin-workspaces-client'
 
 export default function WorkspacesPage() {
   return (
@@ -10,7 +11,9 @@ export default function WorkspacesPage() {
         </p>
       </div>
 
-      <AdminWorkspacesClient />
+      <AdminWorkspacesProvider>
+        <AdminWorkspacesContent />
+      </AdminWorkspacesProvider>
     </div>
   )
 }

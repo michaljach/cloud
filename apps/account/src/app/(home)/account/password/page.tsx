@@ -1,6 +1,6 @@
 import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
-import { PasswordChangeClient } from '@/components/account/password-change-client'
+import { PasswordChangeForm } from '@/components/forms/password-change-form'
 
 export default async function PasswordChangePage() {
   const cookiesStore = await cookies()
@@ -31,7 +31,7 @@ export default async function PasswordChangePage() {
         </p>
       </div>
 
-      <PasswordChangeClient />
+      <PasswordChangeForm />
     </div>
   )
 }

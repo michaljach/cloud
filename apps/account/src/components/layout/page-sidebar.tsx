@@ -28,9 +28,9 @@ import {
 } from '@repo/ui/components/base/sidebar'
 import { Button } from '@repo/ui/components/base/button'
 import Link from 'next/link'
-import { WorkspacesSidebarItem } from './workspaces-sidebar-item'
+import { PageSidebarWorkspaces } from './page-sidebar-workspaces'
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export async function PageSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const cookiesStore = await cookies()
   const user = await getServerUser({ cookies: () => cookiesStore })
 
@@ -94,7 +94,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
             </SidebarMenu>
 
             {/* Dynamic Workspaces Section - Client Component */}
-            <WorkspacesSidebarItem />
+            <PageSidebarWorkspaces />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

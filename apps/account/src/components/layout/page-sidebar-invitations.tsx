@@ -6,7 +6,7 @@ import { SidebarMenuSubItem, SidebarMenuSubButton } from '@repo/ui/components/ba
 import { Badge } from '@repo/ui/components/base/badge'
 import { useInvites } from '@repo/contexts'
 
-export function InvitationsSidebarItem() {
+export function PageSidebarInvitations() {
   const { inviteCount, loading } = useInvites()
 
   // Don't render anything if there are no invitations and not loading

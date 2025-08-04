@@ -3,7 +3,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { WorkspacesSidebarItem } from '@/components/sidebar/workspaces-sidebar-item'
+import { PageSidebarWorkspaces } from '@/components/layout/page-sidebar-workspaces'
 
 // Mock the auth hooks
 jest.mock('@repo/contexts', () => ({
@@ -30,7 +30,7 @@ describe('Sidebar Components', () => {
     jest.clearAllMocks()
   })
 
-  describe('WorkspacesSidebarItem', () => {
+  describe('PageSidebarWorkspaces', () => {
     it('shows loading state when user data is loading', () => {
       // Mock loading state
       ;(useUser as jest.Mock).mockReturnValue({
@@ -55,7 +55,7 @@ describe('Sidebar Components', () => {
           <WorkspaceProvider>
             <InviteProvider>
               <SidebarProvider>
-                <WorkspacesSidebarItem />
+                <PageSidebarWorkspaces />
               </SidebarProvider>
             </InviteProvider>
           </WorkspaceProvider>
@@ -116,7 +116,7 @@ describe('Sidebar Components', () => {
           <WorkspaceProvider>
             <InviteProvider>
               <SidebarProvider>
-                <WorkspacesSidebarItem />
+                <PageSidebarWorkspaces />
               </SidebarProvider>
             </InviteProvider>
           </WorkspaceProvider>
@@ -165,7 +165,7 @@ describe('Sidebar Components', () => {
           <WorkspaceProvider>
             <InviteProvider>
               <SidebarProvider>
-                <WorkspacesSidebarItem />
+                <PageSidebarWorkspaces />
               </SidebarProvider>
             </InviteProvider>
           </WorkspaceProvider>
@@ -209,7 +209,7 @@ describe('Sidebar Components', () => {
           <WorkspaceProvider>
             <InviteProvider>
               <SidebarProvider>
-                <WorkspacesSidebarItem />
+                <PageSidebarWorkspaces />
               </SidebarProvider>
             </InviteProvider>
           </WorkspaceProvider>

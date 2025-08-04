@@ -3,10 +3,10 @@
 import { DetailsForm } from '@/components/forms/details-form'
 import { User } from '@repo/types'
 
-interface AccountDetailsClientProps {
+interface AccountDetailsFormProps {
   user: User
 }
 
-export function AccountDetailsClient({ user }: AccountDetailsClientProps) {
+export function AccountDetailsForm({ user }: AccountDetailsFormProps) {
   return <DetailsForm user={user} />
 }

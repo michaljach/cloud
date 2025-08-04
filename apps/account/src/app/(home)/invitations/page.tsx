@@ -1,16 +1,18 @@
-import { InvitationsClient } from '@/components/invitations/invitations-client'
+import { Mail } from 'lucide-react'
+import { InvitationsTable } from '@/components/tables/invitations-table'
 
 export default function InvitationsPage() {
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Invitations</h1>
-        <p className="text-muted-foreground">
-          Manage your workspace invitations and pending requests
-        </p>
+    <div className="container mx-auto py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Mail className="h-8 w-8" />
+          Workspace Invitations
+        </h1>
+        <p className="text-muted-foreground">Manage your workspace invitations and join requests</p>
       </div>
 
-      <InvitationsClient />
+      <InvitationsTable />
     </div>
   )
 }
