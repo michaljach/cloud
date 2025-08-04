@@ -7,7 +7,10 @@ describe('Home Page', () => {
   it('renders the home page content', () => {
     render(<Home />)
 
-    expect(screen.getByText('hi')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Cloud Dashboard')).toBeInTheDocument()
+    expect(screen.getByText('Workspaces')).toBeInTheDocument()
+    expect(screen.getByText('Account Settings')).toBeInTheDocument()
+    expect(screen.getByText('Invitations')).toBeInTheDocument()
   })
 
   it('renders without crashing', () => {
