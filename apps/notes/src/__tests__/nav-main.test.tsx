@@ -35,6 +35,16 @@ jest.mock('next/navigation', () => ({
   })
 }))
 
+// Mock sonner toast
+jest.mock('sonner', () => ({
+  toast: {
+    error: jest.fn(),
+    success: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn()
+  }
+}))
+
 const mockCreateEmptyNote = createEmptyNote as jest.MockedFunction<typeof createEmptyNote>
 const mockBase64urlEncode = base64urlEncode as jest.MockedFunction<typeof base64urlEncode>
 
@@ -186,8 +196,7 @@ describe('NavMain', () => {
   it('handles creation errors gracefully', async () => {
     mockCreateEmptyNote.mockRejectedValue(new Error('Failed to create note'))
 
-    // Mock console.error to avoid noise in tests
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+    const { toast } = require('sonner')
 
     renderNavMain()
 
@@ -197,9 +206,9 @@ describe('NavMain', () => {
       await userEvent.click(createButton)
     })
 
-    // Should show error in console
+    // Should show error toast
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to create note:', expect.any(Error))
+      expect(toast.error).toHaveBeenCalledWith('Failed to create note')
     })
 
     // Button should be re-enabled
@@ -207,8 +216,6 @@ describe('NavMain', () => {
       expect(screen.getByText('Create new note')).toBeInTheDocument()
       expect(createButton).not.toBeDisabled()
     })
-
-    consoleSpy.mockRestore()
   })
 
   it('works with workspace context', async () => {

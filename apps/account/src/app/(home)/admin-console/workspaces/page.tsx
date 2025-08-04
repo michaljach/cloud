@@ -40,6 +40,7 @@ import {
 import { WorkspaceEditModal } from '@/components/workspace-edit-modal'
 import { RemoveMemberDialog } from '@/components/remove-member-dialog'
 import type { Workspace, WorkspaceMember, User } from '@repo/types'
+import { toast } from 'sonner'
 
 // Utility function to check if user is root admin
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
@@ -87,7 +88,7 @@ export default function WorkspacesPage() {
       const fetchedUsers = await getUsers(accessToken)
       setUsers(fetchedUsers)
     } catch (err) {
-      console.error('Failed to fetch users:', err)
+      toast.error('Failed to fetch users')
     }
   }
 

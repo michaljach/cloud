@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { createEmptyNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { base64urlEncode } from '@repo/utils'
+import { toast } from 'sonner'
 
 export function NavMain({
   items,
@@ -46,8 +47,7 @@ export function NavMain({
       // Navigate to the new note
       router.push(`/note/${base64urlEncode(filename)}`)
     } catch (error) {
-      console.error('Failed to create note:', error)
-      // You might want to show a toast notification here
+      toast.error('Failed to create note')
     } finally {
       setIsCreating(false)
     }

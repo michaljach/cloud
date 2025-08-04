@@ -40,14 +40,7 @@ export async function getCurrentUser(accessToken: string): Promise<{
 }
 
 export async function registerUser(username: string, password: string): Promise<User> {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  })
-  const json: ApiResponse<User> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Registration failed')
-  return json.data
+  return apiClient.post('/api/auth/register', { username, password })
 }
 
 export async function loginUser(
@@ -69,6 +62,7 @@ export async function loginUser(
   return json.data
 }
 
+// Direct fetch function for token refresh (to avoid circular dependency with apiClient)
 export async function refreshToken(refreshToken: string): Promise<{
   accessToken: string
   refreshToken: string
@@ -86,27 +80,11 @@ export async function refreshToken(refreshToken: string): Promise<{
 }
 
 export async function logoutUser(token: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/auth/logout`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token })
-  })
-  const json: ApiResponse<null> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Logout failed')
+  return apiClient.post('/api/auth/logout', { token })
 }
 
 export async function updateCurrentUser(accessToken: string, fullName: string): Promise<User> {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ fullName })
-  })
-  const json: ApiResponse<User> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to update user')
-  return json.data
+  return apiClient.patch('/api/auth/me', { fullName })
 }
 
 export async function uploadEncryptedFile(
@@ -199,14 +177,8 @@ export async function listUserFiles(
   accessToken: string,
   path?: string
 ): Promise<{ name: string; size?: number; modified: string; type: 'file' | 'folder' }[]> {
-  const url = new URL(`${API_URL}/api/files`)
-  if (path) url.searchParams.set('path', path)
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to list files')
-  return json.data
+  const endpoint = path ? `/api/files?path=${encodeURIComponent(path)}` : '/api/files'
+  return apiClient.get(endpoint)
 }
 
 export async function downloadEncryptedNote(
@@ -235,66 +207,35 @@ export async function downloadEncryptedUserFile(
   filename: string,
   accessToken: string
 ): Promise<Uint8Array> {
-  const res = await fetch(`${API_URL}/api/files/${encodeURIComponent(filename)}`, {
+  const response = await fetch(`${API_URL}/api/files/${encodeURIComponent(filename)}`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   })
-  if (!res.ok) throw new Error('Download failed')
-  return new Uint8Array(await res.arrayBuffer())
+  if (!response.ok) throw new Error('Download failed')
+  return new Uint8Array(await response.arrayBuffer())
 }
 
 export async function listUserTrashedFiles(
   accessToken: string
 ): Promise<{ filename: string; size: number; modified: string }[]> {
-  const res = await fetch(`${API_URL}/api/files?path=.trash`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to list trashed files')
-  return json.data
+  return apiClient.get('/api/files?path=.trash')
 }
 
 export async function restoreUserFileFromTrash(
   filename: string,
   accessToken: string
 ): Promise<any> {
-  const res = await fetch(`${API_URL}/api/files/trash/restore`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ filename })
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to restore file from trash')
-  return json.data
+  return apiClient.post('/api/files/trash/restore', { filename })
 }
 
 export async function deleteUserFileFromTrash(filename: string, accessToken: string): Promise<any> {
-  const res = await fetch(`${API_URL}/api/files/trash/${encodeURIComponent(filename)}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
-  return json.data
+  return apiClient.delete(`/api/files/trash/${encodeURIComponent(filename)}`)
 }
 
 export async function batchMoveUserFilesToTrash(
   filenames: string[],
   accessToken: string
 ): Promise<any[]> {
-  const res = await fetch(`${API_URL}/api/files/batch/trash`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ filenames })
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Batch delete failed')
-  return json.data
+  return apiClient.post('/api/files/batch/trash', { filenames })
 }
 
 /**
@@ -453,29 +394,14 @@ export async function changePassword(
  * List all workspaces (root_admin only)
  */
 export async function getWorkspaces(accessToken: string): Promise<Workspace[]> {
-  const res = await fetch(`${API_URL}/api/workspaces`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<Workspace[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to fetch workspaces')
-  return json.data
+  return apiClient.get('/api/workspaces')
 }
 
 /**
  * Create a new workspace (root_admin only)
  */
 export async function createWorkspace(accessToken: string, name: string): Promise<Workspace> {
-  const res = await fetch(`${API_URL}/api/workspaces`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ name })
-  })
-  const json: ApiResponse<Workspace> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to create workspace')
-  return json.data
+  return apiClient.post('/api/workspaces', { name })
 }
 
 /**
@@ -486,43 +412,19 @@ export async function updateWorkspace(
   workspaceId: string,
   name: string
 ): Promise<Workspace> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ name })
-  })
-  const json: ApiResponse<Workspace> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to update workspace')
-  return json.data
+  return apiClient.patch(`/api/workspaces/${workspaceId}`, { name })
 }
 
 // Workspace Invite API functions
 export async function getMyInvites(accessToken: string): Promise<WorkspaceInvite[]> {
-  const res = await fetch(`${API_URL}/api/workspace-invites/my`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<WorkspaceInvite[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to get invitations')
-  return json.data
+  return apiClient.get('/api/workspace-invites/my')
 }
 
 export async function getWorkspaceInvites(
   accessToken: string,
   workspaceId: string
 ): Promise<WorkspaceInvite[]> {
-  const res = await fetch(`${API_URL}/api/workspace-invites/workspace/${workspaceId}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<WorkspaceInvite[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to get workspace invitations')
-  return json.data
+  return apiClient.get(`/api/workspace-invites/workspace/${workspaceId}`)
 }
 
 export async function createWorkspaceInvite(
@@ -531,73 +433,32 @@ export async function createWorkspaceInvite(
   invitedUsername: string,
   role: 'owner' | 'admin' | 'member' = 'member'
 ): Promise<WorkspaceInvite> {
-  const res = await fetch(`${API_URL}/api/workspace-invites`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ workspaceId, invitedUsername, role })
-  })
-  const json: ApiResponse<WorkspaceInvite> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to create invitation')
-  return json.data
+  return apiClient.post('/api/workspace-invites', { workspaceId, invitedUsername, role })
 }
 
 export async function acceptWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<{ invite: WorkspaceInvite; userWorkspace: any }> {
-  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}/accept`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<{ invite: WorkspaceInvite; userWorkspace: any }> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to accept invitation')
-  return json.data
+  return apiClient.patch(`/api/workspace-invites/${inviteId}/accept`)
 }
 
 export async function declineWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<WorkspaceInvite> {
-  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}/decline`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<WorkspaceInvite> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to decline invitation')
-  return json.data
+  return apiClient.patch(`/api/workspace-invites/${inviteId}/decline`)
 }
 
 export async function cancelWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<WorkspaceInvite> {
-  const res = await fetch(`${API_URL}/api/workspace-invites/${inviteId}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<WorkspaceInvite> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to cancel invitation')
-  return json.data
+  return apiClient.delete(`/api/workspace-invites/${inviteId}`)
 }
 
 export async function leaveWorkspace(accessToken: string, workspaceId: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/leave`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
-  const json: ApiResponse<null> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to leave workspace')
+  return apiClient.delete(`/api/workspaces/${workspaceId}/leave`)
 }
 
 export async function getMyWorkspaces(accessToken: string): Promise<WorkspaceMembership[]> {
@@ -620,12 +481,7 @@ export async function getWorkspaceMembers(
   accessToken: string,
   workspaceId: string
 ): Promise<WorkspaceMember[]> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<WorkspaceMember[]> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to fetch workspace members')
-  return json.data
+  return apiClient.get(`/api/workspaces/${workspaceId}/members`)
 }
 
 export async function addUserToWorkspace(
@@ -634,17 +490,7 @@ export async function addUserToWorkspace(
   userId: string,
   role: 'owner' | 'admin' | 'member' = 'member'
 ): Promise<any> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ userId, role })
-  })
-  const json: ApiResponse<any> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to add user to workspace')
-  return json.data
+  return apiClient.post(`/api/workspaces/${workspaceId}/members`, { userId, role })
 }
 
 export async function updateUserWorkspaceRole(
@@ -653,17 +499,7 @@ export async function updateUserWorkspaceRole(
   userId: string,
   role: 'owner' | 'admin' | 'member'
 ): Promise<any> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members/${userId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ role })
-  })
-  const json: ApiResponse<any> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to update user role')
-  return json.data
+  return apiClient.patch(`/api/workspaces/${workspaceId}/members/${userId}`, { role })
 }
 
 export async function removeUserFromWorkspace(
@@ -671,12 +507,7 @@ export async function removeUserFromWorkspace(
   workspaceId: string,
   userId: string
 ): Promise<void> {
-  const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}/members/${userId}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<null> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to remove user from workspace')
+  return apiClient.delete(`/api/workspaces/${workspaceId}/members/${userId}`)
 }
 
 // Unified function that works for both personal and workspace files
@@ -685,19 +516,15 @@ export async function listFiles(
   path?: string,
   workspaceId?: string
 ): Promise<{ name: string; size?: number; modified: string; type: 'file' | 'folder' }[]> {
-  const url = new URL(`${API_URL}/api/files`)
+  const params = new URLSearchParams()
   if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
+    params.set('workspaceId', workspaceId)
   }
   if (path) {
-    url.searchParams.set('path', path)
+    params.set('path', path)
   }
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to list files')
-  return json.data
+  const endpoint = `/api/files${params.toString() ? `?${params.toString()}` : ''}`
+  return apiClient.get(endpoint)
 }
 
 export async function downloadFile(
@@ -720,16 +547,8 @@ export async function listTrashedFiles(
   accessToken: string,
   workspaceId?: string
 ): Promise<{ filename: string; size: number; modified: string }[]> {
-  const url = new URL(`${API_URL}/api/files/trash`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to list trashed files')
-  return json.data
+  const endpoint = workspaceId ? `/api/files/trash?workspaceId=${workspaceId}` : '/api/files/trash'
+  return apiClient.get(endpoint)
 }
 
 export async function restoreFileFromTrash(
@@ -737,21 +556,10 @@ export async function restoreFileFromTrash(
   accessToken: string,
   workspaceId?: string
 ): Promise<any> {
-  const url = new URL(`${API_URL}/api/files/trash/restore`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ filename })
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to restore file from trash')
-  return json.data
+  const endpoint = workspaceId
+    ? `/api/files/trash/restore?workspaceId=${workspaceId}`
+    : '/api/files/trash/restore'
+  return apiClient.post(endpoint, { filename })
 }
 
 export async function deleteFileFromTrash(
@@ -759,17 +567,10 @@ export async function deleteFileFromTrash(
   accessToken: string,
   workspaceId?: string
 ): Promise<any> {
-  const url = new URL(`${API_URL}/api/files/trash/${encodeURIComponent(filename)}`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-  const res = await fetch(url.toString(), {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to permanently delete file from trash')
-  return json.data
+  const endpoint = workspaceId
+    ? `/api/files/trash/${encodeURIComponent(filename)}?workspaceId=${workspaceId}`
+    : `/api/files/trash/${encodeURIComponent(filename)}`
+  return apiClient.delete(endpoint)
 }
 
 export async function batchMoveFilesToTrash(
@@ -777,21 +578,10 @@ export async function batchMoveFilesToTrash(
   accessToken: string,
   workspaceId?: string
 ): Promise<any[]> {
-  const url = new URL(`${API_URL}/api/files/batch/trash`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: JSON.stringify({ filenames })
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to move files to trash')
-  return json.data
+  const endpoint = workspaceId
+    ? `/api/files/batch/trash?workspaceId=${workspaceId}`
+    : '/api/files/batch/trash'
+  return apiClient.post(endpoint, { filenames })
 }
 
 export async function uploadFilesBatch(
@@ -806,19 +596,8 @@ export async function uploadFilesBatch(
     formData.append('files', blob, filename)
   }
 
-  const url = new URL(`${API_URL}/api/files/batch`)
-  if (workspaceId) {
-    url.searchParams.set('workspaceId', workspaceId)
-  }
-
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}` },
-    body: formData
-  })
-  const json = await res.json()
-  if (!json.success) throw new Error(json.error || 'Upload failed')
-  return json.data
+  const endpoint = workspaceId ? `/api/files/batch?workspaceId=${workspaceId}` : '/api/files/batch'
+  return apiClient.upload(endpoint, formData)
 }
 
 // Unified note functions

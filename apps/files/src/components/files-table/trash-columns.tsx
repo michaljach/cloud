@@ -11,6 +11,7 @@ import {
   DialogDescription
 } from '@repo/ui/components/base/dialog'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
   return [
@@ -67,7 +68,7 @@ export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
             setRestoreDialogOpen(false)
             refresh()
           } catch (error) {
-            console.error('🗑️ Error restoring file from trash:', error)
+            toast.error('Failed to restore file from trash')
           }
         }
 
@@ -80,7 +81,7 @@ export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {
             setDeleteDialogOpen(false)
             refresh()
           } catch (error) {
-            console.error('🗑️ Error deleting file from trash:', error)
+            toast.error('Failed to delete file from trash')
           }
         }
         return (

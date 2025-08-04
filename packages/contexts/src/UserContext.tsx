@@ -20,6 +20,7 @@ import {
 } from '@repo/api'
 import type { User, StorageQuotaData } from '@repo/types'
 import Cookies from 'js-cookie'
+import { toast } from 'sonner'
 
 interface UserContextType {
   accessToken: string | null
@@ -181,7 +182,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
               return // The refresh will trigger another fetchUser call
             } catch (refreshError) {
               // If refresh fails, logout
-              console.error('Token refresh failed:', refreshError)
+              toast.error('Session expired. Please log in again.')
               await logout()
               router.push('/login')
               return
@@ -219,7 +220,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(result.user)
       setStorageQuota(result.storageQuota)
     } catch (err: any) {
-      console.error('Failed to fetch user data:', err)
+      toast.error('Failed to fetch user data')
     }
   }, [accessToken])
 

@@ -5,6 +5,7 @@ import { useUser, useWorkspace } from '@repo/contexts'
 import { uploadFilesBatch } from '@repo/api'
 import { encryptFile, getEncryptionKey } from '@repo/utils'
 import { FilesContext } from './files-context'
+import { toast } from 'sonner'
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [files, setFiles] = useState<File[]>([])
@@ -58,7 +59,7 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
       refreshStorageQuota()
       if (onUploaded) onUploaded()
     } catch (err: any) {
-      console.error('❌ Upload error:', err)
+      toast.error('Upload failed: ' + err.message)
       setStatus('Error: ' + err.message)
     }
   }
