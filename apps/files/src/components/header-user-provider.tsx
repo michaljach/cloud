@@ -7,12 +7,12 @@ import React from 'react'
 
 const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
 
-interface PageHeaderProps {
+interface HeaderUserProviderProps {
   title: React.ReactNode
   children?: React.ReactNode
 }
 
-export function PageHeader({ title, children }: PageHeaderProps) {
+export function HeaderUserProvider({ title, children }: HeaderUserProviderProps) {
   const { user, loading, logout } = useUser()
   const router = useRouter()
 

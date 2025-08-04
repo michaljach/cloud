@@ -2,7 +2,7 @@
 
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useContext, useMemo } from 'react'
-import { FilesContext } from '../providers/files-context'
+import { FilesContext } from '../files-context'
 import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
 import React from 'react'
 import { useUser, useWorkspace } from '@repo/contexts'
@@ -10,7 +10,7 @@ import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api
 import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
-import { FilePreviewDialog } from '../dialogs/file-preview-dialog'
+import { FilePreview } from '../file-preview'
 
 import {
   Table,
@@ -430,7 +430,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
       {/* File Preview Dialog */}
       {previewFile && (
-        <FilePreviewDialog
+        <FilePreview
           isOpen={!!previewFile}
           onClose={() => setPreviewFile(null)}
           filename={previewFile.filename}
