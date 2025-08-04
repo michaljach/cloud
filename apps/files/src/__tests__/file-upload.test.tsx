@@ -43,6 +43,16 @@ jest.mock('../components/files-context', () => ({
   })
 }))
 
+// Mock sonner toast
+jest.mock('sonner', () => ({
+  toast: {
+    error: jest.fn(),
+    success: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn()
+  }
+}))
+
 describe('FileUpload', () => {
   const mockUser = {
     id: 'user-1',
@@ -318,11 +328,11 @@ describe('FileUpload', () => {
       loading: false,
       logout: jest.fn(),
       storageQuota: {
-        totalUsage: { megabytes: 1000 }, // Almost full
+        totalUsage: { megabytes: 1020 }, // Almost full
         breakdown: {
           files: { megabytes: 500 },
           notes: { megabytes: 300 },
-          photos: { megabytes: 200 }
+          photos: { megabytes: 220 }
         }
       },
       refreshStorageQuota: jest.fn()
@@ -332,7 +342,7 @@ describe('FileUpload', () => {
 
     const fileInput = screen.getByRole('button', { name: /open file picker/i })
     const hiddenInput = fileInput.querySelector('input[type="file"]')
-    const largeFile = new File(['x'.repeat(100 * 1024 * 1024)], 'large.txt', { type: 'text/plain' })
+    const largeFile = new File(['x'.repeat(10 * 1024 * 1024)], 'large.txt', { type: 'text/plain' })
 
     fireEvent.change(hiddenInput!, { target: { files: [largeFile] } })
 
