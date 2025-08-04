@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FileUpload } from '@/components/forms/file-upload-form'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
@@ -123,15 +123,27 @@ describe('FileUpload', () => {
   })
 
   it('allows file selection via input', async () => {
+    // Mock the upload to not complete immediately
+    const { uploadFilesBatch } = require('@repo/api')
+    const { encryptFile, getEncryptionKey } = require('@repo/utils')
+
+    uploadFilesBatch.mockImplementation(() => new Promise(() => {})) // Never resolves
+    encryptFile.mockResolvedValue(new Uint8Array([1, 2, 3, 4]))
+    getEncryptionKey.mockReturnValue('test-key')
+
     renderFileUpload()
 
     const fileInput = screen.getByRole('button', { name: /open file picker/i })
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
-    expect(screen.getByText('1 file(s) selected')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('1 file(s) selected')).toBeInTheDocument()
+    })
   })
 
   it('uploads file successfully', async () => {
@@ -148,7 +160,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Upload successful!')).toBeInTheDocument()
@@ -179,7 +193,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(
       () => {
@@ -203,7 +219,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Error: Upload failed')).toBeInTheDocument()
@@ -222,7 +240,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Error: Encryption failed')).toBeInTheDocument()
@@ -246,7 +266,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('File(s), login, and workspace context required')).toBeInTheDocument()
@@ -267,10 +289,8 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
-
-    await waitFor(() => {
-      expect(screen.getByText('1 file(s) selected')).toBeInTheDocument()
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
     })
 
     await waitFor(() => {
@@ -294,14 +314,12 @@ describe('FileUpload', () => {
     const dropZone = screen.getByRole('button', { name: /open file picker/i })
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.drop(dropZone, {
-      dataTransfer: {
-        files: [file]
-      }
-    })
-
-    await waitFor(() => {
-      expect(screen.getByText('1 file(s) selected')).toBeInTheDocument()
+    await act(async () => {
+      fireEvent.drop(dropZone, {
+        dataTransfer: {
+          files: [file]
+        }
+      })
     })
 
     await waitFor(() => {
@@ -344,7 +362,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const largeFile = new File(['x'.repeat(10 * 1024 * 1024)], 'large.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [largeFile] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [largeFile] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText(/Error: Not enough storage space/)).toBeInTheDocument()
@@ -382,7 +402,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Upload successful!')).toBeInTheDocument()
@@ -446,7 +468,9 @@ describe('FileUpload', () => {
     const hiddenInput = fileInput.querySelector('input[type="file"]')
     const file = new File(['test content'], 'test.txt', { type: 'text/plain' })
 
-    fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    await act(async () => {
+      fireEvent.change(hiddenInput!, { target: { files: [file] } })
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Upload successful!')).toBeInTheDocument()

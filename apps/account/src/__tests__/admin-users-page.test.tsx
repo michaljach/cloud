@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import UsersPage from '../app/(home)/admin-console/users/page'
 import { UserProvider } from '@repo/contexts'
 import { getUsers } from '@repo/api'
@@ -68,6 +68,7 @@ describe('Admin Users Page', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     const mockGetUsers = getUsers as jest.MockedFunction<typeof getUsers>
+    // Make the API call resolve immediately to avoid async issues
     mockGetUsers.mockResolvedValue(mockUsers)
   })
 
