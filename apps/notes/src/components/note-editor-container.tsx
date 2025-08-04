@@ -7,6 +7,7 @@ import { downloadNote, uploadNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { base64urlDecode } from '@repo/utils'
 import { useSaveStatus } from './save-status-context'
+import { useSidebar } from '@repo/ui/components/base/sidebar'
 
 interface NoteEditorContainerProps {
   filename: string
@@ -16,6 +17,7 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
   const { accessToken } = useUser()
   const { currentWorkspace } = useWorkspace()
   const { setSaveStatus, setSaveStatusText } = useSaveStatus()
+  const { setSelectedNote } = useSidebar()
   const pathname = usePathname()
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
@@ -28,19 +30,21 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
   // Check if we're on the correct note page
   const isOnNotePage = pathname === `/note/${filename}`
 
-  // Clear content and error when not on the note page
+  // Single useEffect to handle note loading and selection
   useEffect(() => {
+    // Clear everything when not on the note page
     if (!isOnNotePage) {
       setContent('')
       setError(null)
       setLoading(false)
       setSaveStatus('idle')
       setSaveStatusText('')
+      setSelectedNote(null)
+      return
     }
-  }, [isOnNotePage, setSaveStatus, setSaveStatusText])
 
-  useEffect(() => {
-    if (!accessToken || !currentWorkspace || !isOnNotePage) return
+    // Don't load if we don't have the required data
+    if (!accessToken || !currentWorkspace) return
 
     const fetchNote = async () => {
       try {
@@ -55,12 +59,14 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
         setLastSavedContent(textContent)
         setSaveStatus('idle')
         setSaveStatusText('All changes saved')
+        setSelectedNote(decodedFilename)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load note')
         setContent('')
         setLastSavedContent('')
         setSaveStatus('error')
         setSaveStatusText('Failed to load note')
+        setSelectedNote(null)
       } finally {
         setLoading(false)
       }
@@ -68,12 +74,13 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
 
     fetchNote()
   }, [
+    isOnNotePage,
     accessToken,
     currentWorkspace,
     decodedFilename,
     setSaveStatus,
     setSaveStatusText,
-    isOnNotePage
+    setSelectedNote
   ])
 
   const saveNote = useCallback(

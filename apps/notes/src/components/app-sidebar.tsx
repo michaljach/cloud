@@ -46,13 +46,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
   const prevWorkspaceRef = React.useRef<string | null>(null)
 
-  // Clear selected note when workspace changes
-  React.useEffect(() => {
-    if (selectedNote && currentWorkspace?.id) {
-      setSelectedNote(null)
-    }
-  }, [currentWorkspace, selectedNote, setSelectedNote])
-
   // Redirect to home if workspace changes to a different one
   React.useEffect(() => {
     const currentWorkspaceId = currentWorkspace?.id || null
@@ -126,7 +119,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton
                 key={file}
                 asChild
-                className={`flex items-center gap-2 px-2 w-full${selectedNote === file ? ' bg-primary text-primary-foreground' : ''}`}
+                isActive={selectedNote === file}
+                className="flex items-center gap-2 px-2 w-full"
               >
                 <Link href={`/note/${base64urlEncode(file)}`}>{file}</Link>
               </SidebarMenuButton>

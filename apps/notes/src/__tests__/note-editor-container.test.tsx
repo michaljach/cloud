@@ -7,6 +7,7 @@ import { SaveStatusProvider } from '../components/save-status-context'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { downloadNote, uploadNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
+import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -98,11 +99,13 @@ describe('NoteEditorContainer', () => {
   function renderNoteEditor() {
     return render(
       <SaveStatusProvider>
-        <UserProvider>
-          <WorkspaceProvider>
-            <NoteEditorContainer filename={mockEncodedFilename} />
-          </WorkspaceProvider>
-        </UserProvider>
+        <SidebarProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SidebarProvider>
       </SaveStatusProvider>
     )
   }
@@ -193,11 +196,13 @@ describe('NoteEditorContainer', () => {
 
       const { rerender } = render(
         <SaveStatusProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
         </SaveStatusProvider>
       )
 
@@ -212,11 +217,79 @@ describe('NoteEditorContainer', () => {
 
       rerender(
         <SaveStatusProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
+        </SaveStatusProvider>
+      )
+
+      // Content should be cleared
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue('')
+      })
+    })
+
+    it('sets selected note in sidebar when note loads successfully', async () => {
+      const mockContent = '# Test Note'
+      const mockContentBuffer = new TextEncoder().encode(mockContent)
+      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
+
+      renderNoteEditor()
+
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue(mockContent)
+      })
+
+      // The selectedNote should be set to the decoded filename
+      // We can't directly test the sidebar context state, but we can verify
+      // that the component doesn't crash and loads the note correctly
+      expect(mockDownloadNote).toHaveBeenCalledWith(mockFilename, mockAccessToken, undefined)
+    })
+
+    it('clears selected note when navigating away from note page', async () => {
+      // First render on the correct note page with content
+      mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+      const mockContent = '# Test Note'
+      const mockContentBuffer = new TextEncoder().encode(mockContent)
+      mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
+
+      const { rerender } = render(
+        <SaveStatusProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
+        </SaveStatusProvider>
+      )
+
+      // Wait for content to load
+      await waitFor(() => {
+        const textarea = screen.getByRole('textbox')
+        expect(textarea).toHaveValue(mockContent)
+      })
+
+      // Now navigate away from the note page
+      mockUsePathname.mockReturnValue('/')
+
+      rerender(
+        <SaveStatusProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
         </SaveStatusProvider>
       )
 

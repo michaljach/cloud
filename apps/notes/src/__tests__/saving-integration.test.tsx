@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { NoteEditorContainer } from '../components/note-editor-container'
 import { SaveStatusProvider, useSaveStatus } from '../components/save-status-context'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { downloadNote, uploadNote } from '@repo/api'
 import { base64urlDecode } from '@repo/utils'
 
@@ -98,12 +99,14 @@ describe('Saving Integration', () => {
   function renderWithSaveStatus() {
     return render(
       <SaveStatusProvider>
-        <UserProvider>
-          <WorkspaceProvider>
-            <SaveStatusChecker />
-            <NoteEditorContainer filename={mockEncodedFilename} />
-          </WorkspaceProvider>
-        </UserProvider>
+        <SidebarProvider>
+          <UserProvider>
+            <WorkspaceProvider>
+              <SaveStatusChecker />
+              <NoteEditorContainer filename={mockEncodedFilename} />
+            </WorkspaceProvider>
+          </UserProvider>
+        </SidebarProvider>
       </SaveStatusProvider>
     )
   }
