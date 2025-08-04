@@ -1,21 +1,23 @@
 import type { Metadata } from 'next'
-import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { HeaderUserProvider } from '@/components/header-user-provider'
+import { SidebarProvider, SidebarInset } from '@repo/ui/components/base/sidebar'
+import { AppSidebar } from '@/components/sidebar/app-sidebar'
+import { PageHeader } from '@/components/header/page-header'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
   description: 'Cloud dashboard'
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default function HomeLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <HeaderUserProvider title="Account" />
-        <main className="p-8">{children}</main>
-      </SidebarInset>
+      <div className="flex h-screen w-full">
+        <AppSidebar />
+        <SidebarInset>
+          <PageHeader title="Account" />
+          <main className="flex-1 overflow-auto">{children}</main>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   )
 }

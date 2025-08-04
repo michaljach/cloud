@@ -1,6 +1,6 @@
 import { getServerUser } from '@repo/contexts'
 import { cookies } from 'next/headers'
-import { DetailsForm } from '@/components/details-form'
+import { DetailsForm } from '@/components/forms/details-form'
 
 export default async function AccountPage() {
   const cookiesStore = await cookies()

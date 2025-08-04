@@ -32,23 +32,23 @@ jest.mock('next/link', () => {
   }
 })
 
-// Mock the modal components
-jest.mock('@/components/workspace-edit-modal', () => ({
-  WorkspaceEditModal: ({ open, onOpenChange }: any) =>
-    open ? <div data-testid="workspace-edit-modal">Edit Modal</div> : null
+// Mock the dialog components
+jest.mock('@/components/dialogs/workspace-edit-dialog', () => ({
+  WorkspaceEditDialog: ({ open, onOpenChange }: any) =>
+    open ? <div data-testid="workspace-edit-dialog">Workspace Edit Dialog</div> : null
 }))
 
-jest.mock('@/components/workspace-invite-modal', () => ({
-  WorkspaceInviteModal: ({ open, onOpenChange }: any) =>
-    open ? <div data-testid="workspace-invite-modal">Invite Modal</div> : null
+jest.mock('@/components/dialogs/workspace-invite-dialog', () => ({
+  WorkspaceInviteDialog: ({ open, onOpenChange }: any) =>
+    open ? <div data-testid="workspace-invite-dialog">Workspace Invite Dialog</div> : null
 }))
 
-jest.mock('@/components/leave-workspace-dialog', () => ({
+jest.mock('@/components/dialogs/leave-workspace-dialog', () => ({
   LeaveWorkspaceDialog: ({ open, onOpenChange, onConfirm }: any) =>
     open ? <div data-testid="leave-workspace-dialog">Leave Dialog</div> : null
 }))
 
-jest.mock('@/components/remove-member-dialog', () => ({
+jest.mock('@/components/dialogs/remove-member-dialog', () => ({
   RemoveMemberDialog: ({ open, onOpenChange, onConfirm }: any) =>
     open ? <div data-testid="remove-member-dialog">Remove Dialog</div> : null
 }))

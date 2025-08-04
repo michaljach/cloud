@@ -3,7 +3,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { WorkspacesSidebarItem } from '@/components/workspaces-sidebar-item'
+import { WorkspacesSidebarItem } from '@/components/sidebar/workspaces-sidebar-item'
 
 // Mock the auth hooks
 jest.mock('@repo/contexts', () => ({

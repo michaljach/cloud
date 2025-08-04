@@ -1,6 +1,7 @@
+import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { PasswordChangeForm } from '../components/password-change-form'
+import { PasswordChangeForm } from '../components/forms/password-change-form'
 import { UserProvider } from '@repo/contexts'
 import { changePassword } from '@repo/api'
 

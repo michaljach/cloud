@@ -6,12 +6,12 @@ import { useUser } from '@repo/contexts'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
-interface HeaderUserProviderProps {
+interface PageHeaderProps {
   title: React.ReactNode
   children?: React.ReactNode
 }
 
-export function HeaderUserProvider({ title, children }: HeaderUserProviderProps) {
+export function PageHeader({ title, children }: PageHeaderProps) {
   const router = useRouter()
   const { user, loading, logout } = useUser()
 

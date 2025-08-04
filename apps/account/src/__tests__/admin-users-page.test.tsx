@@ -83,8 +83,7 @@ describe('Admin Users Page', () => {
   })
 
   it('has reset password functionality integrated', () => {
-    // This test verifies that the reset password modal is imported and available
-    // The actual integration is tested in the UserResetPasswordModal tests
+    // This test verifies that the reset password dialog is imported and available
     render(
       <UserProvider>
         <UsersPage />

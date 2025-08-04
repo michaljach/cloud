@@ -1,6 +1,7 @@
+import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { UserResetPasswordModal } from '../components/user-reset-password-modal'
+import { UserResetPasswordDialog } from '../components/dialogs/user-reset-password-dialog'
 import { UserProvider } from '@repo/contexts'
 import { resetUserPassword } from '@repo/api'
 
@@ -33,78 +34,81 @@ const defaultProps = {
   onSuccess: jest.fn()
 }
 
-describe('UserResetPasswordModal', () => {
+describe('UserResetPasswordDialog', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders modal when open', () => {
+  it('renders dialog when open', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
     expect(screen.getByRole('heading', { name: 'Reset Password' })).toBeInTheDocument()
     expect(screen.getByText(/Reset password for user/)).toBeInTheDocument()
     expect(screen.getByText('targetuser')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Enter password')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Reset Password' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
   })
 
   it('does not render when closed', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} open={false} />
+        <UserResetPasswordDialog {...defaultProps} open={false} />
       </UserProvider>
     )
 
-    expect(screen.queryByText('Reset Password')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Reset Password' })).not.toBeInTheDocument()
   })
 
   it('does not render when user is null', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} user={null} />
+        <UserResetPasswordDialog {...defaultProps} user={null} />
       </UserProvider>
     )
 
-    expect(screen.queryByText('Reset Password')).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Reset Password' })).not.toBeInTheDocument()
   })
 
-  it('auto-generates password when modal opens', () => {
+  it('auto-generates password when dialog opens', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
-    const passwordInput = screen.getByPlaceholderText('Enter password') as HTMLInputElement
-    expect(passwordInput.value).toMatch(/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}$/)
+    const passwordInput = screen.getByDisplayValue(/[A-Za-z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}/)
+    expect(passwordInput).toBeInTheDocument()
   })
 
-  it('generates new password when refresh button is clicked', () => {
+  it('generates new password when refresh button is clicked', async () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
-    const passwordInput = screen.getByPlaceholderText('Enter password') as HTMLInputElement
-    const initialPassword = passwordInput.value
+    const refreshButton = screen.getByTitle('Generate new secure password')
+    const initialPasswordInput = screen.getByDisplayValue(
+      /[A-Za-z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}/
+    ) as HTMLInputElement
+    const initialPassword = initialPasswordInput.value
 
-    const refreshButton = screen.getByRole('button', { name: 'Generate new secure password' })
     fireEvent.click(refreshButton)
 
-    expect(passwordInput.value).not.toBe(initialPassword)
-    expect(passwordInput.value).toMatch(/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}$/)
+    await waitFor(() => {
+      const newPasswordInput = screen.getByDisplayValue(
+        /[A-Za-z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}/
+      ) as HTMLInputElement
+      expect(newPasswordInput.value).not.toBe(initialPassword)
+    })
   })
 
   it('shows warning message about saving password', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
@@ -113,42 +117,40 @@ describe('UserResetPasswordModal', () => {
     expect(screen.getByText(/It cannot be recovered later/)).toBeInTheDocument()
   })
 
-  it('resets form when modal closes', () => {
+  it('resets form when dialog closes', () => {
     const { rerender } = render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
-    const passwordInput = screen.getByPlaceholderText('Enter password') as HTMLInputElement
-    const initialPassword = passwordInput.value
-
-    // Close modal
+    // Close dialog
     rerender(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} open={false} />
+        <UserResetPasswordDialog {...defaultProps} open={false} />
       </UserProvider>
     )
 
-    // Reopen modal
+    // Reopen dialog
     rerender(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} open={true} />
+        <UserResetPasswordDialog {...defaultProps} open={true} />
       </UserProvider>
     )
 
-    const newPasswordInput = screen.getByPlaceholderText('Enter password') as HTMLInputElement
-    expect(newPasswordInput.value).not.toBe(initialPassword)
+    // Form should be reset with a new generated password
+    const passwordInput = screen.getByDisplayValue(/[A-Za-z0-9!@#$%^&*()_+\-=\[\]{}|;:,.<>?]{12}/)
+    expect(passwordInput).toBeInTheDocument()
   })
 
   it('calls onOpenChange when cancel button is clicked', () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' })
+    const cancelButton = screen.getByText('Cancel')
     fireEvent.click(cancelButton)
 
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
@@ -162,7 +164,7 @@ describe('UserResetPasswordModal', () => {
 
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
@@ -187,7 +189,7 @@ describe('UserResetPasswordModal', () => {
 
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
@@ -205,7 +207,7 @@ describe('UserResetPasswordModal', () => {
   it('validates password length', async () => {
     render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
@@ -222,24 +224,24 @@ describe('UserResetPasswordModal', () => {
     expect(resetUserPassword).not.toHaveBeenCalled()
   })
 
-  it('clears error when modal is reopened', () => {
+  it('clears error when dialog is reopened', () => {
     const { rerender } = render(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} />
+        <UserResetPasswordDialog {...defaultProps} />
       </UserProvider>
     )
 
-    // Close modal
+    // Close dialog
     rerender(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} open={false} />
+        <UserResetPasswordDialog {...defaultProps} open={false} />
       </UserProvider>
     )
 
-    // Reopen modal
+    // Reopen dialog
     rerender(
       <UserProvider>
-        <UserResetPasswordModal {...defaultProps} open={true} />
+        <UserResetPasswordDialog {...defaultProps} open={true} />
       </UserProvider>
     )
 

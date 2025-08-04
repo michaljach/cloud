@@ -2,8 +2,9 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
+import { useInvites } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { InvitationsSidebarItem } from '@/components/invitations-sidebar-item'
+import { InvitationsSidebarItem } from '@/components/sidebar/invitations-sidebar-item'
 
 // Mock the auth hooks
 jest.mock('@repo/contexts', () => ({

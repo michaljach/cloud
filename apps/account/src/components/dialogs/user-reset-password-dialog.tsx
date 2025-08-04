@@ -22,16 +22,10 @@ import {
 } from '@repo/ui/components/base/form'
 import { Input } from '@repo/ui/components/base/input'
 import { Button } from '@repo/ui/components/base/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@repo/ui/components/base/select'
 import { Icon } from '@repo/ui/components/base/icons'
 import { useUser } from '@repo/contexts'
-import { createUser } from '@repo/api'
+import { resetUserPassword } from '@repo/api'
+import type { User } from '@repo/types'
 
 // Function to generate a secure password
 function generateSecurePassword(): string {
@@ -61,118 +55,92 @@ function generateSecurePassword(): string {
     .join('')
 }
 
-const createUserSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  fullName: z.string().optional(),
-  storageLimitMB: z
-    .number()
-    .min(1, 'Storage limit must be at least 1 MB')
-    .max(1000000, 'Storage limit cannot exceed 1000GB')
+const resetPasswordSchema = z.object({
+  password: z.string().min(6, 'Password must be at least 6 characters')
 })
 
-type CreateUserFormData = z.infer<typeof createUserSchema>
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
-interface UserCreateModalProps {
+interface UserResetPasswordDialogProps {
+  user: User | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function UserCreateModal({ open, onOpenChange, onSuccess }: UserCreateModalProps) {
+export function UserResetPasswordDialog({
+  user,
+  open,
+  onOpenChange,
+  onSuccess
+}: UserResetPasswordDialogProps) {
   const { accessToken } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<CreateUserFormData>({
-    resolver: zodResolver(createUserSchema),
+  const form = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      username: '',
-      password: '',
-      fullName: '',
-      storageLimitMB: 1024 // Default 1GB
+      password: ''
     }
   })
 
-  const {
-    handleSubmit,
-    formState: { isSubmitting: formSubmitting },
-    reset,
-    setValue
-  } = form
+  const { handleSubmit, reset, setValue } = form
 
   const handleGeneratePassword = () => {
     const newPassword = generateSecurePassword()
     setValue('password', newPassword)
   }
 
-  // Reset form when modal opens/closes and generate password on open
+  // Reset form when dialog opens/closes and generate password on open
   useEffect(() => {
     if (!open) {
       reset()
       setError(null)
-    } else {
-      // Generate a password when modal opens
+    } else if (user) {
+      // Generate a password when dialog opens
       const newPassword = generateSecurePassword()
       setValue('password', newPassword)
     }
-  }, [open, reset, setValue])
+  }, [open, reset, setValue, user])
 
-  async function handleFormSubmit(values: CreateUserFormData) {
-    if (!accessToken) return
+  async function handleFormSubmit(values: ResetPasswordFormData) {
+    if (!accessToken || !user) return
 
     setIsSubmitting(true)
     setError(null)
 
     try {
-      await createUser(accessToken, {
-        username: values.username,
-        password: values.password,
-        fullName: values.fullName || undefined,
-        storageLimitMB: values.storageLimitMB
-      })
-
+      await resetUserPassword(accessToken, user.id, values.password)
       onSuccess()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create user')
+      setError(err instanceof Error ? err.message : 'Failed to reset password')
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  if (!user) return null
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create User</DialogTitle>
+          <DialogTitle>Reset Password</DialogTitle>
           <DialogDescription>
-            Create a new user account. Workspace assignment can be done later through the workspace
-            management.
+            Reset password for user <strong>{user.username}</strong>. The new password will be
+            generated automatically.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter username" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>New Password</FormLabel>
                   <FormControl>
                     <div className="flex gap-2">
                       <Input {...field} type="text" placeholder="Enter password" />
@@ -197,47 +165,6 @@ export function UserCreateModal({ open, onOpenChange, onSuccess }: UserCreateMod
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter full name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="storageLimitMB"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Storage Limit</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select storage limit" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="1024">1 GB</SelectItem>
-                      <SelectItem value="5120">5 GB</SelectItem>
-                      <SelectItem value="10240">10 GB</SelectItem>
-                      <SelectItem value="102400">100 GB</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {error && <div className="text-sm text-red-600">{error}</div>}
 
             <DialogFooter>
@@ -250,7 +177,7 @@ export function UserCreateModal({ open, onOpenChange, onSuccess }: UserCreateMod
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create User'}
+                {isSubmitting ? 'Resetting...' : 'Reset Password'}
               </Button>
             </DialogFooter>
           </form>

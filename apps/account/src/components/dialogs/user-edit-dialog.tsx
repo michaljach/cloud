@@ -33,7 +33,7 @@ import { useUser } from '@repo/contexts'
 import { updateUser } from '@repo/api'
 import type { User } from '@repo/types'
 
-interface UserEditModalProps {
+interface UserEditDialogProps {
   user: User | null
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -50,7 +50,7 @@ const updateUserSchema = z.object({
 
 type UpdateUserFormData = z.infer<typeof updateUserSchema>
 
-export function UserEditModal({ user, open, onOpenChange, onSuccess }: UserEditModalProps) {
+export function UserEditDialog({ user, open, onOpenChange, onSuccess }: UserEditDialogProps) {
   const { accessToken } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)

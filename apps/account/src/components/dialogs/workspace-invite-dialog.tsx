@@ -32,19 +32,19 @@ const inviteSchema = z.object({
 
 type InviteFormData = z.infer<typeof inviteSchema>
 
-interface WorkspaceInviteModalProps {
+interface WorkspaceInviteDialogProps {
   workspaceId: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function WorkspaceInviteModal({
+export function WorkspaceInviteDialog({
   workspaceId,
   open,
   onOpenChange,
   onSuccess
-}: WorkspaceInviteModalProps) {
+}: WorkspaceInviteDialogProps) {
   const { accessToken } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -78,7 +78,7 @@ export function WorkspaceInviteModal({
     try {
       await createWorkspaceInvite(accessToken, workspaceId, data.username, data.role)
 
-      // Reset form and close modal
+      // Reset form and close dialog
       reset()
       onOpenChange(false)
       onSuccess()

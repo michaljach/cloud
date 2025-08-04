@@ -35,19 +35,19 @@ const updateWorkspaceSchema = z.object({
 
 type UpdateWorkspaceFormData = z.infer<typeof updateWorkspaceSchema>
 
-interface WorkspaceEditModalProps {
+interface WorkspaceEditDialogProps {
   workspace: Workspace | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function WorkspaceEditModal({
+export function WorkspaceEditDialog({
   workspace,
   open,
   onOpenChange,
   onSuccess
-}: WorkspaceEditModalProps) {
+}: WorkspaceEditDialogProps) {
   const { accessToken, refreshStorageQuota } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
