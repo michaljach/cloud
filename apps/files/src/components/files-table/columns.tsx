@@ -24,7 +24,7 @@ import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
 
 import { formatDate, formatFileSize, decryptFile, getEncryptionKey } from '@repo/utils'
 import { useContext } from 'react'
-import { FilesContext } from '../files-context'
+import { FilesContext } from '../providers/files-context'
 import React from 'react'
 
 export type FileRow = {

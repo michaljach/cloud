@@ -1,6 +1,6 @@
 'use client'
 
-import { FilesContext } from '@/components/files-context'
+import { FilesContext } from '@/components/providers/files-context'
 import { DataTable } from '@/components/files-table/data-table'
 import { getTrashColumns } from '@/components/files-table/trash-columns'
 import { useContext } from 'react'

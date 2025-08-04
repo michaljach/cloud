@@ -3,10 +3,10 @@ import '@repo/ui/styles.css'
 import type { Metadata } from 'next'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SearchClient } from '@/components/search-client'
-import { FilesProvider } from '@/components/files-context'
-import { HeaderUserProvider } from '@/components/header-user-provider'
+import { AppSidebar } from '@/components/sidebar/app-sidebar'
+import { PageSearch } from '@/components/header/page-search'
+import { FilesProvider } from '@/components/providers/files-context'
+import { PageHeader } from '@/components/header/page-header'
 import { Toaster } from '@repo/ui/components/base/sonner'
 
 export const metadata: Metadata = {
@@ -22,18 +22,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <WorkspaceProvider>
             <FilesProvider>
               <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <HeaderUserProvider title="Files">
-                    <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
-                  </HeaderUserProvider>
-                  <main className="p-8">{children}</main>
-                  <Toaster />
-                </SidebarInset>
+                <div className="flex h-screen">
+                  <AppSidebar />
+                  <SidebarInset>
+                    <PageHeader title="Files">
+                      <PageSearch />
+                    </PageHeader>
+                    <main className="flex-1 overflow-auto">{children}</main>
+                  </SidebarInset>
+                </div>
               </SidebarProvider>
             </FilesProvider>
           </WorkspaceProvider>
         </UserProvider>
+        <Toaster />
       </body>
     </html>
   )

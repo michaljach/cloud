@@ -1,384 +1,227 @@
-import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import { StorageQuota } from '../components/storage-quota'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
-
-// Mock Next.js navigation
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-    refresh: jest.fn(),
-    prefetch: jest.fn()
-  })
-}))
+import { StorageQuota } from '../components/sidebar/storage-quota'
+import { UserProvider } from '@repo/contexts'
 
 // Mock the contexts
 jest.mock('@repo/contexts', () => ({
   useUser: jest.fn(),
-  useWorkspace: jest.fn(),
-  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  WorkspaceProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
-// Mock the utils
+// Mock the API functions
+jest.mock('@repo/api', () => ({
+  getCurrentUser: jest.fn()
+}))
+
+// Mock the utils functions
 jest.mock('@repo/utils', () => ({
-  formatFileSize: jest.fn((bytes: number) => {
+  formatFileSize: jest.fn((bytes) => {
     if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+    if (bytes < 1024 * 1024 * 1024) return `${Math.round(bytes / (1024 * 1024))} MB`
+    return `${Math.round(bytes / (1024 * 1024 * 1024))} GB`
   })
 }))
 
 describe('StorageQuota', () => {
-  const mockUser = {
-    id: 'user-1',
-    username: 'testuser',
-    fullName: 'Test User',
-    email: 'test@example.com',
-    storageLimit: 1024 // 1GB in MB
-  }
-
-  const mockWorkspace = {
-    id: 'personal',
-    name: 'Personal Space',
-    type: 'personal' as const
-  }
-
   beforeEach(() => {
     jest.clearAllMocks()
 
-    // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    // Setup default useUser mock
+    const { useUser } = require('@repo/contexts')
     useUser.mockReturnValue({
-      user: mockUser,
       accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: null,
-      error: null
-    })
-
-    useWorkspace.mockReturnValue({
-      currentWorkspace: mockWorkspace,
-      availableWorkspaces: [mockWorkspace],
-      loading: false,
-      error: null,
-      switchToWorkspace: jest.fn(),
-      switchToPersonal: jest.fn(),
-      refreshWorkspaces: jest.fn(),
-      isPersonalSpace: true
+      refreshStorageQuota: jest.fn()
     })
   })
 
-  function renderStorageQuota() {
-    return render(
+  it('renders storage information', async () => {
+    const mockUserData = {
+      storageQuota: {
+        totalUsage: {
+          bytes: 512 * 1024 * 1024 // 512MB
+        }
+      }
+    }
+
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(mockUserData)
+
+    render(
       <UserProvider>
-        <WorkspaceProvider>
-          <StorageQuota />
-        </WorkspaceProvider>
+        <StorageQuota />
       </UserProvider>
     )
-  }
-
-  it('renders loading state initially', () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: true,
-      logout: jest.fn(),
-      storageQuota: null,
-      error: null
-    })
-
-    renderStorageQuota()
-
-    // Should show skeleton loading state
-    expect(screen.getAllByTestId('skeleton')).toHaveLength(5)
-  })
-
-  it('renders storage quota when data is available', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: {
-        totalUsage: { megabytes: 512 }, // 512 MB
-        breakdown: {
-          files: { megabytes: 256 },
-          notes: { megabytes: 128 },
-          photos: { megabytes: 128 }
-        }
-      },
-      error: null
-    })
-
-    renderStorageQuota()
 
     await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
-      expect(screen.getByText('Files')).toBeInTheDocument()
-      expect(screen.getByText('Notes')).toBeInTheDocument()
-      expect(screen.getByText('Photos')).toBeInTheDocument()
+      expect(screen.getByText('Storage')).toBeInTheDocument()
+      expect(screen.getByText('512 MB / 1 GB')).toBeInTheDocument()
     })
   })
 
-  it('handles storage quota error', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: null,
-      error: 'Failed to load storage info'
-    })
+  it('shows loading state initially', () => {
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
-    renderStorageQuota()
+    // Should show loading skeleton
+    expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument()
+  })
+
+  it('displays storage usage percentage', async () => {
+    const mockUserData = {
+      storageQuota: {
+        totalUsage: {
+          bytes: 750 * 1024 * 1024 // 750MB (73%)
+        }
+      }
+    }
+
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(mockUserData)
+
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText('Storage Usage')).toBeInTheDocument()
-      expect(screen.getByText('Unable to load storage info')).toBeInTheDocument()
+      expect(screen.getByText('73% used')).toBeInTheDocument()
     })
   })
 
-  it('shows warning when storage usage is high', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
+  it('shows available storage', async () => {
+    const mockUserData = {
       storageQuota: {
-        totalUsage: { megabytes: 900 }, // 90% usage
-        breakdown: {
-          files: { megabytes: 600 },
-          notes: { megabytes: 200 },
-          photos: { megabytes: 100 }
+        totalUsage: {
+          bytes: 256 * 1024 * 1024 // 256MB
         }
-      },
-      error: null
-    })
+      }
+    }
 
-    renderStorageQuota()
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(mockUserData)
+
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText(/Storage usage is high/)).toBeInTheDocument()
-      expect(screen.getByText(/87\.9%/)).toBeInTheDocument()
+      expect(screen.getByText('768 MB available')).toBeInTheDocument()
     })
   })
 
-  it('shows critical warning when storage limit is exceeded', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: {
-        totalUsage: { megabytes: 1100 }, // 110% usage
-        breakdown: {
-          files: { megabytes: 700 },
-          notes: { megabytes: 250 },
-          photos: { megabytes: 150 }
-        }
-      },
-      error: null
-    })
+  it('handles error state', async () => {
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockRejectedValue(new Error('API Error'))
 
-    renderStorageQuota()
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText(/Storage limit exceeded/)).toBeInTheDocument()
-      expect(screen.getByText(/107\.4%/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to load storage information')).toBeInTheDocument()
     })
   })
 
-  it('shows normal status when storage usage is low', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
+  it('renders with custom className', async () => {
+    const mockUserData = {
       storageQuota: {
-        totalUsage: { megabytes: 100 }, // 10% usage
-        breakdown: {
-          files: { megabytes: 50 },
-          notes: { megabytes: 30 },
-          photos: { megabytes: 20 }
+        totalUsage: {
+          bytes: 100 * 1024 * 1024
         }
-      },
-      error: null
-    })
+      }
+    }
 
-    renderStorageQuota()
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(mockUserData)
+
+    render(
+      <UserProvider>
+        <StorageQuota className="custom-class" />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
-      expect(screen.getByText('Files')).toBeInTheDocument()
-      expect(screen.getByText('Notes')).toBeInTheDocument()
-      expect(screen.getByText('Photos')).toBeInTheDocument()
+      const container = screen.getByText('Storage').closest('.custom-class')
+      expect(container).toBeInTheDocument()
     })
-
-    // Should not show any warnings
-    expect(screen.queryByText(/Storage usage is high/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Storage limit exceeded/)).not.toBeInTheDocument()
   })
 
-  it('formats storage values correctly', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
+  it('shows critical status for high usage', async () => {
+    const highUsageData = {
       storageQuota: {
-        totalUsage: { megabytes: 512 },
-        breakdown: {
-          files: { megabytes: 256 },
-          notes: { megabytes: 128 },
-          photos: { megabytes: 128 }
+        totalUsage: {
+          bytes: 950 * 1024 * 1024 // 95%
         }
-      },
-      error: null
-    })
+      }
+    }
 
-    renderStorageQuota()
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(highUsageData)
+
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
+      expect(screen.getByText('Critical')).toBeInTheDocument()
     })
-
-    // The formatFileSize function should be called with the correct values
-    const { formatFileSize } = require('@repo/utils')
-    expect(formatFileSize).toHaveBeenCalledWith(512 * 1024 * 1024) // total usage in bytes
-    expect(formatFileSize).toHaveBeenCalledWith(1024 * 1024 * 1024) // storage limit in bytes
   })
 
-  it('handles missing storage quota data', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: null,
-      error: null
-    })
-
-    renderStorageQuota()
-
-    // Should render nothing when no storage quota data
-    expect(screen.queryByText('Storage Usage')).not.toBeInTheDocument()
-  })
-
-  it('handles missing user storage limit', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: { ...mockUser, storageLimit: null },
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
+  it('shows warning status for medium usage', async () => {
+    const mediumUsageData = {
       storageQuota: {
-        totalUsage: { megabytes: 512 },
-        breakdown: {
-          files: { megabytes: 256 },
-          notes: { megabytes: 128 },
-          photos: { megabytes: 128 }
+        totalUsage: {
+          bytes: 800 * 1024 * 1024 // 80%
         }
-      },
-      error: null
-    })
+      }
+    }
 
-    renderStorageQuota()
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(mediumUsageData)
 
-    // Should render nothing when no storage limit
-    expect(screen.queryByText('Storage Usage')).not.toBeInTheDocument()
-  })
-
-  it('handles zero storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: {
-        totalUsage: { megabytes: 0 },
-        breakdown: {
-          files: { megabytes: 0 },
-          notes: { megabytes: 0 },
-          photos: { megabytes: 0 }
-        }
-      },
-      error: null
-    })
-
-    renderStorageQuota()
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
-      expect(screen.getByText('Files')).toBeInTheDocument()
-      expect(screen.getByText('Notes')).toBeInTheDocument()
-      expect(screen.getByText('Photos')).toBeInTheDocument()
+      expect(screen.getByText('Warning')).toBeInTheDocument()
     })
   })
 
-  it('handles very small storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: mockUser,
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
+  it('shows good status for low usage', async () => {
+    const lowUsageData = {
       storageQuota: {
-        totalUsage: { megabytes: 1 }, // 1 MB
-        breakdown: {
-          files: { megabytes: 0.5 },
-          notes: { megabytes: 0.3 },
-          photos: { megabytes: 0.2 }
+        totalUsage: {
+          bytes: 200 * 1024 * 1024 // 20%
         }
-      },
-      error: null
-    })
+      }
+    }
 
-    renderStorageQuota()
+    const { getCurrentUser } = require('@repo/api')
+    getCurrentUser.mockResolvedValue(lowUsageData)
+
+    render(
+      <UserProvider>
+        <StorageQuota />
+      </UserProvider>
+    )
 
     await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
-    })
-  })
-
-  it('handles large storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
-    useUser.mockReturnValue({
-      user: { ...mockUser, storageLimit: 10000 }, // 10GB
-      accessToken: 'test-token',
-      loading: false,
-      logout: jest.fn(),
-      storageQuota: {
-        totalUsage: { megabytes: 5000 }, // 5GB
-        breakdown: {
-          files: { megabytes: 3000 },
-          notes: { megabytes: 1000 },
-          photos: { megabytes: 1000 }
-        }
-      },
-      error: null
-    })
-
-    renderStorageQuota()
-
-    await waitFor(() => {
-      expect(screen.getByText('Total Used')).toBeInTheDocument()
+      expect(screen.getByText('Good')).toBeInTheDocument()
     })
   })
 })
