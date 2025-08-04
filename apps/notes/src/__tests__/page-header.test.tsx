@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { PageHeader } from '@/components/layout/page-header'
-import { SaveStatusProvider } from '@/providers/save-status-context'
+import { SaveStatusProvider } from '@/providers/status-provider'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 

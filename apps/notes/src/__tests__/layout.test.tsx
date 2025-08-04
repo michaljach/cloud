@@ -17,8 +17,12 @@ jest.mock('@/components/layout/page-header', () => ({
   )
 }))
 
-jest.mock('@/providers/save-status-context', () => ({
+jest.mock('@/providers/status-provider', () => ({
   SaveStatusProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}))
+
+jest.mock('@/providers/notes-provider', () => ({
+  NotesProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
 describe('RootLayout', () => {

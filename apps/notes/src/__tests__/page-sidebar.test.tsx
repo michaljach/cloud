@@ -33,13 +33,19 @@ jest.mock('@repo/contexts', () => {
   }
 })
 
+// Mock useNotes context
+jest.mock('@/providers/notes-provider', () => ({
+  useNotes: jest.fn(),
+  NotesProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
+}))
+
 // Mock listNotes to control notes fetching
 jest.mock('@repo/api', () => ({
   ...jest.requireActual('@repo/api'),
   listNotes: jest.fn().mockResolvedValue([])
 }))
 
-import { listNotes } from '@repo/api'
+import { useNotes } from '@/providers/notes-provider'
 
 describe('PageSidebar', () => {
   beforeEach(() => {
@@ -56,6 +62,14 @@ describe('PageSidebar', () => {
       switchToPersonal: jest.fn(),
       refreshWorkspaces: jest.fn(),
       isPersonalSpace: true
+    })
+
+    // Set default useNotes mock
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: [],
+      loading: false,
+      error: null,
+      refreshNotes: jest.fn()
     })
   })
 
@@ -99,7 +113,12 @@ describe('PageSidebar', () => {
 
   it('renders without crashing', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
-    ;(listNotes as jest.Mock).mockResolvedValue([])
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: [],
+      loading: false,
+      error: null,
+      refreshNotes: jest.fn()
+    })
     await act(async () => {
       renderSidebar()
     })
@@ -110,48 +129,57 @@ describe('PageSidebar', () => {
 
   it('shows loading state', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
-    let resolve: (notes: string[]) => void
-    ;(listNotes as jest.Mock).mockImplementation(
-      () =>
-        new Promise((r) => {
-          resolve = r
-        })
-    )
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: [],
+      loading: true,
+      error: null,
+      refreshNotes: jest.fn()
+    })
     await act(async () => {
       renderSidebar()
     })
     // Check for skeleton elements using data-slot attribute
     const skeletons = screen.getAllByTestId('skeleton')
     expect(skeletons).toHaveLength(3) // There should be 3 skeleton elements
-    // Resolve the promise to finish loading
-    await act(async () => {
-      resolve!([])
-    })
-    await waitFor(() => expect(screen.queryAllByTestId('skeleton')).toHaveLength(0))
   })
 
   it('shows error state', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
-    ;(listNotes as jest.Mock).mockRejectedValue(new Error('Failed to fetch'))
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: [],
+      loading: false,
+      error: 'Failed to fetch',
+      refreshNotes: jest.fn()
+    })
     await act(async () => {
       renderSidebar()
     })
-    await waitFor(() => expect(screen.getByText('Failed to fetch')).toBeInTheDocument())
+    expect(screen.getByText('Failed to fetch')).toBeInTheDocument()
   })
 
   it('renders notes list', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
-    ;(listNotes as jest.Mock).mockResolvedValue(['note1', 'note2'])
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: ['note1', 'note2'],
+      loading: false,
+      error: null,
+      refreshNotes: jest.fn()
+    })
     await act(async () => {
       renderSidebar()
     })
-    await waitFor(() => expect(screen.getByText('note1')).toBeInTheDocument())
+    expect(screen.getByText('note1')).toBeInTheDocument()
     expect(screen.getByText('note2')).toBeInTheDocument()
   })
 
   it('renders settings link', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
-    ;(listNotes as jest.Mock).mockResolvedValue([])
+    ;(useNotes as jest.Mock).mockReturnValue({
+      notes: [],
+      loading: false,
+      error: null,
+      refreshNotes: jest.fn()
+    })
     await act(async () => {
       renderSidebar()
     })

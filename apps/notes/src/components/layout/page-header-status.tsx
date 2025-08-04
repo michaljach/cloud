@@ -1,7 +1,7 @@
 'use client'
 
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import { useSaveStatus } from '@/providers/save-status-context'
+import { useSaveStatus } from '@/providers/status-provider'
 
 export function PageHeaderStatus() {
   const { saveStatus, saveStatusText } = useSaveStatus()

@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Settings } from 'lucide-react'
 import {
   Sidebar,
@@ -13,9 +15,13 @@ import {
 } from '@repo/ui/components/base/sidebar'
 import Link from 'next/link'
 import { StorageQuota } from '@repo/ui/components/storage-quota'
-import { NotesSidebarContent } from './notes-sidebar-content'
+import { PageSidebarHeader } from './page-sidebar-header'
+import { PageSidebarNotes } from './page-sidebar-notes'
+import { useNotes } from '@/providers/notes-provider'
 
 export function PageSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { refreshNotes } = useNotes()
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -31,7 +37,8 @@ export function PageSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NotesSidebarContent />
+        <PageSidebarHeader onNoteCreated={refreshNotes} />
+        <PageSidebarNotes />
         <SidebarGroup>
           <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent>

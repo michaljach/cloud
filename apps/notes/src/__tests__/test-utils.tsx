@@ -3,7 +3,7 @@ import { render, RenderOptions } from '@testing-library/react'
 import { act } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { SaveStatusProvider } from '../providers/save-status-context'
+import { SaveStatusProvider } from '../providers/status-provider'
 
 // Helper function to wait for all pending state updates
 export const waitForStateUpdates = async () => {

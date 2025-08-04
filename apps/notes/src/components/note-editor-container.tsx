@@ -6,7 +6,7 @@ import { Editor } from './editor'
 import { downloadNote, uploadNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/contexts'
 import { base64urlDecode } from '@repo/utils'
-import { useSaveStatus } from '@/providers/save-status-context'
+import { useSaveStatus } from '@/providers/status-provider'
 import { useSidebar } from '@repo/ui/components/base/sidebar'
 
 interface NoteEditorContainerProps {

@@ -1,7 +1,5 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -12,42 +10,11 @@ import {
 import { Skeleton } from '@repo/ui/components/base/skeleton'
 import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
-import { useWorkspace } from '@repo/contexts'
-import { listNotes } from '@repo/api'
+import { useNotes } from '@/providers/notes-provider'
 
 export function PageSidebarNotes() {
-  const { currentWorkspace } = useWorkspace()
   const { selectedNote } = useSidebar()
-  const [notes, setNotes] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const router = useRouter()
-
-  const fetchNotes = useCallback(async () => {
-    if (!currentWorkspace) return
-    setLoading(true)
-
-    try {
-      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-      const fetchedNotes = await listNotes(workspaceId)
-      setNotes(fetchedNotes)
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch notes')
-      setNotes([])
-    } finally {
-      setLoading(false)
-    }
-  }, [currentWorkspace])
-
-  useEffect(() => {
-    fetchNotes()
-  }, [fetchNotes, refreshKey])
-
-  const refreshNotes = useCallback(() => {
-    setRefreshKey((prev) => prev + 1)
-  }, [])
+  const { notes, loading, error } = useNotes()
 
   return (
     <SidebarGroup>
