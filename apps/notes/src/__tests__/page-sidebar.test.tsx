@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { AppSidebar } from '../components/app-sidebar'
+import { PageSidebar } from '../components/layout/page-sidebar'
 import { UserProvider, WorkspaceProvider } from '@repo/contexts'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
@@ -41,7 +41,7 @@ jest.mock('@repo/api', () => ({
 
 import { listNotes } from '@repo/api'
 
-describe('AppSidebar', () => {
+describe('PageSidebar', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Set default mocks
@@ -64,7 +64,7 @@ describe('AppSidebar', () => {
       <UserProvider>
         <WorkspaceProvider>
           <SidebarProvider>
-            <AppSidebar />
+            <PageSidebar />
           </SidebarProvider>
         </WorkspaceProvider>
       </UserProvider>

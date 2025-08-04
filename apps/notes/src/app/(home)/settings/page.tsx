@@ -1,4 +1,4 @@
-import { FileUpload } from '@/components/file-upload'
+import { FileUpload } from '@/components/forms/file-upload-form'
 
 export default function SettingsPage() {
   return (

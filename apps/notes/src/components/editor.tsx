@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SidebarClose, SidebarOpenIcon } from 'lucide-react'
 import { Toggle } from '@repo/ui/components/base/toggle'
 import { parseMarkdown } from '../utils/markdown'
@@ -12,7 +12,7 @@ export function Editor({
   const [value, setValue] = useState<string>(controlledValue ?? '')
   const [open, setOpen] = useState(true)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (controlledValue !== undefined) setValue(controlledValue)
   }, [controlledValue])
 

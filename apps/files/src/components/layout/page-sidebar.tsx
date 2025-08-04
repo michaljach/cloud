@@ -25,7 +25,7 @@ import {
 import { Button } from '@repo/ui/components/base/button'
 import { useWorkspace } from '@repo/contexts'
 import { FileUpload } from '@/components/forms/file-upload-form'
-import { StorageQuota } from '@/components/layout/storage-quota'
+import { StorageQuota } from '@repo/ui/components/storage-quota'
 import Link from 'next/link'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

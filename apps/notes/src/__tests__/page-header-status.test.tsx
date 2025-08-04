@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
-import React from 'react'
+import { useEffect } from 'react'
 import { render, screen } from '@testing-library/react'
-import { SaveStatusIndicator } from '../components/save-status-indicator'
-import { SaveStatusProvider, useSaveStatus } from '../components/save-status-context'
+import { PageHeaderStatus } from '../components/layout/page-header-status'
+import { SaveStatusProvider, useSaveStatus } from '../providers/save-status-context'
 
 // Test component to control the save status
 function TestWrapper({
@@ -14,15 +14,15 @@ function TestWrapper({
 }) {
   const { setSaveStatus, setSaveStatusText } = useSaveStatus()
 
-  React.useEffect(() => {
+  useEffect(() => {
     setSaveStatus(initialStatus)
     setSaveStatusText(initialText)
   }, [initialStatus, initialText, setSaveStatus, setSaveStatusText])
 
-  return <SaveStatusIndicator />
+  return <PageHeaderStatus />
 }
 
-describe('SaveStatusIndicator', () => {
+describe('PageHeaderStatus', () => {
   it('renders idle state without icon', () => {
     render(
       <SaveStatusProvider>

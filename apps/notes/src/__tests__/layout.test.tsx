@@ -4,20 +4,20 @@ import { render, screen } from '@testing-library/react'
 import RootLayout from '../app/(home)/layout'
 
 // Mock the components used in the layout
-jest.mock('@/components/app-sidebar', () => ({
-  AppSidebar: () => <div data-testid="app-sidebar">App Sidebar</div>
+jest.mock('@/components/layout/page-sidebar', () => ({
+  PageSidebar: () => <div data-testid="page-sidebar">Page Sidebar</div>
 }))
 
-jest.mock('@/components/header-user-provider', () => ({
-  HeaderUserProvider: ({ title, children }: { title: string; children?: React.ReactNode }) => (
-    <div data-testid="header-user-provider">
+jest.mock('@/components/layout/page-header', () => ({
+  PageHeader: ({ title, children }: { title: string; children?: React.ReactNode }) => (
+    <div data-testid="page-header">
       <span>Header: {title}</span>
       {children}
     </div>
   )
 }))
 
-jest.mock('@/components/save-status-context', () => ({
+jest.mock('@/providers/save-status-context', () => ({
   SaveStatusProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
@@ -29,8 +29,8 @@ describe('RootLayout', () => {
       </RootLayout>
     )
 
-    expect(screen.getByTestId('app-sidebar')).toBeInTheDocument()
-    expect(screen.getByTestId('header-user-provider')).toBeInTheDocument()
+    expect(screen.getByTestId('page-sidebar')).toBeInTheDocument()
+    expect(screen.getByTestId('page-header')).toBeInTheDocument()
     expect(screen.getByText('Header: Notes')).toBeInTheDocument()
     expect(screen.getByText('Test Content')).toBeInTheDocument()
   })

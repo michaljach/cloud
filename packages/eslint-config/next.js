@@ -5,6 +5,7 @@ import pluginReactHooks from 'eslint-plugin-react-hooks'
 import pluginReact from 'eslint-plugin-react'
 import globals from 'globals'
 import pluginNext from '@next/eslint-plugin-next'
+import pluginImport from 'eslint-plugin-import'
 import { config as baseConfig } from './base.js'
 
 /**
@@ -44,6 +45,40 @@ export const nextJsConfig = [
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       'react/react-in-jsx-scope': 'off'
+    }
+  },
+  {
+    plugins: {
+      import: pluginImport
+    },
+    rules: {
+      // Force import/order to error out by overriding only-warn
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+            'object',
+            'type'
+          ],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true
+          }
+        }
+      ]
+    }
+  },
+  // Override only-warn for import/order to make it error out
+  {
+    rules: {
+      'import/order': 'error'
     }
   }
 ]

@@ -1,9 +1,8 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { PlusCircle } from 'lucide-react'
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,29 +10,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
-import Link from 'next/link'
-import { createEmptyNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/contexts'
+import { createEmptyNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
 import { toast } from 'sonner'
 
-export function NavMain({
-  items,
-  onNoteCreated
-}: {
-  items: {
-    title: string
-    url: string
-    icon?: any
-  }[]
+interface PageSidebarHeaderProps {
   onNoteCreated?: () => void
-}) {
+}
+
+export function PageSidebarHeader({ onNoteCreated }: PageSidebarHeaderProps) {
   const { accessToken } = useUser()
   const { currentWorkspace } = useWorkspace()
-  const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
+  const router = useRouter()
 
-  const handleCreateNote = async () => {
+  const handleCreateNote = useCallback(async () => {
     if (!accessToken || !currentWorkspace || isCreating) return
 
     try {
@@ -51,7 +43,7 @@ export function NavMain({
     } finally {
       setIsCreating(false)
     }
-  }
+  }, [accessToken, currentWorkspace, isCreating, onNoteCreated, router])
 
   return (
     <SidebarGroup>
@@ -68,18 +60,6 @@ export function NavMain({
               <span>{isCreating ? 'Creating...' : 'Create new note'}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link href={item.url}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -4,16 +4,16 @@ import { Header } from '@repo/ui/components/header'
 import { useUser } from '@repo/contexts'
 import { useRouter } from 'next/navigation'
 import React from 'react'
-import { SaveStatusIndicator } from './save-status-indicator'
+import { PageHeaderStatus } from '@/components/layout/page-header-status'
 
 const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
 
-interface HeaderUserProviderProps {
+interface PageHeaderProps {
   title: React.ReactNode
   children?: React.ReactNode
 }
 
-export function HeaderUserProvider({ title, children }: HeaderUserProviderProps) {
+export function PageHeader({ title, children }: PageHeaderProps) {
   const { user, loading, logout } = useUser()
   const router = useRouter()
 
@@ -43,7 +43,7 @@ export function HeaderUserProvider({ title, children }: HeaderUserProviderProps)
         { label: 'Account', href: accountUrl || '/account' }
       ]}
     >
-      <SaveStatusIndicator />
+      <PageHeaderStatus />
       {children}
     </Header>
   )

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { HeaderUserProvider } from '@/components/header-user-provider'
-import { SaveStatusProvider } from '@/components/save-status-context'
+import { PageSidebar } from '@/components/layout/page-sidebar'
+import { PageHeader } from '@/components/layout/page-header'
+import { SaveStatusProvider } from '@/providers/save-status-context'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -13,9 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <SaveStatusProvider>
       <SidebarProvider>
-        <AppSidebar />
+        <PageSidebar />
         <SidebarInset>
-          <HeaderUserProvider title="Notes" />
+          <PageHeader title="Notes" />
           <main className="h-[calc(100vh-4rem)] overflow-x-auto max-w-full break-all">
             {children}
           </main>
