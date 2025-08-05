@@ -15,9 +15,9 @@ import { WorkspaceInviteDialog } from '@/components/dialogs/workspace-invite-dia
 import { LeaveWorkspaceDialog } from '@/components/dialogs/leave-workspace-dialog'
 import { RemoveMemberDialog } from '@/components/dialogs/remove-member-dialog'
 import { WorkspaceHeader } from './workspace-header'
-import { WorkspaceInfoCard } from './workspace-info-card'
-import { WorkspaceStatsCard } from './workspace-stats-card'
-import { WorkspaceMembersTable } from './workspace-members-table'
+import { WorkspaceInfoCard } from '@/components/cards/workspace-info-card'
+import { WorkspaceStatsCard } from '@/components/cards/workspace-stats-card'
+import { WorkspaceMembersTable } from '@/components/tables/workspace-members-table'
 import type { WorkspaceMembership, WorkspaceMember } from '@repo/types'
 
 export function WorkspaceDetailsClient() {

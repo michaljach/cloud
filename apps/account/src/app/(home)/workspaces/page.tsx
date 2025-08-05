@@ -1,4 +1,4 @@
-import { WorkspacesClient } from '@/components/workspaces/workspaces-client'
+import { WorkspacesClient } from '@/components/cards/workspaces-client'
 
 export default function WorkspacesPage() {
   return (
