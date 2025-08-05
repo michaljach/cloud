@@ -22,8 +22,8 @@ import {
   removeUserFromWorkspace,
   updateUserWorkspaceRole,
   updateWorkspace
-} from '@services/workspace.service'
-import { getUserById } from '@services/users.service'
+} from '../services/workspace.service'
+import { getUserById } from '../services/users.service'
 import { isRootAdmin } from '../utils'
 import { z } from 'zod'
 import { validate } from '@middleware/validate'

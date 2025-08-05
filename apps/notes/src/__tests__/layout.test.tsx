@@ -4,11 +4,11 @@ import { render, screen } from '@testing-library/react'
 import RootLayout from '../app/(home)/layout'
 
 // Mock the components used in the layout
-jest.mock('@/components/layout/page-sidebar', () => ({
+jest.mock('@/features/layout/page-sidebar', () => ({
   PageSidebar: () => <div data-testid="page-sidebar">Page Sidebar</div>
 }))
 
-jest.mock('@/components/layout/page-header', () => ({
+jest.mock('@/features/layout/page-header', () => ({
   PageHeader: ({ title, children }: { title: string; children?: React.ReactNode }) => (
     <div data-testid="page-header">
       <span>Header: {title}</span>
@@ -17,11 +17,11 @@ jest.mock('@/components/layout/page-header', () => ({
   )
 }))
 
-jest.mock('@/providers/status-provider', () => ({
+jest.mock('@/features/notes/providers/status-provider', () => ({
   SaveStatusProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
-jest.mock('@/providers/notes-provider', () => ({
+jest.mock('@/features/notes/providers/notes-provider', () => ({
   NotesProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 

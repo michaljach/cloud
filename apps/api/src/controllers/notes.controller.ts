@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
-import { saveNote, readNote } from '@services/notes.service'
+import { saveNote, readNote } from '../services/notes.service'
 import {
   listFilesForContext,
   getFilePathForContext,

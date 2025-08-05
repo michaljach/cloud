@@ -1,14 +1,14 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/contexts'
-import { useInvites } from '@repo/contexts'
+import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/providers'
+import { useInvites } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { PageSidebarInvitations } from '@/components/layout/page-sidebar-invitations'
+import { PageSidebarInvitations } from '@/features/layout/page-sidebar-invitations'
 
 // Mock the auth hooks
-jest.mock('@repo/contexts', () => ({
-  ...jest.requireActual('@repo/contexts'),
+jest.mock('@repo/providers', () => ({
+  ...jest.requireActual('@repo/providers'),
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   useInvites: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock('@repo/contexts', () => ({
   InviteProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
 
-import { useUser, useWorkspace, useInvites } from '@repo/contexts'
+import { useUser, useWorkspace, useInvites } from '@repo/providers'
 
 describe('PageSidebarInvitations', () => {
   beforeEach(() => {

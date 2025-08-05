@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { PageHeader } from '@/components/layout/page-header'
-import { SaveStatusProvider } from '@/providers/status-provider'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { PageHeader } from '@/features/layout/page-header'
+import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock Next.js router
@@ -20,7 +20,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -39,7 +39,7 @@ describe('PageHeader', () => {
     jest.clearAllMocks()
 
     // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    const { useUser, useWorkspace } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -92,7 +92,7 @@ describe('PageHeader', () => {
   })
 
   it('does not render when user is not available and not loading', () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: null,
       accessToken: null,
@@ -109,7 +109,7 @@ describe('PageHeader', () => {
   })
 
   it('renders when user is loading', () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: null,
       accessToken: null,

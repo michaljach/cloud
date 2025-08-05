@@ -1,10 +1,10 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import PasswordChangePage from '../app/(home)/account/password/page'
-import { UserProvider } from '@repo/contexts'
+import { UserProvider } from '@repo/providers'
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   getServerUser: jest.fn(() => ({
     id: 'user-id',
     username: 'testuser',
@@ -57,7 +57,7 @@ describe('PasswordChangePage', () => {
 
   it('shows not authenticated message when user is not found', async () => {
     // Mock getServerUser to return null
-    const { getServerUser } = require('@repo/contexts')
+    const { getServerUser } = require('@repo/providers')
     getServerUser.mockReturnValueOnce(null)
 
     const page = await PasswordChangePage()

@@ -1,4 +1,4 @@
-import { NoteEditorContainer } from '@/components/note-editor-container'
+import { NoteEditorContainer } from '@/features/notes/components/note-editor-container'
 
 interface NotePageProps {
   params: Promise<{

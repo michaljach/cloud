@@ -1,9 +1,9 @@
 import {
   ensureStorageDirForContext,
   getStorageDirForContext,
-  calculateStorageUsageByTypeForContext,
   saveFile,
-  readFile
+  readFile,
+  calculateStorageUsageByTypeForContext
 } from '../utils'
 
 const STORAGE_TYPE = 'notes'

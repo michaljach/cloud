@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act } from '@testing-library/react'
-import { PageSidebar } from '../components/layout/page-sidebar'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { PageSidebar } from '../features/layout/page-sidebar'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock Next.js router
@@ -18,12 +18,12 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock useUser and useWorkspace to provide fake data
-jest.mock('@repo/contexts', () => {
+jest.mock('@repo/providers', () => {
   const mockUseUser = jest.fn()
   const mockUseWorkspace = jest.fn()
 
   return {
-    ...jest.requireActual('@repo/contexts'),
+    ...jest.requireActual('@repo/providers'),
     useUser: mockUseUser,
     useWorkspace: mockUseWorkspace,
     UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -34,7 +34,7 @@ jest.mock('@repo/contexts', () => {
 })
 
 // Mock useNotes context
-jest.mock('@/providers/notes-provider', () => ({
+jest.mock('@/features/notes/providers/notes-provider', () => ({
   useNotes: jest.fn(),
   NotesProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
@@ -45,13 +45,13 @@ jest.mock('@repo/api', () => ({
   listNotes: jest.fn().mockResolvedValue([])
 }))
 
-import { useNotes } from '@/providers/notes-provider'
+import { useNotes } from '@/features/notes/providers/notes-provider'
 
 describe('PageSidebar', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Set default mocks
-    const authModule = require('@repo/contexts')
+    const authModule = require('@repo/providers')
     authModule.__mockUseUser.mockReturnValue({ accessToken: null })
     authModule.__mockUseWorkspace.mockReturnValue({
       currentWorkspace: null,
@@ -87,7 +87,7 @@ describe('PageSidebar', () => {
 
   // Helper to update mocks for different scenarios
   function setupMocks(accessToken: string | null, currentWorkspace: any) {
-    const authModule = require('@repo/contexts')
+    const authModule = require('@repo/providers')
     authModule.__mockUseUser.mockReturnValue({ accessToken })
     authModule.__mockUseWorkspace.mockReturnValue({
       currentWorkspace,

@@ -11,7 +11,7 @@ import {
 } from './base/dropdown-menu'
 import { Button } from './base/button'
 import { Badge } from './base/badge'
-import { useWorkspace } from '@repo/contexts'
+import { useWorkspace } from '@repo/providers'
 import type { WorkspaceMembership } from '@repo/types'
 
 interface WorkspaceSwitcherProps {

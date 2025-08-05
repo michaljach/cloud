@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react'
 import NotePage from '../app/(home)/note/[filename]/page'
 
 // Mock the NoteEditorContainer component
-jest.mock('@/components/note-editor-container', () => ({
+jest.mock('@/features/notes/components/note-editor-container', () => ({
   NoteEditorContainer: ({ filename }: { filename: string }) => (
     <div data-testid="note-editor-container">
       <span>Note Editor for: {filename}</span>

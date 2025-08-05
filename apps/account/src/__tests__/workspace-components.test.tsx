@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
-import { UserProvider } from '@repo/contexts'
+import { UserProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock workspace-related API functions
@@ -23,8 +23,8 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock useUser to provide workspace data
-jest.mock('@repo/contexts', () => ({
-  ...jest.requireActual('@repo/contexts'),
+jest.mock('@repo/providers', () => ({
+  ...jest.requireActual('@repo/providers'),
   useUser: () => ({
     accessToken: 'test-token',
     user: {

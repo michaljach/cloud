@@ -12,7 +12,7 @@ import {
   getUserById,
   createUser,
   getUserByUsername
-} from '@services/users.service'
+} from '../services/users.service'
 import { isRootAdmin, isAdmin, getAdminWorkspaces } from '../utils'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'

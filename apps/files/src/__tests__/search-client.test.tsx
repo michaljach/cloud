@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SearchClient } from '@/components/layout/page-search'
+import { SearchClient } from '@/features/layout/page-search'
 
 describe('SearchClient', () => {
   const mockOnChange = jest.fn()

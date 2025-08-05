@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getServerUser } from '@repo/contexts'
+import { getServerUser } from '@repo/providers'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -15,8 +15,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Allow login and signup pages
-  if (pathname === '/login' || pathname === '/signup') {
+  // Allow auth pages
+  if (pathname.startsWith('/auth/')) {
     return NextResponse.next()
   }
 
@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   const user = await getServerUser({ cookies: () => request.cookies })
   if (!user) {
     const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
+    loginUrl.pathname = '/auth/signin'
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }

@@ -1,6 +1,7 @@
-import 'reflect-metadata'
 import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'routing-controllers'
 import type { Request, Response } from 'express'
+import { authenticate } from '../middleware/authenticate'
+import { CurrentUser } from '../decorators/currentUser'
 import type { User } from '@repo/types'
 import {
   saveUserFile,
@@ -9,12 +10,11 @@ import {
   restoreUserFileFromTrash,
   deleteUserFileFromTrash,
   batchMoveUserFilesToTrash
-} from '@services/files.service'
+} from '../services/files.service'
+import { getUserFilesStorageUsage } from '../services/files.service'
 
 import { z } from 'zod'
-import { CurrentUser } from '../decorators/currentUser'
 import multer from 'multer'
-import { authenticate } from '@middleware/authenticate'
 import fs from 'fs'
 import path from 'path'
 import { getStorageDir, listFolderContentsWithMetadataForContext } from '@utils/storageUtils'

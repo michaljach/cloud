@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { UserResetPasswordDialog } from '../components/dialogs/user-reset-password-dialog'
-import { UserProvider } from '@repo/contexts'
+import { UserResetPasswordDialog } from '../features/admin/dialogs/user-reset-password-dialog'
+import { UserProvider } from '@repo/providers'
 import { resetUserPassword } from '@repo/api'
 
 // Mock the API
@@ -11,7 +11,7 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   UserProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useUser: () => ({
     accessToken: 'test-token',

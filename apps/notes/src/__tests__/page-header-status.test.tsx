@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import { useEffect } from 'react'
 import { render, screen } from '@testing-library/react'
-import { PageHeaderStatus } from '../components/layout/page-header-status'
-import { SaveStatusProvider, useSaveStatus } from '../providers/status-provider'
+import { PageHeaderStatus } from '../features/layout/page-header-status'
+import { SaveStatusProvider, useSaveStatus } from '@/features/notes/providers/status-provider'
 
 // Test component to control the save status
 function TestWrapper({

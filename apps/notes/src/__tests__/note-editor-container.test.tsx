@@ -2,9 +2,9 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { NoteEditorContainer } from '../components/note-editor-container'
-import { SaveStatusProvider } from '../providers/status-provider'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { NoteEditorContainer } from '../features/notes/components/note-editor-container'
+import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { downloadNote, uploadNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
@@ -21,7 +21,7 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -70,7 +70,7 @@ describe('NoteEditorContainer', () => {
     jest.clearAllMocks()
 
     // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    const { useUser, useWorkspace } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: mockAccessToken,

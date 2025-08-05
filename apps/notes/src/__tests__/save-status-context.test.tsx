@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, act } from '@testing-library/react'
-import { SaveStatusProvider, useSaveStatus } from '../providers/status-provider'
+import { SaveStatusProvider, useSaveStatus } from '@/features/notes/providers/status-provider'
 
 // Test component to access the context
 function TestComponent() {

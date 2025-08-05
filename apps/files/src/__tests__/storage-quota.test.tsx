@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import { StorageQuota } from '@repo/ui/components/storage-quota'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -17,7 +17,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -53,7 +53,7 @@ describe('StorageQuota', () => {
     jest.clearAllMocks()
 
     // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    const { useUser, useWorkspace } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -86,7 +86,7 @@ describe('StorageQuota', () => {
   }
 
   it('renders loading state initially', () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -103,7 +103,7 @@ describe('StorageQuota', () => {
   })
 
   it('renders storage quota when data is available', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -131,7 +131,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles storage quota error', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -150,7 +150,7 @@ describe('StorageQuota', () => {
   })
 
   it('shows warning when storage usage is high', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -176,7 +176,7 @@ describe('StorageQuota', () => {
   })
 
   it('shows critical warning when storage limit is exceeded', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -202,7 +202,7 @@ describe('StorageQuota', () => {
   })
 
   it('shows normal status when storage usage is low', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -234,7 +234,7 @@ describe('StorageQuota', () => {
   })
 
   it('formats storage values correctly', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -264,7 +264,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles missing storage quota data', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -281,7 +281,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles missing user storage limit', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: { ...mockUser, storageLimit: null },
       accessToken: 'test-token',
@@ -305,7 +305,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles zero storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -333,7 +333,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles very small storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: 'test-token',
@@ -358,7 +358,7 @@ describe('StorageQuota', () => {
   })
 
   it('handles large storage usage', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: { ...mockUser, storageLimit: 10000 }, // 10GB
       accessToken: 'test-token',

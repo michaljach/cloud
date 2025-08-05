@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getServerUser } from '@repo/contexts'
+import { getServerUser } from '@repo/providers'
 
 const ACCOUNT_APP_URL = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL!
 

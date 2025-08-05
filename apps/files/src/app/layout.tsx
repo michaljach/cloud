@@ -1,12 +1,12 @@
 import './globals.css'
 import '@repo/ui/styles.css'
 import type { Metadata } from 'next'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { AppSidebar } from '@/components/layout/page-sidebar'
-import { SearchClient } from '@/components/layout/page-search'
-import { FilesProvider } from '@/providers/files-context-provider'
-import { HeaderUserProvider } from '@/components/layout/page-header'
+import { AppSidebar } from '@/features/layout/page-sidebar'
+import { SearchClient } from '@/features/layout/page-search'
+import { FilesProvider } from '@/features/files/providers/files-context-provider'
+import { HeaderUserProvider } from '@/features/layout/page-header'
 import { Toaster } from '@repo/ui/components/base/sonner'
 
 export const metadata: Metadata = {

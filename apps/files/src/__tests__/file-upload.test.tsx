@@ -2,8 +2,8 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { FileUpload } from '@/components/forms/file-upload-form'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { FileUpload } from '@/features/files/forms/file-upload-form'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -18,7 +18,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -37,7 +37,7 @@ jest.mock('@repo/utils', () => ({
 }))
 
 // Mock the files context
-jest.mock('@/providers/files-context-provider', () => ({
+jest.mock('@/features/files/providers/files-context-provider', () => ({
   FilesContext: React.createContext({
     refreshFiles: jest.fn()
   })
@@ -83,7 +83,7 @@ describe('FileUpload', () => {
     jest.clearAllMocks()
 
     // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    const { useUser, useWorkspace } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: mockAccessToken,
@@ -250,7 +250,7 @@ describe('FileUpload', () => {
   })
 
   it('requires authentication before upload', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: null, // No access token
@@ -339,7 +339,7 @@ describe('FileUpload', () => {
   })
 
   it('handles storage limit exceeded', async () => {
-    const { useUser } = require('@repo/contexts')
+    const { useUser } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: mockAccessToken,
@@ -377,7 +377,7 @@ describe('FileUpload', () => {
       workspace: { id: 'workspace-1', name: 'Test Workspace' }
     }
 
-    const { useWorkspace } = require('@repo/contexts')
+    const { useWorkspace } = require('@repo/providers')
     useWorkspace.mockReturnValue({
       currentWorkspace: workspaceWorkspace,
       availableWorkspaces: [workspaceWorkspace],
@@ -430,7 +430,7 @@ describe('FileUpload', () => {
       workspace: { id: 'workspace-1', name: 'Test Workspace' }
     }
 
-    const { useWorkspace } = require('@repo/contexts')
+    const { useWorkspace } = require('@repo/providers')
     useWorkspace.mockReturnValue({
       currentWorkspace: workspaceWorkspace,
       availableWorkspaces: [workspaceWorkspace],

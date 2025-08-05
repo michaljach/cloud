@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
-import { UserProvider } from '@repo/contexts'
+import { UserProvider } from '@repo/providers'
 import WorkspaceDetailsPage from '../../app/(home)/workspaces/[id]/page'
 
 // Mock the API functions
@@ -14,8 +14,8 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock useUser hook
-jest.mock('@repo/contexts', () => ({
-  ...jest.requireActual('@repo/contexts'),
+jest.mock('@repo/providers', () => ({
+  ...jest.requireActual('@repo/providers'),
   useUser: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }))
@@ -33,22 +33,22 @@ jest.mock('next/link', () => {
 })
 
 // Mock the dialog components
-jest.mock('@/components/dialogs/workspace-edit-dialog', () => ({
+jest.mock('@/features/workspaces/dialogs/workspace-edit-dialog', () => ({
   WorkspaceEditDialog: ({ open, onOpenChange }: any) =>
     open ? <div data-testid="workspace-edit-dialog">Workspace Edit Dialog</div> : null
 }))
 
-jest.mock('@/components/dialogs/workspace-invite-dialog', () => ({
+jest.mock('@/features/workspaces/dialogs/workspace-invite-dialog', () => ({
   WorkspaceInviteDialog: ({ open, onOpenChange }: any) =>
     open ? <div data-testid="workspace-invite-dialog">Workspace Invite Dialog</div> : null
 }))
 
-jest.mock('@/components/dialogs/leave-workspace-dialog', () => ({
+jest.mock('@/features/workspaces/dialogs/leave-workspace-dialog', () => ({
   LeaveWorkspaceDialog: ({ open, onOpenChange, onConfirm }: any) =>
     open ? <div data-testid="leave-workspace-dialog">Leave Dialog</div> : null
 }))
 
-jest.mock('@/components/dialogs/remove-member-dialog', () => ({
+jest.mock('@/features/workspaces/dialogs/remove-member-dialog', () => ({
   RemoveMemberDialog: ({ open, onOpenChange, onConfirm }: any) =>
     open ? <div data-testid="remove-member-dialog">Remove Dialog</div> : null
 }))
@@ -59,7 +59,7 @@ import {
   removeUserFromWorkspace,
   leaveWorkspace
 } from '@repo/api'
-import { useUser } from '@repo/contexts'
+import { useUser } from '@repo/providers'
 
 describe('Workspace Details Page', () => {
   const mockUser = {

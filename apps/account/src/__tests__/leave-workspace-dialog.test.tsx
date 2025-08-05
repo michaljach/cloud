@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { LeaveWorkspaceDialog } from '../components/dialogs/leave-workspace-dialog'
+import { LeaveWorkspaceDialog } from '../features/workspaces/dialogs/leave-workspace-dialog'
 
 describe('LeaveWorkspaceDialog', () => {
   const mockProps = {

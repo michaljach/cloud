@@ -2,10 +2,10 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { DataTable } from '@/components/tables/files-table/files-table'
-import { columns } from '@/components/tables/files-table/files-columns-config'
-import { FilesProvider } from '@/providers/files-context-provider'
-import { UserProvider, WorkspaceProvider } from '@repo/contexts'
+import { DataTable } from '@/features/files/tables/files-table/files-table'
+import { columns } from '@/features/files/tables/files-table/files-columns-config'
+import { FilesProvider } from '@/features/files/providers/files-context-provider'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -21,7 +21,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   useUser: jest.fn(),
   useWorkspace: jest.fn(),
   UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -48,7 +48,7 @@ jest.mock('@repo/utils', () => ({
 }))
 
 // Mock the file preview component
-jest.mock('@/components/dialogs/file-preview-dialog', () => ({
+jest.mock('@/features/files/dialogs/file-preview-dialog', () => ({
   FilePreview: ({ isOpen, onClose, filename, filePath }: any) =>
     isOpen ? (
       <div data-testid="file-preview">
@@ -119,7 +119,7 @@ describe('DataTable', () => {
     jest.clearAllMocks()
 
     // Setup default mocks
-    const { useUser, useWorkspace } = require('@repo/contexts')
+    const { useUser, useWorkspace } = require('@repo/providers')
     useUser.mockReturnValue({
       user: mockUser,
       accessToken: mockAccessToken,

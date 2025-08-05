@@ -30,7 +30,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@repo/contexts": "*",
+    "@repo/providers": "*",
     "@hookform/resolvers": "^5.1.1",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.2",

@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import UsersPage from '../app/(home)/admin-console/users/page'
-import { UserProvider } from '@repo/contexts'
+import UsersPage from '../app/(home)/admin/users/page'
+import { UserProvider } from '@repo/providers'
 import { getUsers } from '@repo/api'
 
 // Mock the API
@@ -11,7 +11,7 @@ jest.mock('@repo/api', () => ({
 }))
 
 // Mock the contexts
-jest.mock('@repo/contexts', () => ({
+jest.mock('@repo/providers', () => ({
   UserProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useUser: () => ({
     accessToken: 'test-token',
