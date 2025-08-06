@@ -12,6 +12,7 @@ import {
   batchMoveUserFilesToTrash
 } from '../services/files.service'
 import { getUserFilesStorageUsage } from '../services/files.service'
+import { searchFilesForContext } from '../utils/storageUtils'
 
 import { z } from 'zod'
 import multer from 'multer'
@@ -157,6 +158,28 @@ export default class UnifiedFilesController {
       return res
         .status(500)
         .json({ success: false, data: null, error: 'Failed to list files/folders' })
+    }
+  }
+
+  /**
+   * GET /api/files/search
+   * Search for files by name across the user's storage
+   */
+  @Get('/search')
+  @UseBefore(authenticate)
+  async searchFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
+    try {
+      const query = typeof req.query.q === 'string' ? req.query.q : ''
+      const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
+      if (!query.trim()) {
+        return res.json({ success: true, data: [], error: null })
+      }
+
+      const results = searchFilesForContext(user.id, workspaceId, 'files', query)
+      return res.json({ success: true, data: results, error: null })
+    } catch (e) {
+      return res.status(500).json({ success: false, data: null, error: 'Failed to search files' })
     }
   }
 

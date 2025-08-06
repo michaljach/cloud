@@ -406,6 +406,80 @@ export function cleanupEmptyDirectories(dirPath: string): void {
 }
 
 /**
+ * Search for files by name across the user's storage directory
+ * Returns array of search results with full paths
+ */
+export function searchFilesForContext(
+  userId: string,
+  workspaceId: string,
+  type: string,
+  query: string
+): Array<{ name: string; path: string; size?: number; modified: Date; type: 'file' | 'folder' }> {
+  const storageDir = getStorageDirForContext(userId, workspaceId, type)
+  if (!fs.existsSync(storageDir)) {
+    return []
+  }
+
+  const results: Array<{
+    name: string
+    path: string
+    size?: number
+    modified: Date
+    type: 'file' | 'folder'
+  }> = []
+  const searchQuery = query.toLowerCase().trim()
+
+  if (!searchQuery) {
+    return []
+  }
+
+  function searchDirectory(dirPath: string, relativePath: string = '') {
+    if (!fs.existsSync(dirPath)) {
+      return
+    }
+
+    const items = fs.readdirSync(dirPath)
+
+    for (const item of items) {
+      // Skip .trash directory
+      if (item === '.trash') {
+        continue
+      }
+
+      const itemPath = path.join(dirPath, item)
+      const stat = fs.statSync(itemPath)
+      const currentRelativePath = relativePath ? `${relativePath}/${item}` : item
+
+      // Check if the item name matches the search query
+      if (item.toLowerCase().includes(searchQuery)) {
+        results.push({
+          name: item,
+          path: currentRelativePath,
+          size: stat.isFile() ? stat.size : undefined,
+          modified: stat.mtime,
+          type: stat.isDirectory() ? 'folder' : 'file'
+        })
+      }
+
+      // If it's a directory, recursively search inside it
+      if (stat.isDirectory()) {
+        searchDirectory(itemPath, currentRelativePath)
+      }
+    }
+  }
+
+  searchDirectory(storageDir)
+
+  // Sort results: folders first, then by name
+  return results.sort((a, b) => {
+    if (a.type !== b.type) {
+      return a.type === 'folder' ? -1 : 1
+    }
+    return a.name.localeCompare(b.name)
+  })
+}
+
+/**
  * Batch move files to trash for a user and workspace context
  */
 export function batchMoveFilesToTrashForContext(

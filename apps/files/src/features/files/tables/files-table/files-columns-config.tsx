@@ -33,6 +33,7 @@ export type FileRow = {
   size?: string | number
   modified: string
   type: 'file' | 'folder'
+  path?: string
 }
 
 export const columns: ColumnDef<FileRow>[] = [
@@ -62,16 +63,25 @@ export const columns: ColumnDef<FileRow>[] = [
   {
     accessorKey: 'filename',
     header: 'Filename',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        {row.original.type === 'folder' ? (
-          <FolderIcon className="w-4 h-4 text-yellow-600" />
-        ) : (
-          <FileIcon className="w-4 h-4 text-blue-600" />
-        )}
-        <span>{row.original.filename}</span>
-      </div>
-    )
+    cell: ({ row }) => {
+      const { searchQuery } = useContext(FilesContext)
+      const showPath =
+        searchQuery.trim() && row.original.path && row.original.path !== row.original.filename
+
+      return (
+        <div className="flex items-center gap-2">
+          {row.original.type === 'folder' ? (
+            <FolderIcon className="w-4 h-4 text-yellow-600" />
+          ) : (
+            <FileIcon className="w-4 h-4 text-blue-600" />
+          )}
+          <div className="flex flex-col">
+            <span>{row.original.filename}</span>
+            {showPath && <span className="text-xs text-muted-foreground">{row.original.path}</span>}
+          </div>
+        </div>
+      )
+    }
   },
   {
     accessorKey: 'size',
@@ -112,9 +122,16 @@ export const columns: ColumnDef<FileRow>[] = [
     cell: ({ row }) => {
       const file = row.original
       const { accessToken, refreshStorageQuota } = useUser()
-      const { currentPath, refreshFiles } = useContext(FilesContext)
+      const { currentPath, refreshFiles, searchQuery } = useContext(FilesContext)
       const [dialogOpen, setDialogOpen] = React.useState(false)
-      const fullPath = currentPath ? `${currentPath}/${file.filename}` : file.filename
+
+      // Use the path from search results if available, otherwise construct from current path
+      const fullPath =
+        searchQuery.trim() && file.path
+          ? file.path
+          : currentPath
+            ? `${currentPath}/${file.filename}`
+            : file.filename
       const handleDownload = async () => {
         if (!accessToken) return
         if (file.type === 'file') {

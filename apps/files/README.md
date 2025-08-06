@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Files App
 
-## Getting Started
+A file management application with search capabilities.
 
-First, run the development server:
+## Features
+
+- **File Management**: Upload, download, delete, and organize files
+- **Folder Navigation**: Navigate through folders with breadcrumb navigation
+- **Search**: Search for files and folders by name across your entire storage
+- **Workspace Support**: Support for both personal and workspace storage
+- **File Preview**: Preview files in a modal dialog
+- **Batch Operations**: Select multiple files for download or deletion
+- **Drag & Drop**: Upload files by dragging them into the interface
+
+## Search Functionality
+
+The search feature allows you to find files and folders by name across your entire storage:
+
+- **Real-time Search**: Search results update as you type (with 300ms debounce)
+- **Recursive Search**: Searches through all subdirectories
+- **Case-insensitive**: Search is not case-sensitive
+- **Path Display**: Search results show the full path to help you locate files
+- **Navigation**: Click on search results to navigate to their location
+- **Clear Search**: Use the clear button or clear the search input to return to normal view
+
+### How to Use Search
+
+1. Type in the search box in the header
+2. Results will appear in the table below
+3. Click on a folder result to navigate to that location
+4. Click on a file result to preview it
+5. Use the "Clear Search" button to return to normal browsing
+
+## Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Run tests
+npm test
+
+# Type check
+npx tsc --noEmit
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

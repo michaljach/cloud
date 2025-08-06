@@ -527,6 +527,22 @@ export async function listFiles(
   return apiClient.get(endpoint)
 }
 
+export async function searchFiles(
+  accessToken: string,
+  query: string,
+  workspaceId?: string
+): Promise<
+  { name: string; path: string; size?: number; modified: string; type: 'file' | 'folder' }[]
+> {
+  const params = new URLSearchParams()
+  params.set('q', query)
+  if (workspaceId) {
+    params.set('workspaceId', workspaceId)
+  }
+  const endpoint = `/api/files/search?${params.toString()}`
+  return apiClient.get(endpoint)
+}
+
 export async function downloadFile(
   filename: string,
   accessToken: string,

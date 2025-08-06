@@ -23,7 +23,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
 
   function handleLogoutClick() {
     logout()
-    router.push(`${accountUrl}/login`)
+    router.push(`${accountUrl}/auth/signin`)
   }
 
   if (!user && !loading) {

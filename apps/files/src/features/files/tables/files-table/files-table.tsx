@@ -44,7 +44,17 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
-  const { files, loading, currentPath, setCurrentPath, refreshFiles } = useContext(FilesContext)
+  const {
+    files,
+    loading,
+    currentPath,
+    setCurrentPath,
+    refreshFiles,
+    searchQuery,
+    searchResults,
+    isSearching,
+    clearSearch
+  } = useContext(FilesContext)
   const { accessToken, refreshStorageQuota } = useUser()
   const { currentWorkspace } = useWorkspace()
   const [dragActive, setDragActive] = React.useState(false)
@@ -55,9 +65,13 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     filePath: string
   } | null>(null)
 
+  // Use search results if there's a search query, otherwise use provided data or files from context
+  const tableData = searchQuery.trim() ? searchResults : (data ?? files)
+  const isLoading = searchQuery.trim() ? isSearching : loading
+
   // Use provided data if available, otherwise use files from context
   const table = useReactTable({
-    data: data ?? files,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel()
   })
@@ -65,13 +79,24 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   // Double-click handler for rows
   function handleRowDoubleClick(row: any) {
     if (row.original.type === 'folder') {
-      setCurrentPath(
-        currentPath ? `${currentPath}/${row.original.filename}` : row.original.filename
-      )
+      if (searchQuery.trim() && row.original.path) {
+        // If in search mode, navigate to the folder path
+        setCurrentPath(row.original.path)
+      } else {
+        // Normal navigation
+        setCurrentPath(
+          currentPath ? `${currentPath}/${row.original.filename}` : row.original.filename
+        )
+      }
     } else if (row.original.type === 'file') {
-      const filePath = currentPath
-        ? `${currentPath}/${row.original.filename}`
-        : row.original.filename
+      let filePath: string
+      if (searchQuery.trim() && row.original.path) {
+        // If in search mode, use the full path from search results
+        filePath = row.original.path
+      } else {
+        // Normal file path construction
+        filePath = currentPath ? `${currentPath}/${row.original.filename}` : row.original.filename
+      }
       setPreviewFile({
         filename: row.original.filename,
         filePath
@@ -286,35 +311,50 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
       )}
       <div className="flex items-center gap-2 justify-between py-2">
         <div className="flex items-center gap-1">
-          <Link
-            className="font-semibold hover:underline"
-            href="/"
-            aria-current={isRoot ? 'page' : undefined}
-          >
-            Root
-          </Link>
-          {currentPath &&
-            currentPath.split('/').map((segment, idx, arr) => {
-              const path = arr.slice(0, idx + 1).join('/')
-              const isLast = idx === arr.length - 1
-              return (
-                <span key={path} className="flex items-center gap-1">
-                  <span className="mx-1 text-muted-foreground">/</span>
-                  {isLast ? (
-                    <span className="font-semibold text-muted-foreground">{segment}</span>
-                  ) : (
-                    <Link
-                      href={`/${path}`}
-                      className="text-blue-600 text-sm px-2 py-1 rounded no-underline hover:bg-accent hover:text-blue-800"
-                    >
-                      {segment}
-                    </Link>
-                  )}
-                </span>
-              )
-            })}
+          {searchQuery.trim() ? (
+            <>
+              <span className="font-semibold text-muted-foreground">Search Results</span>
+              <span className="text-muted-foreground">for "{searchQuery}"</span>
+              <span className="text-muted-foreground">({searchResults.length} results)</span>
+            </>
+          ) : (
+            <>
+              <Link
+                className="font-semibold hover:underline"
+                href="/"
+                aria-current={isRoot ? 'page' : undefined}
+              >
+                Root
+              </Link>
+              {currentPath &&
+                currentPath.split('/').map((segment, idx, arr) => {
+                  const path = arr.slice(0, idx + 1).join('/')
+                  const isLast = idx === arr.length - 1
+                  return (
+                    <span key={path} className="flex items-center gap-1">
+                      <span className="mx-1 text-muted-foreground">/</span>
+                      {isLast ? (
+                        <span className="font-semibold text-muted-foreground">{segment}</span>
+                      ) : (
+                        <Link
+                          href={`/${path}`}
+                          className="text-blue-600 text-sm px-2 py-1 rounded no-underline hover:bg-accent hover:text-blue-800"
+                        >
+                          {segment}
+                        </Link>
+                      )}
+                    </span>
+                  )
+                })}
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {searchQuery.trim() && (
+            <Button variant="outline" size="sm" onClick={clearSearch}>
+              Clear Search
+            </Button>
+          )}
           {selectedFiles.length > 0 && (
             <>
               {selectedFileFiles.length > 0 && (
@@ -400,7 +440,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             ))}
           </TableHeader>
           <TableBody>
-            {files.length === 0 && loading ? (
+            {isLoading ? (
               <TableSkeleton />
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -420,7 +460,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  {searchQuery.trim() ? 'No search results found.' : 'No results.'}
                 </TableCell>
               </TableRow>
             )}

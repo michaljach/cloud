@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { useUser, useWorkspace } from '@repo/providers'
-import { listFiles } from '@repo/api'
+import { listFiles, searchFiles } from '@repo/api'
 import { formatFileSize } from '@repo/utils'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -14,6 +14,12 @@ export type FilesContextType = {
   setCurrentPath: (path: string) => void
   trashedFiles: any[]
   refreshTrash: () => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  searchResults: any[]
+  isSearching: boolean
+  performSearch: (query: string) => void
+  clearSearch: () => void
 }
 
 export const FilesContext = createContext<FilesContextType>({
@@ -23,7 +29,13 @@ export const FilesContext = createContext<FilesContextType>({
   currentPath: '',
   setCurrentPath: () => {},
   trashedFiles: [],
-  refreshTrash: () => {}
+  refreshTrash: () => {},
+  searchQuery: '',
+  setSearchQuery: () => {},
+  searchResults: [],
+  isSearching: false,
+  performSearch: () => {},
+  clearSearch: () => {}
 })
 
 export function FilesProvider({ children }: { children: React.ReactNode }) {
@@ -32,6 +44,9 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
   const [files, setFiles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [trashedFiles, setTrashedFiles] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
@@ -46,6 +61,61 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
     // Push new URL to router
     router.push(path ? `/${path}` : '/')
   }
+
+  const performSearch = useCallback(
+    async (query: string) => {
+      const trimmedQuery = query.trim()
+      if (!accessToken || !currentWorkspace || !trimmedQuery) {
+        setSearchResults([])
+        setIsSearching(false)
+        return
+      }
+
+      setIsSearching(true)
+      try {
+        const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+        const results = await searchFiles(accessToken, trimmedQuery, workspaceId)
+
+        // Transform results to match the expected format
+        const transformedResults = results.map((item: any) => ({
+          id: item.path,
+          filename: item.name,
+          size: item.size,
+          modified: item.modified,
+          type: item.type,
+          path: item.path
+        }))
+
+        setSearchResults(transformedResults)
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    },
+    [accessToken, currentWorkspace]
+  )
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('')
+    setSearchResults([])
+    setIsSearching(false)
+  }, [])
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const timeoutId = setTimeout(() => {
+        performSearch(searchQuery)
+      }, 300) // 300ms debounce
+
+      return () => clearTimeout(timeoutId)
+    } else {
+      setSearchResults([])
+      setIsSearching(false)
+    }
+  }, [searchQuery]) // Remove performSearch from dependencies to avoid infinite loop
 
   const fetchFiles = useCallback(() => {
     if (!accessToken || !currentWorkspace) return
@@ -113,7 +183,13 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
         currentPath,
         setCurrentPath,
         trashedFiles,
-        refreshTrash: fetchTrash
+        refreshTrash: fetchTrash,
+        searchQuery,
+        setSearchQuery,
+        searchResults,
+        isSearching,
+        performSearch,
+        clearSearch
       }}
     >
       {children}

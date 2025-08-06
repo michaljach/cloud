@@ -20,8 +20,8 @@ export async function middleware(request: NextRequest) {
   // Check user
   const user = await getServerUser({ cookies: () => request.cookies })
   if (!user) {
-    // Redirect to account app login if env var is set
-    const redirectUrl = `${ACCOUNT_APP_URL}/login?redirect=${encodeURIComponent(href)}`
+    // Redirect to account app signin if env var is set
+    const redirectUrl = `${ACCOUNT_APP_URL}/auth/signin?redirect=${encodeURIComponent(href)}`
     return NextResponse.redirect(redirectUrl)
   }
 
