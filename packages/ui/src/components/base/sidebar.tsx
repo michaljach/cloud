@@ -87,7 +87,11 @@ function SidebarProvider({
   }, [isMobile, setOpen, setOpenMobile])
 
   // Note selection state
-  const [selectedNote, setSelectedNote] = React.useState<string | null>(null)
+  const [selectedNote, setSelectedNoteState] = React.useState<string | null>(null)
+
+  const setSelectedNote = React.useCallback((note: string | null) => {
+    setSelectedNoteState(note)
+  }, [])
 
   return (
     <SidebarContext.Provider

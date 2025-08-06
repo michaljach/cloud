@@ -137,7 +137,7 @@ describe('NoteEditorContainer', () => {
     renderNoteEditor()
 
     await waitFor(() => {
-      expect(screen.getByText('Error: Failed to load note')).toBeInTheDocument()
+      expect(screen.getByText('Failed to load note')).toBeInTheDocument()
     })
   })
 

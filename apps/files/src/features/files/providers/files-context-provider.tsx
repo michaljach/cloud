@@ -5,6 +5,7 @@ import { useUser, useWorkspace } from '@repo/providers'
 import { listFiles, searchFiles } from '@repo/api'
 import { formatFileSize } from '@repo/utils'
 import { usePathname, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export type FilesContextType = {
   files: any[]
@@ -88,7 +89,7 @@ export function FilesProvider({ children }: { children: React.ReactNode }) {
 
         setSearchResults(transformedResults)
       } catch (error) {
-        console.error('Search error:', error)
+        toast.error('Failed to search files')
         setSearchResults([])
       } finally {
         setIsSearching(false)

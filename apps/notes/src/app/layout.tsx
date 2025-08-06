@@ -2,6 +2,7 @@ import './globals.css'
 import '@repo/ui/styles.css'
 import type { Metadata } from 'next'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
+import { Toaster } from '@repo/ui/components/base/sonner'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <UserProvider>
           <WorkspaceProvider>{children}</WorkspaceProvider>
         </UserProvider>
+        <Toaster />
       </body>
     </html>
   )

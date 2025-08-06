@@ -175,7 +175,7 @@ describe('Saving Integration', () => {
       expect(screen.getByTestId('status-text')).toHaveTextContent('Failed to load note')
     })
 
-    // Should show error message
-    expect(screen.getByText('Error: Failed to load')).toBeInTheDocument()
+    // Should show error message in the main display area
+    expect(screen.getByText('Failed to load note', { selector: 'div' })).toBeInTheDocument()
   })
 })

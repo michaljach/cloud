@@ -8,6 +8,7 @@ import { useUser, useWorkspace } from '@repo/providers'
 import { base64urlDecode } from '@repo/utils'
 import { useSaveStatus } from '@/features/notes/providers/status-provider'
 import { useSidebar } from '@repo/ui/components/base/sidebar'
+import { toast } from 'sonner'
 
 interface NoteEditorContainerProps {
   filename: string
@@ -24,11 +25,48 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
   const [error, setError] = useState<string | null>(null)
   const [lastSavedContent, setLastSavedContent] = useState('')
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isFetchingRef = useRef(false)
 
   const decodedFilename = base64urlDecode(filename)
 
   // Check if we're on the correct note page
   const isOnNotePage = pathname === `/note/${filename}`
+
+  // Memoize the fetchNote function to prevent unnecessary re-renders
+  const fetchNote = useCallback(async () => {
+    if (!accessToken || !currentWorkspace || !isOnNotePage) return
+
+    // Prevent duplicate requests
+    if (isFetchingRef.current) return
+
+    try {
+      isFetchingRef.current = true
+      setLoading(true)
+      setError(null)
+
+      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+      const noteData = await downloadNote(decodedFilename, accessToken, workspaceId)
+
+      const textContent = new TextDecoder().decode(noteData)
+      setContent(textContent)
+      setLastSavedContent(textContent)
+      setSaveStatus('idle')
+      setSaveStatusText('All changes saved')
+      setSelectedNote(decodedFilename)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load note'
+      toast.error(errorMessage)
+      setError(errorMessage)
+      setContent('')
+      setLastSavedContent('')
+      setSaveStatus('error')
+      setSaveStatusText('Failed to load note')
+      setSelectedNote(null)
+    } finally {
+      setLoading(false)
+      isFetchingRef.current = false
+    }
+  }, [accessToken, currentWorkspace, decodedFilename, isOnNotePage])
 
   // Single useEffect to handle note loading and selection
   useEffect(() => {
@@ -40,48 +78,15 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
       setSaveStatus('idle')
       setSaveStatusText('')
       setSelectedNote(null)
+      isFetchingRef.current = false
       return
     }
 
     // Don't load if we don't have the required data
     if (!accessToken || !currentWorkspace) return
 
-    const fetchNote = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-        const noteData = await downloadNote(decodedFilename, accessToken, workspaceId)
-
-        const textContent = new TextDecoder().decode(noteData)
-        setContent(textContent)
-        setLastSavedContent(textContent)
-        setSaveStatus('idle')
-        setSaveStatusText('All changes saved')
-        setSelectedNote(decodedFilename)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load note')
-        setContent('')
-        setLastSavedContent('')
-        setSaveStatus('error')
-        setSaveStatusText('Failed to load note')
-        setSelectedNote(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchNote()
-  }, [
-    isOnNotePage,
-    accessToken,
-    currentWorkspace,
-    decodedFilename,
-    setSaveStatus,
-    setSaveStatusText,
-    setSelectedNote
-  ])
+  }, [isOnNotePage, accessToken, currentWorkspace, decodedFilename, fetchNote])
 
   const saveNote = useCallback(
     async (newContent: string) => {
@@ -105,9 +110,11 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
           setSaveStatusText('All changes saved')
         }, 2000)
       } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to save note'
+        toast.error(errorMessage)
         setSaveStatus('error')
         setSaveStatusText('Save failed')
-        setError(err instanceof Error ? err.message : 'Failed to save note')
+        setError(errorMessage)
 
         // Clear error status after 5 seconds
         setTimeout(() => {
@@ -157,16 +164,11 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
   }
 
   if (error && !content) {
-    return <div className="text-red-500">Error: {error}</div>
+    return <div className="flex items-center justify-center h-64">Failed to load note</div>
   }
 
   return (
     <div className="flex flex-col h-full">
-      {error && (
-        <div className="text-red-500 text-sm bg-red-50 dark:bg-red-950 p-2 rounded mb-4">
-          {error}
-        </div>
-      )}
       <div className="flex-1 min-h-0">
         <Editor value={content} onChange={handleContentChange} />
       </div>

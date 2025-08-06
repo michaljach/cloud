@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -14,8 +14,16 @@ interface SaveStatusContextType {
 const SaveStatusContext = createContext<SaveStatusContextType | undefined>(undefined)
 
 export function SaveStatusProvider({ children }: { children: ReactNode }) {
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
-  const [saveStatusText, setSaveStatusText] = useState<string>('All changes saved')
+  const [saveStatus, setSaveStatusState] = useState<SaveStatus>('idle')
+  const [saveStatusText, setSaveStatusTextState] = useState<string>('All changes saved')
+
+  const setSaveStatus = useCallback((status: SaveStatus) => {
+    setSaveStatusState(status)
+  }, [])
+
+  const setSaveStatusText = useCallback((text: string) => {
+    setSaveStatusTextState(text)
+  }, [])
 
   return (
     <SaveStatusContext.Provider
