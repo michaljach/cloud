@@ -13,25 +13,6 @@ if (!window.matchMedia) {
   }
 }
 
-// Suppress React 18 act() warnings in tests
-// This is a known issue with React 18 and testing libraries
-const originalError = console.error
-beforeAll(() => {
-  console.error = (...args) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('The current testing environment is not configured to support act(...)')
-    ) {
-      return
-    }
-    originalError.call(console, ...args)
-  }
-})
-
-afterAll(() => {
-  console.error = originalError
-})
-
 // Add TextEncoder and TextDecoder to global scope for tests
 const { TextEncoder, TextDecoder } = require('util')
 global.TextEncoder = TextEncoder

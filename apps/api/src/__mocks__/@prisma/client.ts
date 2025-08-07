@@ -6,7 +6,7 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
           id: 1,
           clientId: 'cloud-client',
           clientSecret: 'cloud-secret',
-          grants: 'password,refresh_token',
+          grants: 'password',
           redirectUris: 'http://localhost:3000/callback'
         }
       }
@@ -39,7 +39,7 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
         id: 1,
         clientId: 'cloud-client',
         clientSecret: 'cloud-secret',
-        grants: 'password,refresh_token',
+        grants: 'password',
         redirectUris: 'http://localhost:3000/callback'
       },
       user: {
@@ -52,14 +52,12 @@ export const PrismaClient = jest.fn().mockImplementation(() => ({
         return {
           accessToken: 'validAccessToken',
           accessTokenExpiresAt: new Date(Date.now() + 10000),
-          refreshToken: 'validRefreshToken',
-          refreshTokenExpiresAt: new Date(Date.now() + 20000),
           scope: 'default',
           client: {
             id: 1,
             clientId: 'cloud-client',
             clientSecret: 'cloud-secret',
-            grants: 'password,refresh_token',
+            grants: 'password',
             redirectUris: 'http://localhost:3000/callback'
           },
           user: {

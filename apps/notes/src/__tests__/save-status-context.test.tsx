@@ -84,13 +84,8 @@ describe('SaveStatusContext', () => {
   })
 
   it('throws error when used outside provider', () => {
-    // Suppress console.error for this test
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-
     expect(() => {
       render(<TestComponent />)
     }).toThrow('useSaveStatus must be used within a SaveStatusProvider')
-
-    consoleSpy.mockRestore()
   })
 })

@@ -23,14 +23,12 @@ jest.mock('../../../services/oauth.model', () => ({
         return {
           accessToken: 'valid-user-token',
           accessTokenExpiresAt: new Date(Date.now() + 3600000),
-          refreshToken: 'refresh-user-token',
-          refreshTokenExpiresAt: new Date(Date.now() + 86400000),
           scope: 'read write',
           client: {
             id: '1',
             clientId: 'cloud-client',
             clientSecret: 'cloud-secret',
-            grants: ['password', 'refresh_token'],
+            grants: ['password'],
             redirectUris: ['http://localhost:3000/callback']
           },
           user: {
@@ -43,8 +41,7 @@ jest.mock('../../../services/oauth.model', () => ({
       }
       return null
     }),
-    verifyScope: jest.fn(() => true),
-    getRefreshToken: jest.fn()
+    verifyScope: jest.fn(() => true)
   }
 }))
 
@@ -57,7 +54,7 @@ jest.mock('@lib/prisma', () => ({
         id: 1,
         clientId: 'cloud-client',
         clientSecret: 'cloud-secret',
-        grants: 'password,refresh_token',
+        grants: 'password',
         redirectUris: 'http://localhost:3000/callback'
       }))
     },

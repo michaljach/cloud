@@ -1,4 +1,4 @@
-import { WorkspaceDetailsClient } from '@/features/workspaces/components/workspace-details-client'
+import { WorkspaceDetailsClient } from '@/features/workspaces/components/workspace-details'
 
 export default function WorkspaceDetailsPage() {
   return (

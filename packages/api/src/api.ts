@@ -4,6 +4,7 @@ import type {
   WorkspaceInvite,
   WorkspaceMembership,
   WorkspaceMember,
+  PlatformSettings,
   ApiResponse
 } from '@repo/types'
 import { apiClient } from './apiClient'
@@ -48,9 +49,7 @@ export async function loginUser(
   password: string
 ): Promise<{
   accessToken: string
-  refreshToken: string
   accessTokenExpiresAt?: string
-  refreshTokenExpiresAt?: string
 }> {
   const res = await fetch(`${API_URL}/api/auth/token`, {
     method: 'POST',
@@ -62,29 +61,12 @@ export async function loginUser(
   return json.data
 }
 
-// Direct fetch function for token refresh (to avoid circular dependency with apiClient)
-export async function refreshToken(refreshToken: string): Promise<{
-  accessToken: string
-  refreshToken: string
-  accessTokenExpiresAt?: string
-  refreshTokenExpiresAt?: string
-}> {
-  const res = await fetch(`${API_URL}/api/auth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken })
-  })
-  const json: ApiResponse<any> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Refresh failed')
-  return json.data
-}
-
 export async function logoutUser(token: string): Promise<void> {
   return apiClient.post('/api/auth/logout', { token })
 }
 
 export async function updateCurrentUser(accessToken: string, fullName: string): Promise<User> {
-  return apiClient.patch('/api/auth/me', { fullName })
+  return apiClient.patch('/api/auth/me', { fullName }, accessToken)
 }
 
 export async function uploadEncryptedFile(
@@ -178,7 +160,7 @@ export async function listUserFiles(
   path?: string
 ): Promise<{ name: string; size?: number; modified: string; type: 'file' | 'folder' }[]> {
   const endpoint = path ? `/api/files?path=${encodeURIComponent(path)}` : '/api/files'
-  return apiClient.get(endpoint)
+  return apiClient.get(endpoint, accessToken)
 }
 
 export async function downloadEncryptedNote(
@@ -217,25 +199,25 @@ export async function downloadEncryptedUserFile(
 export async function listUserTrashedFiles(
   accessToken: string
 ): Promise<{ filename: string; size: number; modified: string }[]> {
-  return apiClient.get('/api/files?path=.trash')
+  return apiClient.get('/api/files?path=.trash', accessToken)
 }
 
 export async function restoreUserFileFromTrash(
   filename: string,
   accessToken: string
 ): Promise<any> {
-  return apiClient.post('/api/files/trash/restore', { filename })
+  return apiClient.post('/api/files/trash/restore', { filename }, accessToken)
 }
 
 export async function deleteUserFileFromTrash(filename: string, accessToken: string): Promise<any> {
-  return apiClient.delete(`/api/files/trash/${encodeURIComponent(filename)}`)
+  return apiClient.delete(`/api/files/trash/${encodeURIComponent(filename)}`, accessToken)
 }
 
 export async function batchMoveUserFilesToTrash(
   filenames: string[],
   accessToken: string
 ): Promise<any[]> {
-  return apiClient.post('/api/files/batch/trash', { filenames })
+  return apiClient.post('/api/files/batch/trash', { filenames }, accessToken)
 }
 
 /**
@@ -394,14 +376,14 @@ export async function changePassword(
  * List all workspaces (root_admin only)
  */
 export async function getWorkspaces(accessToken: string): Promise<Workspace[]> {
-  return apiClient.get('/api/workspaces')
+  return apiClient.get('/api/workspaces', accessToken)
 }
 
 /**
  * Create a new workspace (root_admin only)
  */
 export async function createWorkspace(accessToken: string, name: string): Promise<Workspace> {
-  return apiClient.post('/api/workspaces', { name })
+  return apiClient.post('/api/workspaces', { name }, accessToken)
 }
 
 /**
@@ -412,19 +394,19 @@ export async function updateWorkspace(
   workspaceId: string,
   name: string
 ): Promise<Workspace> {
-  return apiClient.patch(`/api/workspaces/${workspaceId}`, { name })
+  return apiClient.patch(`/api/workspaces/${workspaceId}`, { name }, accessToken)
 }
 
 // Workspace Invite API functions
 export async function getMyInvites(accessToken: string): Promise<WorkspaceInvite[]> {
-  return apiClient.get('/api/workspace-invites/my')
+  return apiClient.get('/api/workspace-invites/my', accessToken)
 }
 
 export async function getWorkspaceInvites(
   accessToken: string,
   workspaceId: string
 ): Promise<WorkspaceInvite[]> {
-  return apiClient.get(`/api/workspace-invites/workspace/${workspaceId}`)
+  return apiClient.get(`/api/workspace-invites/workspace/${workspaceId}`, accessToken)
 }
 
 export async function createWorkspaceInvite(
@@ -433,32 +415,36 @@ export async function createWorkspaceInvite(
   invitedUsername: string,
   role: 'owner' | 'admin' | 'member' = 'member'
 ): Promise<WorkspaceInvite> {
-  return apiClient.post('/api/workspace-invites', { workspaceId, invitedUsername, role })
+  return apiClient.post(
+    '/api/workspace-invites',
+    { workspaceId, invitedUsername, role },
+    accessToken
+  )
 }
 
 export async function acceptWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<{ invite: WorkspaceInvite; userWorkspace: any }> {
-  return apiClient.patch(`/api/workspace-invites/${inviteId}/accept`)
+  return apiClient.patch(`/api/workspace-invites/${inviteId}/accept`, undefined, accessToken)
 }
 
 export async function declineWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<WorkspaceInvite> {
-  return apiClient.patch(`/api/workspace-invites/${inviteId}/decline`)
+  return apiClient.patch(`/api/workspace-invites/${inviteId}/decline`, undefined, accessToken)
 }
 
 export async function cancelWorkspaceInvite(
   accessToken: string,
   inviteId: string
 ): Promise<WorkspaceInvite> {
-  return apiClient.delete(`/api/workspace-invites/${inviteId}`)
+  return apiClient.delete(`/api/workspace-invites/${inviteId}`, accessToken)
 }
 
 export async function leaveWorkspace(accessToken: string, workspaceId: string): Promise<void> {
-  return apiClient.delete(`/api/workspaces/${workspaceId}/leave`)
+  return apiClient.delete(`/api/workspaces/${workspaceId}/leave`, accessToken)
 }
 
 export async function getMyWorkspaces(accessToken: string): Promise<WorkspaceMembership[]> {
@@ -481,7 +467,7 @@ export async function getWorkspaceMembers(
   accessToken: string,
   workspaceId: string
 ): Promise<WorkspaceMember[]> {
-  return apiClient.get(`/api/workspaces/${workspaceId}/members`)
+  return apiClient.get(`/api/workspaces/${workspaceId}/members`, accessToken)
 }
 
 export async function addUserToWorkspace(
@@ -490,7 +476,7 @@ export async function addUserToWorkspace(
   userId: string,
   role: 'owner' | 'admin' | 'member' = 'member'
 ): Promise<any> {
-  return apiClient.post(`/api/workspaces/${workspaceId}/members`, { userId, role })
+  return apiClient.post(`/api/workspaces/${workspaceId}/members`, { userId, role }, accessToken)
 }
 
 export async function updateUserWorkspaceRole(
@@ -499,7 +485,7 @@ export async function updateUserWorkspaceRole(
   userId: string,
   role: 'owner' | 'admin' | 'member'
 ): Promise<any> {
-  return apiClient.patch(`/api/workspaces/${workspaceId}/members/${userId}`, { role })
+  return apiClient.patch(`/api/workspaces/${workspaceId}/members/${userId}`, { role }, accessToken)
 }
 
 export async function removeUserFromWorkspace(
@@ -507,7 +493,7 @@ export async function removeUserFromWorkspace(
   workspaceId: string,
   userId: string
 ): Promise<void> {
-  return apiClient.delete(`/api/workspaces/${workspaceId}/members/${userId}`)
+  return apiClient.delete(`/api/workspaces/${workspaceId}/members/${userId}`, accessToken)
 }
 
 // Unified function that works for both personal and workspace files
@@ -524,7 +510,7 @@ export async function listFiles(
     params.set('path', path)
   }
   const endpoint = `/api/files${params.toString() ? `?${params.toString()}` : ''}`
-  return apiClient.get(endpoint)
+  return apiClient.get(endpoint, accessToken)
 }
 
 export async function searchFiles(
@@ -540,7 +526,7 @@ export async function searchFiles(
     params.set('workspaceId', workspaceId)
   }
   const endpoint = `/api/files/search?${params.toString()}`
-  return apiClient.get(endpoint)
+  return apiClient.get(endpoint, accessToken)
 }
 
 export async function downloadFile(
@@ -564,7 +550,7 @@ export async function listTrashedFiles(
   workspaceId?: string
 ): Promise<{ filename: string; size: number; modified: string }[]> {
   const endpoint = workspaceId ? `/api/files/trash?workspaceId=${workspaceId}` : '/api/files/trash'
-  return apiClient.get(endpoint)
+  return apiClient.get(endpoint, accessToken)
 }
 
 export async function restoreFileFromTrash(
@@ -575,7 +561,7 @@ export async function restoreFileFromTrash(
   const endpoint = workspaceId
     ? `/api/files/trash/restore?workspaceId=${workspaceId}`
     : '/api/files/trash/restore'
-  return apiClient.post(endpoint, { filename })
+  return apiClient.post(endpoint, { filename }, accessToken)
 }
 
 export async function deleteFileFromTrash(
@@ -586,7 +572,7 @@ export async function deleteFileFromTrash(
   const endpoint = workspaceId
     ? `/api/files/trash/${encodeURIComponent(filename)}?workspaceId=${workspaceId}`
     : `/api/files/trash/${encodeURIComponent(filename)}`
-  return apiClient.delete(endpoint)
+  return apiClient.delete(endpoint, accessToken)
 }
 
 export async function batchMoveFilesToTrash(
@@ -597,7 +583,7 @@ export async function batchMoveFilesToTrash(
   const endpoint = workspaceId
     ? `/api/files/batch/trash?workspaceId=${workspaceId}`
     : '/api/files/batch/trash'
-  return apiClient.post(endpoint, { filenames })
+  return apiClient.post(endpoint, { filenames }, accessToken)
 }
 
 export async function uploadFilesBatch(
@@ -613,13 +599,13 @@ export async function uploadFilesBatch(
   }
 
   const endpoint = workspaceId ? `/api/files/batch?workspaceId=${workspaceId}` : '/api/files/batch'
-  return apiClient.upload(endpoint, formData)
+  return apiClient.upload(endpoint, formData, accessToken)
 }
 
 // Unified note functions
-export async function listNotes(workspaceId?: string): Promise<string[]> {
+export async function listNotes(accessToken: string, workspaceId?: string): Promise<string[]> {
   const endpoint = `/api/notes${workspaceId ? `?workspaceId=${workspaceId}` : ''}`
-  return await apiClient.get<string[]>(endpoint)
+  return await apiClient.get<string[]>(endpoint, accessToken)
 }
 
 export async function downloadNote(
@@ -678,4 +664,32 @@ export async function createEmptyNote(
   const result = await uploadNote(emptyContent, filename, accessToken, workspaceId)
 
   return { filename }
+}
+
+// Admin Settings API functions (root admin only)
+
+/**
+ * Get platform settings (root admin only)
+ */
+export async function getPlatformSettings(accessToken: string): Promise<PlatformSettings> {
+  return apiClient.get('/api/admin/settings', accessToken)
+}
+
+/**
+ * Update platform settings (root admin only)
+ */
+export async function updatePlatformSettings(
+  accessToken: string,
+  settings: {
+    title: string
+    timezone: string
+    maintenanceMode: boolean
+    registrationEnabled: boolean
+    defaultStorageLimit: number
+    maxFileSize: number
+    supportEmail: string
+    companyName: string
+  }
+): Promise<PlatformSettings> {
+  return apiClient.put('/api/admin/settings', settings, accessToken)
 }

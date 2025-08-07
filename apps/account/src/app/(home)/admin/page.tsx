@@ -22,6 +22,16 @@ export default function AdminConsolePage() {
             Manage Workspaces →
           </a>
         </div>
+
+        <div className="p-6 border rounded-lg">
+          <h2 className="text-lg font-semibold mb-2">Platform Settings</h2>
+          <p className="text-muted-foreground mb-4">
+            Configure global platform settings and preferences
+          </p>
+          <a href="/admin/settings" className="text-primary hover:underline">
+            Platform Settings →
+          </a>
+        </div>
       </div>
     </div>
   )

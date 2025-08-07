@@ -60,30 +60,18 @@ export default {
       data: {
         accessToken: token.accessToken,
         accessTokenExpiresAt: token.accessTokenExpiresAt,
-        refreshToken: token.refreshToken,
-        refreshTokenExpiresAt: token.refreshTokenExpiresAt,
         scope: Array.isArray(token.scope) ? token.scope.join(' ') : token.scope,
         client: { connect: { clientId: client.clientId } },
         user: { connect: { id: (user as any).id } }
       },
       include: { client: true, user: true }
     })
-    const {
-      accessToken,
-      accessTokenExpiresAt,
-      refreshToken,
-      refreshTokenExpiresAt,
-      scope,
-      client: dbClient,
-      user: dbUser
-    } = dbToken
+    const { accessToken, accessTokenExpiresAt, scope, client: dbClient, user: dbUser } = dbToken
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
     const { id: userId, username } = dbUser
     return {
       accessToken,
       accessTokenExpiresAt,
-      refreshToken,
-      refreshTokenExpiresAt,
       scope,
       client: {
         ...clientRest,
@@ -108,22 +96,12 @@ export default {
       }
     })
     if (!dbToken) return null
-    const {
-      accessToken: at,
-      accessTokenExpiresAt,
-      refreshToken,
-      refreshTokenExpiresAt,
-      scope,
-      client: dbClient,
-      user: dbUser
-    } = dbToken
+    const { accessToken: at, accessTokenExpiresAt, scope, client: dbClient, user: dbUser } = dbToken
     const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
     const { id: userId, username, fullName, storageLimit } = dbUser
     return {
       accessToken,
       accessTokenExpiresAt,
-      refreshToken,
-      refreshTokenExpiresAt,
       scope,
       client: {
         ...clientRest,
@@ -143,45 +121,6 @@ export default {
   verifyScope: async (token: any, scope: string | string[]) => {
     // Implement scope verification if needed
     return true
-  },
-  /**
-   * Get a refresh token and associated client/user by refreshToken string
-   * @param refreshToken Refresh token string
-   * @returns Token object or null if not found/expired
-   */
-  getRefreshToken: async (refreshToken: string) => {
-    const dbToken = await prisma.oAuthToken.findUnique({
-      where: { refreshToken },
-      include: { client: true, user: { select: { id: true, username: true, fullName: true } } }
-    })
-    if (!dbToken) return null
-    // Check if refresh token is expired
-    if (dbToken.refreshTokenExpiresAt && new Date(dbToken.refreshTokenExpiresAt) < new Date()) {
-      await prisma.oAuthToken.delete({ where: { refreshToken } })
-      return null
-    }
-    const {
-      accessToken,
-      accessTokenExpiresAt,
-      refreshTokenExpiresAt,
-      scope,
-      client: dbClient,
-      user: dbUser
-    } = dbToken
-    const { id: clientId, grants, redirectUris, ...clientRest } = dbClient
-    const { id: userId, username, fullName } = dbUser
-    return {
-      refreshToken,
-      refreshTokenExpiresAt,
-      scope,
-      client: {
-        ...clientRest,
-        id: String(clientId),
-        grants: grants.split(','),
-        redirectUris: redirectUris.split(',')
-      },
-      user: { id: userId, username, fullName } as SharedUser
-    }
   }
   // Add other required methods as needed for your grant types
 }

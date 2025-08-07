@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { useWorkspace } from '@repo/providers'
+import { useWorkspace, useUser } from '@repo/providers'
 import { listNotes } from '@repo/api'
 
 interface NotesContextType {
@@ -19,17 +19,18 @@ interface NotesProviderProps {
 
 export function NotesProvider({ children }: NotesProviderProps) {
   const { currentWorkspace } = useWorkspace()
+  const { accessToken } = useUser()
   const [notes, setNotes] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchNotes = useCallback(async () => {
-    if (!currentWorkspace) return
+    if (!currentWorkspace || !accessToken) return
     setLoading(true)
 
     try {
       const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-      const fetchedNotes = await listNotes(workspaceId)
+      const fetchedNotes = await listNotes(accessToken, workspaceId)
       setNotes(fetchedNotes)
       setError(null)
     } catch (err) {
@@ -38,7 +39,7 @@ export function NotesProvider({ children }: NotesProviderProps) {
     } finally {
       setLoading(false)
     }
-  }, [currentWorkspace])
+  }, [currentWorkspace, accessToken])
 
   const refreshNotes = useCallback(() => {
     fetchNotes()

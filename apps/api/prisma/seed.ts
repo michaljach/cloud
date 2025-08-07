@@ -105,7 +105,7 @@ async function main() {
   console.log('Creating OAuth client...')
   const OAUTH_CLIENT_ID = process.env.OAUTH_CLIENT_ID || 'cloud-client'
   const OAUTH_CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET || 'cloud-secret'
-  const OAUTH_CLIENT_GRANTS = process.env.OAUTH_CLIENT_GRANTS || 'password,refresh_token'
+  const OAUTH_CLIENT_GRANTS = process.env.OAUTH_CLIENT_GRANTS || 'password'
   const OAUTH_CLIENT_REDIRECT_URIS =
     process.env.OAUTH_CLIENT_REDIRECT_URIS || 'http://localhost:3000/callback'
 
@@ -117,6 +117,24 @@ async function main() {
       clientSecret: OAUTH_CLIENT_SECRET,
       grants: OAUTH_CLIENT_GRANTS,
       redirectUris: OAUTH_CLIENT_REDIRECT_URIS
+    }
+  })
+
+  // Create initial platform settings
+  console.log('Creating initial platform settings...')
+  await prisma.platformSettings.upsert({
+    where: { id: 'platform' },
+    update: {},
+    create: {
+      id: 'platform',
+      title: 'Cloud Platform',
+      timezone: 'UTC',
+      maintenanceMode: false,
+      registrationEnabled: true,
+      defaultStorageLimit: 1024,
+      maxFileSize: 100,
+      supportEmail: 'support@example.com',
+      companyName: 'Your Company'
     }
   })
 
@@ -134,6 +152,9 @@ async function main() {
   console.log(`   Client ID: ${OAUTH_CLIENT_ID}`)
   console.log(`   Grants: ${OAUTH_CLIENT_GRANTS}`)
   console.log(`   Redirect URIs: ${OAUTH_CLIENT_REDIRECT_URIS}`)
+  console.log('')
+  console.log('⚙️ Platform Settings:')
+  console.log('   - Initial platform settings created')
 }
 
 main()

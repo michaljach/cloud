@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getServerUser } from '@repo/providers'
 
+// Utility function to check if user is root admin
+const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'
+
+function isRootAdmin(user: any): boolean {
+  return (
+    user?.workspaces?.some(
+      (uw: any) => uw.role === 'owner' && uw.workspace.id === SYSTEM_ADMIN_WORKSPACE_ID
+    ) ?? false
+  )
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -27,6 +38,17 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = '/auth/signin'
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Check admin routes - require root admin access
+  if (pathname.startsWith('/admin')) {
+    if (!isRootAdmin(user)) {
+      // Redirect to home page with error message
+      const homeUrl = request.nextUrl.clone()
+      homeUrl.pathname = '/'
+      homeUrl.searchParams.set('error', 'admin_access_denied')
+      return NextResponse.redirect(homeUrl)
+    }
   }
 
   return NextResponse.next()

@@ -25,7 +25,7 @@ const oauth = new OAuth2Server({ model: oauthModel })
 export default class AuthController {
   /**
    * POST /api/auth/token
-   * Obtain OAuth2 token (password or refresh_token grant)
+   * Obtain OAuth2 token (password grant only)
    */
   @Post('/token')
   @UseBefore(
@@ -56,8 +56,7 @@ export default class AuthController {
         success: true,
         data: {
           accessToken: token.accessToken,
-          refreshToken: token.refreshToken,
-          ...token
+          accessTokenExpiresAt: token.accessTokenExpiresAt
         },
         error: null
       })
@@ -265,7 +264,7 @@ export default class AuthController {
     try {
       await prisma.oAuthToken.deleteMany({
         where: {
-          OR: [{ accessToken: token }, { refreshToken: token }]
+          accessToken: token
         }
       })
       return res.json({ success: true, data: null, error: null })

@@ -80,14 +80,12 @@ jest.mock('../../../services/oauth.model', () => ({
         return {
           accessToken: 'valid-admin-token',
           accessTokenExpiresAt: new Date(Date.now() + 3600000),
-          refreshToken: 'refresh-admin-token',
-          refreshTokenExpiresAt: new Date(Date.now() + 86400000),
           scope: 'read write',
           client: {
             id: '1',
             clientId: 'cloud-client',
             clientSecret: 'cloud-secret',
-            grants: ['password', 'refresh_token'],
+            grants: ['password'],
             redirectUris: ['http://localhost:3000/callback']
           },
           user: {
@@ -102,14 +100,12 @@ jest.mock('../../../services/oauth.model', () => ({
         return {
           accessToken: 'valid-user-token',
           accessTokenExpiresAt: new Date(Date.now() + 3600000),
-          refreshToken: 'refresh-user-token',
-          refreshTokenExpiresAt: new Date(Date.now() + 86400000),
           scope: 'read write',
           client: {
             id: '1',
             clientId: 'cloud-client',
             clientSecret: 'cloud-secret',
-            grants: ['password', 'refresh_token'],
+            grants: ['password'],
             redirectUris: ['http://localhost:3000/callback']
           },
           user: {
@@ -122,8 +118,7 @@ jest.mock('../../../services/oauth.model', () => ({
       }
       return null
     }),
-    verifyScope: jest.fn(() => true),
-    getRefreshToken: jest.fn()
+    verifyScope: jest.fn(() => true)
   }
 }))
 
@@ -136,7 +131,7 @@ jest.mock('@lib/prisma', () => ({
         id: 1,
         clientId: 'cloud-client',
         clientSecret: 'cloud-secret',
-        grants: 'password,refresh_token',
+        grants: 'password',
         redirectUris: 'http://localhost:3000/callback'
       }))
     },
@@ -168,50 +163,41 @@ jest.mock('@lib/prisma', () => ({
             password: 'hashed-user123',
             fullName: 'Test User',
             storageLimit: 1024,
-            userWorkspaces: [
-              {
-                id: 'uw2',
-                role: 'member',
-                workspace: {
-                  id: 'workspace-1',
-                  name: 'Test Workspace'
-                }
-              }
-            ]
-          }
-        }
-        if (where.id === 'target-user-id') {
-          return {
-            id: 'target-user-id',
-            username: 'targetuser',
-            password: 'hashed-old-password',
-            fullName: 'Target User',
-            storageLimit: 1024,
             userWorkspaces: []
           }
         }
         return null
       }),
+      findMany: jest.fn(() => [
+        {
+          id: 'admin-id',
+          username: 'admin',
+          fullName: 'Admin User',
+          storageLimit: 1024
+        },
+        {
+          id: 'user-id',
+          username: 'user',
+          fullName: 'Test User',
+          storageLimit: 1024
+        }
+      ]),
+      create: jest.fn(({ data }) => ({
+        id: 'new-user-id',
+        username: data.username,
+        password: data.password,
+        fullName: data.fullName || null,
+        storageLimit: data.storageLimit || 1024
+      })),
       update: jest.fn(({ where, data }) => ({
         id: where.id,
-        username: 'targetuser',
-        password: data.password,
-        fullName: 'Target User',
-        storageLimit: 1024
+        username: 'user',
+        password: 'hashed-user123',
+        fullName: data.fullName || 'Test User',
+        storageLimit: data.storageLimit || 1024
       }))
     },
     oAuthToken: {
-      create: jest.fn(({ data }) => ({
-        ...data,
-        client: {
-          id: 1,
-          clientId: 'cloud-client'
-        },
-        user: {
-          id: data.userId,
-          username: data.userId === 'admin-id' ? 'admin' : 'user'
-        }
-      })),
       findFirst: jest.fn(({ where }) => {
         if (where.accessToken === 'valid-admin-token') {
           return {

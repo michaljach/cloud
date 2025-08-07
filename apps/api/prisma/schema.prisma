@@ -77,11 +77,23 @@ model OAuthToken {
   id           Int          @id @default(autoincrement())
   accessToken  String       @unique
   accessTokenExpiresAt DateTime
-  refreshToken String?      @unique
-  refreshTokenExpiresAt DateTime?
   scope        String?
   client       OAuthClient  @relation(fields: [clientId], references: [clientId])
   clientId     String
   user         User         @relation(fields: [userId], references: [id])
   userId       String
+}
+
+model PlatformSettings {
+  id                    String   @id @default("platform")
+  title                 String   @default("Cloud Platform")
+  timezone              String   @default("UTC")
+  maintenanceMode       Boolean  @default(false)
+  registrationEnabled   Boolean  @default(true)
+  defaultStorageLimit   Int      @default(1024) // Storage limit in MB
+  maxFileSize           Int      @default(100)  // Max file size in MB
+  supportEmail          String?
+  companyName           String?
+  updatedAt             DateTime @updatedAt
+  createdAt             DateTime @default(now())
 }
