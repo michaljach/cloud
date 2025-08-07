@@ -16,9 +16,9 @@ jest.mock('@repo/utils', () => ({
 }))
 
 jest.mock('js-cookie', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
-  remove: jest.fn()
+  get: jest.fn().mockReturnValue(undefined),
+  set: jest.fn().mockImplementation((name: string, value: string) => value),
+  remove: jest.fn().mockImplementation((name: string) => undefined)
 }))
 
 jest.mock('next/navigation', () => ({

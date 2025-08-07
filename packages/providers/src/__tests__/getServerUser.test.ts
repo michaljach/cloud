@@ -1,5 +1,5 @@
 import { getServerUser } from '../getServerUser'
-import type { User } from '@repo/types'
+import type { User, StorageQuotaData } from '@repo/types'
 
 // Mock @repo/api
 jest.mock('@repo/api', () => ({
@@ -13,8 +13,18 @@ const mockGetCurrentUser = require('@repo/api').getCurrentUser as jest.MockedFun
 const mockUser: User = {
   id: '1',
   username: 'testuser',
-  email: 'test@test.com',
+  fullName: 'Test User',
+  storageLimit: 1024,
   workspaces: []
+}
+
+const mockStorageQuota: StorageQuotaData = {
+  totalUsage: { bytes: 1024, megabytes: 1 },
+  breakdown: {
+    files: { bytes: 512, megabytes: 0.5 },
+    notes: { bytes: 256, megabytes: 0.25 },
+    photos: { bytes: 256, megabytes: 0.25 }
+  }
 }
 
 describe('getServerUser', () => {
@@ -30,7 +40,7 @@ describe('getServerUser', () => {
 
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
-        storageQuota: null
+        storageQuota: mockStorageQuota
       })
 
       const result = await getServerUser({ cookies: () => mockCookies })
@@ -90,7 +100,7 @@ describe('getServerUser', () => {
 
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
-        storageQuota: null
+        storageQuota: mockStorageQuota
       })
 
       const result = await getServerUser({ headers: mockHeaders })
@@ -108,7 +118,7 @@ describe('getServerUser', () => {
 
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
-        storageQuota: null
+        storageQuota: mockStorageQuota
       })
 
       const result = await getServerUser({ headers: mockHeaders })
@@ -225,7 +235,7 @@ describe('getServerUser', () => {
 
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
-        storageQuota: null
+        storageQuota: mockStorageQuota
       })
 
       const cookieResult = await getServerUser({ cookies: () => mockCookies })

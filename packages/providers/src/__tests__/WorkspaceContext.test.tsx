@@ -110,7 +110,7 @@ const mockWorkspaceMemberships: WorkspaceMembership[] = [
 describe('WorkspaceContext', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockCookies.get.mockReturnValue(undefined)
+    ;(mockCookies.get as any).mockReturnValue(undefined)
     mockCookies.set.mockImplementation(() => 'test-workspace')
     mockCookies.remove.mockImplementation(() => undefined)
     mockConvertUserWorkspacesToMemberships.mockReturnValue(mockWorkspaceMemberships)
@@ -191,7 +191,7 @@ describe('WorkspaceContext', () => {
     })
 
     it('should set current workspace from cookie if available', async () => {
-      mockCookies.get.mockReturnValue('workspace-1')
+      ;(mockCookies.get as any).mockReturnValue('workspace-1')
 
       render(
         <WorkspaceProvider>
@@ -206,7 +206,7 @@ describe('WorkspaceContext', () => {
     })
 
     it('should default to personal workspace if saved workspace not found', async () => {
-      mockCookies.get.mockReturnValue('non-existent-workspace')
+      ;(mockCookies.get as any).mockReturnValue('non-existent-workspace')
 
       render(
         <WorkspaceProvider>
@@ -272,7 +272,7 @@ describe('WorkspaceContext', () => {
   describe('switchToPersonal', () => {
     it('should switch to personal workspace', async () => {
       // Start with a workspace selected
-      mockCookies.get.mockReturnValue('workspace-1')
+      ;(mockCookies.get as any).mockReturnValue('workspace-1')
 
       render(
         <WorkspaceProvider>
@@ -364,7 +364,7 @@ describe('WorkspaceContext', () => {
     })
 
     it('should return false for regular workspace', async () => {
-      mockCookies.get.mockReturnValue('workspace-1')
+      ;(mockCookies.get as any).mockReturnValue('workspace-1')
 
       render(
         <WorkspaceProvider>

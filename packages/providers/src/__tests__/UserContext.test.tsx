@@ -87,7 +87,7 @@ const mockStorageQuota: StorageQuotaData = {
 describe('UserContext', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockCookies.get.mockReturnValue(undefined)
+    ;(mockCookies.get as any).mockReturnValue(undefined)
     mockCookies.set.mockImplementation((name: string, value: string) => value)
     mockCookies.remove.mockImplementation((name: string) => undefined)
   })
@@ -118,7 +118,7 @@ describe('UserContext', () => {
     })
 
     it('should load access token from cookies on mount', () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as any).mockReturnValue('test-token')
 
       render(
         <UserProvider>
@@ -130,7 +130,7 @@ describe('UserContext', () => {
     })
 
     it('should fetch user data when access token is available', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
         storageQuota: mockStorageQuota
@@ -154,7 +154,7 @@ describe('UserContext', () => {
     })
 
     it('should handle user fetch error and logout', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser.mockRejectedValue(new Error('Invalid token'))
 
       render(
@@ -229,7 +229,7 @@ describe('UserContext', () => {
 
   describe('logout', () => {
     it('should successfully logout user', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
         storageQuota: mockStorageQuota
@@ -267,7 +267,7 @@ describe('UserContext', () => {
     })
 
     it('should handle logout error gracefully', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockLogoutUser.mockRejectedValue(new Error('Network error'))
 
       render(
@@ -295,7 +295,7 @@ describe('UserContext', () => {
 
   describe('updateUser', () => {
     it('should update user data', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
         storageQuota: mockStorageQuota
@@ -326,7 +326,7 @@ describe('UserContext', () => {
 
   describe('refreshStorageQuota', () => {
     it('should refresh storage quota', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser.mockResolvedValue({
         user: mockUser,
         storageQuota: mockStorageQuota
@@ -355,7 +355,7 @@ describe('UserContext', () => {
     })
 
     it('should handle refresh error', async () => {
-      mockCookies.get.mockReturnValue('test-token')
+      ;(mockCookies.get as jest.Mock).mockReturnValue('test-token')
       mockGetCurrentUser
         .mockResolvedValueOnce({
           user: mockUser,
