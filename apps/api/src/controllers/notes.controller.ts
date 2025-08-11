@@ -1,5 +1,15 @@
 import 'reflect-metadata'
-import { JsonController, Get, Post, Param, Req, Res, UseBefore, Delete } from 'routing-controllers'
+import {
+  JsonController,
+  Get,
+  Post,
+  Param,
+  Req,
+  Res,
+  UseBefore,
+  Delete,
+  Put
+} from 'routing-controllers'
 import type { Request, Response } from 'express'
 import type { User } from '@repo/types'
 import { saveNote, readNote } from '../services/notes.service'
@@ -168,8 +178,99 @@ export default class NotesController {
   }
 
   /**
+   * PUT /api/notes/:filename/rename
+   * Rename a note for the authenticated user (personal or workspace context)
+   */
+  @Put('/:filename/rename')
+  @UseBefore(authenticate)
+  async renameNote(
+    @CurrentUser() user: User,
+    @Param('filename') filename: string,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const paramSchema = z.object({ filename: z.string().min(1, 'Filename is required') })
+    const params = paramSchema.safeParse({ filename })
+    if (!params.success) {
+      return res.status(400).json({ success: false, data: null, error: params.error.message })
+    }
+
+    const bodySchema = z.object({ newFilename: z.string().min(1, 'New filename is required') })
+    const body = bodySchema.safeParse(req.body)
+    if (!body.success) {
+      return res.status(400).json({ success: false, data: null, error: body.error.message })
+    }
+
+    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+
+    try {
+      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+        // Use personal storage with encryption
+        const oldFilePath = getFilePathForContext(
+          user.id,
+          'personal',
+          'notes',
+          params.data.filename
+        )
+        const newFilePath = getFilePathForContext(
+          user.id,
+          'personal',
+          'notes',
+          body.data.newFilename
+        )
+
+        if (!fs.existsSync(oldFilePath)) {
+          return res.status(404).json({ success: false, data: null, error: 'Note not found' })
+        }
+
+        if (fs.existsSync(newFilePath)) {
+          return res
+            .status(409)
+            .json({ success: false, data: null, error: 'File with that name already exists' })
+        }
+
+        fs.renameSync(oldFilePath, newFilePath)
+      } else {
+        // Use workspace storage (separate from user storage)
+        const oldFilePath = getFilePathForContext(
+          user.id,
+          workspaceId,
+          'notes',
+          params.data.filename
+        )
+        const newFilePath = getFilePathForContext(
+          user.id,
+          workspaceId,
+          'notes',
+          body.data.newFilename
+        )
+
+        if (!fs.existsSync(oldFilePath)) {
+          return res.status(404).json({ success: false, data: null, error: 'Note not found' })
+        }
+
+        if (fs.existsSync(newFilePath)) {
+          return res
+            .status(409)
+            .json({ success: false, data: null, error: 'File with that name already exists' })
+        }
+
+        fs.renameSync(oldFilePath, newFilePath)
+      }
+
+      return res.json({
+        success: true,
+        data: { filename: body.data.newFilename },
+        error: null
+      })
+    } catch (e) {
+      return res.status(500).json({ success: false, data: null, error: 'Failed to rename note' })
+    }
+  }
+
+  /**
    * DELETE /api/notes/:filename
-   * Delete a specific note for the authenticated user (personal or workspace context)
+   * Delete a note for the authenticated user (personal or workspace context)
    */
   @Delete('/:filename')
   @UseBefore(authenticate)
@@ -188,27 +289,31 @@ export default class NotesController {
     const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
 
     try {
-      let deleted: boolean
       if (workspaceId === PERSONAL_WORKSPACE_ID) {
-        // Use personal storage (existing encrypted storage)
-        // Note: This would need to be implemented in the notes storage service
-        deleted = false // Placeholder - implement actual deletion
+        // Use personal storage with encryption
+        const filePath = getFilePathForContext(user.id, 'personal', 'notes', params.data.filename)
+
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({ success: false, data: null, error: 'Note not found' })
+        }
+
+        fs.unlinkSync(filePath)
       } else {
         // Use workspace storage (separate from user storage)
         const filePath = getFilePathForContext(user.id, workspaceId, 'notes', params.data.filename)
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath)
-          deleted = true
-        } else {
-          deleted = false
+
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({ success: false, data: null, error: 'Note not found' })
         }
+
+        fs.unlinkSync(filePath)
       }
 
-      if (deleted) {
-        return res.json({ success: true, data: { filename: params.data.filename }, error: null })
-      } else {
-        return res.status(404).json({ success: false, data: null, error: 'Note not found' })
-      }
+      return res.json({
+        success: true,
+        data: { filename: params.data.filename },
+        error: null
+      })
     } catch (e) {
       return res.status(500).json({ success: false, data: null, error: 'Failed to delete note' })
     }

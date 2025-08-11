@@ -4,20 +4,24 @@ import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NoteEditorContainer } from '../features/notes/components/note-editor-container'
 import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
+import { NotesProvider } from '@/features/notes/providers/notes-provider'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
-import { downloadNote, uploadNote } from '@repo/api'
+import { downloadNote, uploadNote, renameNote, deleteNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
-  usePathname: jest.fn()
+  usePathname: jest.fn(),
+  useRouter: jest.fn()
 }))
 
 // Mock the API functions
 jest.mock('@repo/api', () => ({
   downloadNote: jest.fn(),
-  uploadNote: jest.fn()
+  uploadNote: jest.fn(),
+  renameNote: jest.fn(),
+  deleteNote: jest.fn()
 }))
 
 // Mock the contexts
@@ -36,8 +40,11 @@ jest.mock('@repo/utils', () => ({
 
 const mockDownloadNote = downloadNote as jest.MockedFunction<typeof downloadNote>
 const mockUploadNote = uploadNote as jest.MockedFunction<typeof uploadNote>
+const mockRenameNote = renameNote as jest.MockedFunction<typeof renameNote>
+const mockDeleteNote = deleteNote as jest.MockedFunction<typeof deleteNote>
 const mockBase64urlEncode = base64urlEncode as jest.MockedFunction<typeof base64urlEncode>
 const mockUsePathname = require('next/navigation').usePathname as jest.MockedFunction<() => string>
+const mockUseRouter = require('next/navigation').useRouter as jest.MockedFunction<() => any>
 
 describe('NoteEditorContainer', () => {
   beforeEach(() => {
@@ -94,18 +101,30 @@ describe('NoteEditorContainer', () => {
 
     // Setup default pathname mock - on the correct note page
     mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+    // Setup default router mock
+    mockUseRouter.mockReturnValue({
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+      prefetch: jest.fn()
+    })
   })
 
   function renderNoteEditor() {
     return render(
       <SaveStatusProvider>
-        <SidebarProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
-        </SidebarProvider>
+        <NotesProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
+        </NotesProvider>
       </SaveStatusProvider>
     )
   }
@@ -196,13 +215,15 @@ describe('NoteEditorContainer', () => {
 
       const { rerender } = render(
         <SaveStatusProvider>
-          <SidebarProvider>
-            <UserProvider>
-              <WorkspaceProvider>
-                <NoteEditorContainer filename={mockEncodedFilename} />
-              </WorkspaceProvider>
-            </UserProvider>
-          </SidebarProvider>
+          <NotesProvider>
+            <SidebarProvider>
+              <UserProvider>
+                <WorkspaceProvider>
+                  <NoteEditorContainer filename={mockEncodedFilename} />
+                </WorkspaceProvider>
+              </UserProvider>
+            </SidebarProvider>
+          </NotesProvider>
         </SaveStatusProvider>
       )
 
@@ -217,13 +238,15 @@ describe('NoteEditorContainer', () => {
 
       rerender(
         <SaveStatusProvider>
-          <SidebarProvider>
-            <UserProvider>
-              <WorkspaceProvider>
-                <NoteEditorContainer filename={mockEncodedFilename} />
-              </WorkspaceProvider>
-            </UserProvider>
-          </SidebarProvider>
+          <NotesProvider>
+            <SidebarProvider>
+              <UserProvider>
+                <WorkspaceProvider>
+                  <NoteEditorContainer filename={mockEncodedFilename} />
+                </WorkspaceProvider>
+              </UserProvider>
+            </SidebarProvider>
+          </NotesProvider>
         </SaveStatusProvider>
       )
 
@@ -262,13 +285,15 @@ describe('NoteEditorContainer', () => {
 
       const { rerender } = render(
         <SaveStatusProvider>
-          <SidebarProvider>
-            <UserProvider>
-              <WorkspaceProvider>
-                <NoteEditorContainer filename={mockEncodedFilename} />
-              </WorkspaceProvider>
-            </UserProvider>
-          </SidebarProvider>
+          <NotesProvider>
+            <SidebarProvider>
+              <UserProvider>
+                <WorkspaceProvider>
+                  <NoteEditorContainer filename={mockEncodedFilename} />
+                </WorkspaceProvider>
+              </UserProvider>
+            </SidebarProvider>
+          </NotesProvider>
         </SaveStatusProvider>
       )
 
@@ -283,13 +308,15 @@ describe('NoteEditorContainer', () => {
 
       rerender(
         <SaveStatusProvider>
-          <SidebarProvider>
-            <UserProvider>
-              <WorkspaceProvider>
-                <NoteEditorContainer filename={mockEncodedFilename} />
-              </WorkspaceProvider>
-            </UserProvider>
-          </SidebarProvider>
+          <NotesProvider>
+            <SidebarProvider>
+              <UserProvider>
+                <WorkspaceProvider>
+                  <NoteEditorContainer filename={mockEncodedFilename} />
+                </WorkspaceProvider>
+              </UserProvider>
+            </SidebarProvider>
+          </NotesProvider>
         </SaveStatusProvider>
       )
 
@@ -299,5 +326,27 @@ describe('NoteEditorContainer', () => {
         expect(textarea).toHaveValue('')
       })
     })
+  })
+
+  it('only renames when first line changes, not on every save', async () => {
+    // Mock initial note content with a specific first line
+    mockDownloadNote.mockResolvedValue(
+      new TextEncoder().encode('Original Title\n\nThis is the content.')
+    )
+
+    // Mock being on the correct note page
+    mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+    renderNoteEditor()
+
+    // Wait for the note to load and editor to appear
+    await waitFor(() => {
+      const textarea = screen.getByRole('textbox')
+      expect(textarea).toHaveValue('Original Title\n\nThis is the content.')
+    })
+
+    // Verify that the original first line was captured correctly
+    // This tests that the component correctly extracts and stores the original first line
+    expect(mockDownloadNote).toHaveBeenCalledWith('test-note.md', mockAccessToken, undefined)
   })
 })

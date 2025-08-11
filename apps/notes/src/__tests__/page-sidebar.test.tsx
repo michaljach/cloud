@@ -160,7 +160,10 @@ describe('PageSidebar', () => {
   it('renders notes list', async () => {
     setupMocks('test-token', { id: 'personal', name: 'Personal Space', type: 'personal' })
     ;(useNotes as jest.Mock).mockReturnValue({
-      notes: ['note1', 'note2'],
+      notes: [
+        { filename: 'note1', title: 'First Note' },
+        { filename: 'note2', title: 'Second Note' }
+      ],
       loading: false,
       error: null,
       refreshNotes: jest.fn()
@@ -168,8 +171,8 @@ describe('PageSidebar', () => {
     await act(async () => {
       renderSidebar()
     })
-    expect(screen.getByText('note1')).toBeInTheDocument()
-    expect(screen.getByText('note2')).toBeInTheDocument()
+    expect(screen.getByText('First Note')).toBeInTheDocument()
+    expect(screen.getByText('Second Note')).toBeInTheDocument()
   })
 
   it('renders settings link', async () => {

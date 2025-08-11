@@ -31,14 +31,14 @@ export function PageSidebarNotes() {
         {!loading && !error && notes.length === 0 && (
           <div className="text-muted-foreground text-sm px-2 py-1">No notes</div>
         )}
-        {notes.map((file) => (
+        {notes.map((note) => (
           <SidebarMenuButton
-            key={file}
+            key={note.filename}
             asChild
-            isActive={selectedNote === file}
+            isActive={selectedNote === note.filename}
             className="flex items-center gap-2 px-2 w-full"
           >
-            <Link href={`/note/${base64urlEncode(file)}`}>{file}</Link>
+            <Link href={`/note/${base64urlEncode(note.filename)}`}>{note.title}</Link>
           </SidebarMenuButton>
         ))}
       </SidebarGroupContent>

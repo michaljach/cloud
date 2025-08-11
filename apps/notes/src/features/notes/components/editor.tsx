@@ -7,8 +7,13 @@ import { parseMarkdown } from '../../../utils/markdown'
 
 export function Editor({
   value: controlledValue,
-  onChange
-}: { value?: string; onChange?: (v: string) => void } = {}) {
+  onChange,
+  deleteButton
+}: { 
+  value?: string; 
+  onChange?: (v: string) => void;
+  deleteButton?: React.ReactNode;
+} = {}) {
   const [value, setValue] = useState<string>(controlledValue ?? '')
   const [open, setOpen] = useState(true)
 
@@ -23,17 +28,21 @@ export function Editor({
 
   return (
     <div className="flex w-full h-full min-h-0 flex-col">
-      <div className="flex items-center justify-end p-2 gap-2 border-b">
-        <Toggle
-          pressed={open}
-          onPressedChange={setOpen}
-          variant="default"
-          size="sm"
-          aria-label={open ? 'Hide Preview' : 'Show Preview'}
-          className="px-3 py-1"
-        >
-          {open ? <SidebarOpenIcon /> : <SidebarClose />}
-        </Toggle>
+      <div className="flex items-center justify-between p-2 gap-2 border-b">
+        <div className="flex-1" />
+        <div className="flex items-center gap-2">
+          {deleteButton}
+          <Toggle
+            pressed={open}
+            onPressedChange={setOpen}
+            variant="default"
+            size="sm"
+            aria-label={open ? 'Hide Preview' : 'Show Preview'}
+            className="px-3 py-1"
+          >
+            {open ? <SidebarOpenIcon /> : <SidebarClose />}
+          </Toggle>
+        </div>
       </div>
       <div className="flex w-full h-full min-h-0 overflow-hidden">
         <textarea

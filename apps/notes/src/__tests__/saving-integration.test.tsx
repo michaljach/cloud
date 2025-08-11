@@ -4,20 +4,23 @@ import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NoteEditorContainer } from '../features/notes/components/note-editor-container'
 import { SaveStatusProvider, useSaveStatus } from '@/features/notes/providers/status-provider'
+import { NotesProvider } from '@/features/notes/providers/notes-provider'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { downloadNote, uploadNote } from '@repo/api'
+import { downloadNote, uploadNote, renameNote } from '@repo/api'
 import { base64urlDecode } from '@repo/utils'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
-  usePathname: jest.fn()
+  usePathname: jest.fn(),
+  useRouter: jest.fn()
 }))
 
 // Mock the API functions
 jest.mock('@repo/api', () => ({
   downloadNote: jest.fn(),
-  uploadNote: jest.fn()
+  uploadNote: jest.fn(),
+  renameNote: jest.fn()
 }))
 
 // Mock the contexts
@@ -36,7 +39,9 @@ jest.mock('@repo/utils', () => ({
 
 const mockDownloadNote = downloadNote as jest.MockedFunction<typeof downloadNote>
 const mockUploadNote = uploadNote as jest.MockedFunction<typeof uploadNote>
+const mockRenameNote = renameNote as jest.MockedFunction<typeof renameNote>
 const mockUsePathname = require('next/navigation').usePathname as jest.MockedFunction<() => string>
+const mockUseRouter = require('next/navigation').useRouter as jest.MockedFunction<() => any>
 
 // Test component to check save status
 function SaveStatusChecker() {
@@ -94,19 +99,31 @@ describe('Saving Integration', () => {
 
     // Setup default pathname mock - on the correct note page
     mockUsePathname.mockReturnValue(`/note/${mockEncodedFilename}`)
+
+    // Setup default router mock
+    mockUseRouter.mockReturnValue({
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
+      prefetch: jest.fn()
+    })
   })
 
   function renderWithSaveStatus() {
     return render(
       <SaveStatusProvider>
-        <SidebarProvider>
-          <UserProvider>
-            <WorkspaceProvider>
-              <SaveStatusChecker />
-              <NoteEditorContainer filename={mockEncodedFilename} />
-            </WorkspaceProvider>
-          </UserProvider>
-        </SidebarProvider>
+        <NotesProvider>
+          <SidebarProvider>
+            <UserProvider>
+              <WorkspaceProvider>
+                <SaveStatusChecker />
+                <NoteEditorContainer filename={mockEncodedFilename} />
+              </WorkspaceProvider>
+            </UserProvider>
+          </SidebarProvider>
+        </NotesProvider>
       </SaveStatusProvider>
     )
   }
@@ -133,6 +150,7 @@ describe('Saving Integration', () => {
     const mockContentBuffer = new TextEncoder().encode(mockContent)
     mockDownloadNote.mockResolvedValue(new Uint8Array(mockContentBuffer))
     mockUploadNote.mockResolvedValue({ filename: mockFilename })
+    mockRenameNote.mockResolvedValue({ filename: mockFilename })
 
     await act(async () => {
       renderWithSaveStatus()

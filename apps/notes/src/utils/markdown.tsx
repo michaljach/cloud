@@ -1,5 +1,94 @@
 import React from 'react'
 
+/**
+ * Extract the first line of content as a title
+ * If content is empty or only whitespace, returns "New note"
+ * Strips markdown formatting to provide clean text
+ */
+export function extractTitleFromContent(content: string): string {
+  const lines = content.split('\n')
+
+  // Find the first non-empty line
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+    if (trimmedLine) {
+      return stripMarkdown(trimmedLine)
+    }
+  }
+
+  // If no non-empty lines found, return "New note"
+  return 'New note'
+}
+
+/**
+ * Generate a safe filename from content
+ * If content is empty, returns "new-note.md"
+ * Handles duplicates by appending numbers
+ */
+export function generateFilenameFromContent(
+  content: string,
+  existingFilenames: string[] = []
+): string {
+  const title = extractTitleFromContent(content)
+
+  // Convert title to safe filename
+  let safeFilename = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .trim()
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+
+  // If empty after sanitization, use default
+  if (!safeFilename) {
+    safeFilename = 'new-note'
+  }
+
+  // Add .md extension
+  let filename = `${safeFilename}.md`
+
+  // Handle duplicates
+  let counter = 1
+  while (existingFilenames.includes(filename)) {
+    filename = `${safeFilename}-${counter}.md`
+    counter++
+  }
+
+  return filename
+}
+
+/**
+ * Strip markdown formatting from text
+ */
+function stripMarkdown(text: string): string {
+  return (
+    text
+      // Remove markdown headers (# ## ### etc.)
+      .replace(/^#{1,6}\s+/, '')
+      // Remove inline images ![alt](url) -> alt (do this before links)
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
+      // Remove links [text](url) -> text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove code blocks ```code``` -> code
+      .replace(/```([^`]+)```/g, '$1')
+      // Remove inline code `code` -> code
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove bold/italic markers (** or __ or * or _)
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      // Remove strikethrough ~~text~~ -> text
+      .replace(/~~(.*?)~~/g, '$1')
+      // Remove HTML tags
+      .replace(/<[^>]*>/g, '')
+      // Clean up extra whitespace
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
+}
+
 export function parseMarkdown(md: string): React.ReactNode {
   const lines = md.split(/\r?\n/)
   const elements: React.ReactNode[] = []

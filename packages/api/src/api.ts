@@ -666,6 +666,49 @@ export async function createEmptyNote(
   return { filename }
 }
 
+export async function renameNote(
+  oldFilename: string,
+  newFilename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<{ filename: string }> {
+  const url = new URL(`${API_URL}/api/notes/${encodeURIComponent(oldFilename)}/rename`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({ newFilename })
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Rename failed')
+  return json.data
+}
+
+export async function deleteNote(
+  filename: string,
+  accessToken: string,
+  workspaceId?: string
+): Promise<{ filename: string }> {
+  const url = new URL(`${API_URL}/api/notes/${encodeURIComponent(filename)}`)
+  if (workspaceId) {
+    url.searchParams.set('workspaceId', workspaceId)
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  })
+  const json = await res.json()
+  if (!json.success) throw new Error(json.error || 'Delete failed')
+  return json.data
+}
+
 // Admin Settings API functions (root admin only)
 
 /**
