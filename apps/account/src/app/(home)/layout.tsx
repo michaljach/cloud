@@ -1,7 +1,9 @@
-import type { Metadata } from 'next'
 import { SidebarProvider, SidebarInset } from '@repo/ui/components/base/sidebar'
-import { PageSidebar } from '@/features/layout/page-sidebar'
+
+import type { Metadata } from 'next'
+
 import { PageHeader } from '@/features/layout/page-header'
+import { PageSidebar } from '@/features/layout/page-sidebar'
 
 export const metadata: Metadata = {
   title: 'Dashboard',

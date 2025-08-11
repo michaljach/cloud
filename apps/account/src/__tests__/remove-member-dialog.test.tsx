@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
+import React from 'react'
+
 import { RemoveMemberDialog } from '../features/workspaces/dialogs/remove-member-dialog'
 
 describe('RemoveMemberDialog', () => {

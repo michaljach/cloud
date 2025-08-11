@@ -1,5 +1,6 @@
-import { Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
+import { Users } from 'lucide-react'
+
 import type { WorkspaceMember } from '@repo/types'
 
 interface WorkspaceStatsCardProps {

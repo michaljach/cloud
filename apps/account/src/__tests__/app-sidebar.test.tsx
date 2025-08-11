@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
+import { render, screen } from '@testing-library/react'
+import React from 'react'
+
 import { PageSidebarWorkspaces } from '@/features/layout/page-sidebar-workspaces'
 
 // Mock the auth hooks

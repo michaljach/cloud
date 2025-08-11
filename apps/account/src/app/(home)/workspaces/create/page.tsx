@@ -1,7 +1,8 @@
-import { CreateWorkspaceForm } from '@/features/workspaces/components/create-workspace-form'
 import { Button } from '@repo/ui/components/base/button'
 import { ArrowLeft, Building2 } from 'lucide-react'
 import Link from 'next/link'
+
+import { CreateWorkspaceForm } from '@/features/workspaces/components/create-workspace-form'
 
 export default function CreateWorkspacePage() {
   return (

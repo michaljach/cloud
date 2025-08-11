@@ -1,6 +1,5 @@
 'use client'
 
-import { Box, Settings } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -13,10 +12,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
-import Link from 'next/link'
 import { StorageQuota } from '@repo/ui/components/storage-quota'
+import { Box, Settings } from 'lucide-react'
+import Link from 'next/link'
+
 import { PageSidebarHeader } from '../notes/components/page-sidebar-header'
 import { PageSidebarNotes } from '../notes/components/page-sidebar-notes'
+
 import { useNotes } from '@/features/notes/providers/notes-provider'
 
 export function PageSidebar(props: React.ComponentProps<typeof Sidebar>) {

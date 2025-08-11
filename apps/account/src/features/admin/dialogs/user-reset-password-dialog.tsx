@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { resetUserPassword } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,12 @@ import {
   FormLabel,
   FormMessage
 } from '@repo/ui/components/base/form'
-import { Input } from '@repo/ui/components/base/input'
-import { Button } from '@repo/ui/components/base/button'
 import { Icon } from '@repo/ui/components/base/icons'
-import { useUser } from '@repo/providers'
-import { resetUserPassword } from '@repo/api'
+import { Input } from '@repo/ui/components/base/input'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
 import type { User } from '@repo/types'
 
 // Function to generate a secure password

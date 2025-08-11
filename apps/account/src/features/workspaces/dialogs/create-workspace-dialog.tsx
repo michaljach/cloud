@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { createWorkspace } from '@repo/api'
 import { Button } from '@repo/ui/components/base/button'
-import { Input } from '@repo/ui/components/base/input'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,8 @@ import {
   DialogHeader,
   DialogTitle
 } from '@repo/ui/components/base/dialog'
-import { createWorkspace } from '@repo/api'
+import { Input } from '@repo/ui/components/base/input'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface CreateWorkspaceDialogProps {

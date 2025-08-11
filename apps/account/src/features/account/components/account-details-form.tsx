@@ -1,7 +1,8 @@
 'use client'
 
-import { DetailsForm } from './details-form'
 import { User } from '@repo/types'
+
+import { DetailsForm } from './details-form'
 
 interface AccountDetailsFormProps {
   user: User

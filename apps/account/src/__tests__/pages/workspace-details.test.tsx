@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { UserProvider } from '@repo/providers'
+import { useUser } from '@repo/providers'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
+import React from 'react'
+
 import WorkspaceDetailsPage from '../../app/(home)/workspaces/[id]/page'
 
 // Mock the API functions
@@ -59,7 +61,6 @@ import {
   removeUserFromWorkspace,
   leaveWorkspace
 } from '@repo/api'
-import { useUser } from '@repo/providers'
 
 describe('Workspace Details Page', () => {
   const mockUser = {

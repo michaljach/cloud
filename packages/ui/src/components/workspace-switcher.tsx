@@ -1,7 +1,11 @@
 'use client'
 
-import React from 'react'
+import { useWorkspace } from '@repo/providers'
 import { ChevronDown, Building2, User, Crown, Shield, Users, Check } from 'lucide-react'
+import React from 'react'
+
+import { Badge } from './base/badge'
+import { Button } from './base/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +13,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from './base/dropdown-menu'
-import { Button } from './base/button'
-import { Badge } from './base/badge'
-import { useWorkspace } from '@repo/providers'
+
+
 import type { WorkspaceMembership } from '@repo/types'
 
 interface WorkspaceSwitcherProps {

@@ -1,5 +1,6 @@
 import { getServerUser } from '@repo/providers'
 import { cookies } from 'next/headers'
+
 import { PasswordChangeForm } from '@/features/auth/components/password-change-form'
 
 export default async function PasswordChangePage() {

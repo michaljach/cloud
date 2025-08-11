@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import { useUser } from '@repo/providers'
 import { User } from '@repo/types'
 import { Button } from '@repo/ui/components/base/button'
 import { Input } from '@repo/ui/components/base/input'
 import { Label } from '@repo/ui/components/base/label'
+import { useState } from 'react'
 
 interface DetailsFormProps {
   user: User

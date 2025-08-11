@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { UserProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
+import React from 'react'
 
 // Mock workspace-related API functions
 jest.mock('@repo/api', () => ({

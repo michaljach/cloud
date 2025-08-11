@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
-import { useUser } from '@repo/providers'
 import { getUsers } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
+
 import type { User } from '@repo/types'
 
 interface AdminUsersContextType {

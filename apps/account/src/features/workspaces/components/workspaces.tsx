@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useUser } from '@repo/providers'
-import { convertUserWorkspacesToMemberships } from '@repo/utils'
+import { Badge } from '@repo/ui/components/base/badge'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Card,
   CardContent,
@@ -10,10 +10,11 @@ import {
   CardHeader,
   CardTitle
 } from '@repo/ui/components/base/card'
-import { Badge } from '@repo/ui/components/base/badge'
-import { Button } from '@repo/ui/components/base/button'
+import { convertUserWorkspacesToMemberships } from '@repo/utils'
 import { Building2, Calendar, Users, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
 import type { WorkspaceMembership } from '@repo/types'
 
 export function WorkspacesClient() {

@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { acceptWorkspaceInvite, declineWorkspaceInvite } from '@repo/api'
 import { useUser, useInvites } from '@repo/providers'
+import { Badge } from '@repo/ui/components/base/badge'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Table,
   TableBody,
@@ -10,11 +12,10 @@ import {
   TableHeader,
   TableRow
 } from '@repo/ui/components/base/table'
-import { Button } from '@repo/ui/components/base/button'
-import { Badge } from '@repo/ui/components/base/badge'
-import { acceptWorkspaceInvite, declineWorkspaceInvite } from '@repo/api'
 import { Mail, Check, X, Clock, Building2, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
 import type { WorkspaceInvite } from '@repo/types'
 
 const STATUS_CONFIG = {

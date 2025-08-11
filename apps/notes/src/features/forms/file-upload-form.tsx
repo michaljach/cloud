@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import { uploadEncryptedNote } from '@repo/api/src/api'
 import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@repo/ui/components/base/card'
 import { Input } from '@repo/ui/components/base/input'
-import { Button } from '@repo/ui/components/base/button'
 import { Label } from '@repo/ui/components/base/label'
-import { uploadEncryptedNote } from '@repo/api/src/api'
 import { encryptFile, getEncryptionKey } from '@repo/utils'
+import React, { useState } from 'react'
 
 function FileUpload() {
   const [file, setFile] = useState<File | null>(null)

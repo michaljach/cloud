@@ -1,11 +1,11 @@
 'use client'
 
-import React from 'react'
 import { useUser } from '@repo/providers'
-import { HardDrive, FileText, Image } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
 import { formatFileSize } from '@repo/utils'
+import { HardDrive, FileText, Image } from 'lucide-react'
+import React from 'react'
 
 export function StorageQuota() {
   const { storageQuota, loading, error, user } = useUser()

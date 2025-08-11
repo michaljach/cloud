@@ -8,8 +8,9 @@ import {
   useSidebar
 } from '@repo/ui/components/base/sidebar'
 import { Skeleton } from '@repo/ui/components/base/skeleton'
-import Link from 'next/link'
 import { base64urlEncode } from '@repo/utils'
+import Link from 'next/link'
+
 import { useNotes } from '@/features/notes/providers/notes-provider'
 
 export function PageSidebarNotes() {

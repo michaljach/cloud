@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { PasswordChangeForm } from '../features/auth/components/password-change-form'
-import { UserProvider } from '@repo/providers'
 import { changePassword } from '@repo/api'
+import { UserProvider } from '@repo/providers'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import React from 'react'
+
+import { PasswordChangeForm } from '../features/auth/components/password-change-form'
+
 
 // Mock the API
 jest.mock('@repo/api', () => ({

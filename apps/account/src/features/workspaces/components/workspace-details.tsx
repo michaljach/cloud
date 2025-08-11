@@ -1,24 +1,27 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useUser } from '@repo/providers'
-import { convertUserWorkspaceToMembership } from '@repo/utils'
 import {
   getWorkspaceMembers,
   updateUserWorkspaceRole,
   removeUserFromWorkspace,
   leaveWorkspace
 } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { convertUserWorkspaceToMembership } from '@repo/utils'
 import { useParams } from 'next/navigation'
-import { WorkspaceEditDialog } from '@/features/workspaces/dialogs/workspace-edit-dialog'
-import { WorkspaceInviteDialog } from '@/features/workspaces/dialogs/workspace-invite-dialog'
+import { useEffect, useState, useCallback } from 'react'
+
+import { WorkspaceHeader } from './workspace-header'
+
+import type { WorkspaceMembership, WorkspaceMember } from '@repo/types'
+
+import { WorkspaceInfoCard } from '@/features/workspaces/components/workspace-info-card'
+import { WorkspaceMembersTable } from '@/features/workspaces/components/workspace-members-table'
+import { WorkspaceStatsCard } from '@/features/workspaces/components/workspace-stats-card'
 import { LeaveWorkspaceDialog } from '@/features/workspaces/dialogs/leave-workspace-dialog'
 import { RemoveMemberDialog } from '@/features/workspaces/dialogs/remove-member-dialog'
-import { WorkspaceHeader } from './workspace-header'
-import { WorkspaceInfoCard } from '@/features/workspaces/components/workspace-info-card'
-import { WorkspaceStatsCard } from '@/features/workspaces/components/workspace-stats-card'
-import { WorkspaceMembersTable } from '@/features/workspaces/components/workspace-members-table'
-import type { WorkspaceMembership, WorkspaceMember } from '@repo/types'
+import { WorkspaceEditDialog } from '@/features/workspaces/dialogs/workspace-edit-dialog'
+import { WorkspaceInviteDialog } from '@/features/workspaces/dialogs/workspace-invite-dialog'
 
 export function WorkspaceDetailsClient() {
   const { user, loading, accessToken } = useUser()

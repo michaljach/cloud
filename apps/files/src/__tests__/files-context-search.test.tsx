@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom'
-import React from 'react'
+import { searchFiles } from '@repo/api'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
+
 import { FilesProvider, FilesContext } from '@/features/files/providers/files-context-provider'
-import { searchFiles } from '@repo/api'
+
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({

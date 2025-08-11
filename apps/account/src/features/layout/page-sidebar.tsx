@@ -1,17 +1,5 @@
-import * as React from 'react'
-import {
-  LayoutDashboard,
-  Users,
-  Settings,
-  HelpCircle,
-  Box,
-  PlusCircle,
-  Mail,
-  Lock
-} from 'lucide-react'
 import { getServerUser } from '@repo/providers'
-import { cookies } from 'next/headers'
-
+import { Button } from '@repo/ui/components/base/button'
 import {
   Sidebar,
   SidebarContent,
@@ -26,8 +14,20 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem
 } from '@repo/ui/components/base/sidebar'
-import { Button } from '@repo/ui/components/base/button'
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  HelpCircle,
+  Box,
+  PlusCircle,
+  Mail,
+  Lock
+} from 'lucide-react'
+import { cookies } from 'next/headers'
 import Link from 'next/link'
+import * as React from 'react'
+
 import { PageSidebarWorkspaces } from './page-sidebar-workspaces'
 
 export async function PageSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom'
-import React from 'react'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
+
 import { DeleteNoteDialog } from '@/features/notes/dialogs/delete-note-dialog'
 import { NotesProvider } from '@/features/notes/providers/notes-provider'
-import { UserProvider, WorkspaceProvider } from '@repo/providers'
+
 
 // Mock the API functions
 jest.mock('@repo/api', () => ({

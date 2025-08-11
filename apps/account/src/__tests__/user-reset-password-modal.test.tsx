@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { UserResetPasswordDialog } from '../features/admin/dialogs/user-reset-password-dialog'
-import { UserProvider } from '@repo/providers'
 import { resetUserPassword } from '@repo/api'
+import { UserProvider } from '@repo/providers'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import React from 'react'
+
+import { UserResetPasswordDialog } from '../features/admin/dialogs/user-reset-password-dialog'
+
 
 // Mock the API
 jest.mock('@repo/api', () => ({

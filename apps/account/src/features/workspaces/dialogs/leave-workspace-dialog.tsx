@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@repo/ui/components/base/dialog'
-import { Button } from '@repo/ui/components/base/button'
 import { AlertTriangle } from 'lucide-react'
 
 interface LeaveWorkspaceDialogProps {

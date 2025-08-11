@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/providers'
 import { useInvites } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
+
 import { PageSidebarInvitations } from '@/features/layout/page-sidebar-invitations'
 
 // Mock the auth hooks

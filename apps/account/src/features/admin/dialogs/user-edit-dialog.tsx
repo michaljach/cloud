@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { updateUser } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
   FormMessage
 } from '@repo/ui/components/base/form'
 import { Input } from '@repo/ui/components/base/input'
-import { Button } from '@repo/ui/components/base/button'
 import {
   Select,
   SelectContent,
@@ -29,8 +28,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { useUser } from '@repo/providers'
-import { updateUser } from '@repo/api'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
 import type { User } from '@repo/types'
 
 interface UserEditDialogProps {

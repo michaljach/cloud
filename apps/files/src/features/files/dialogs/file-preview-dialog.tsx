@@ -1,10 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useUser } from '@repo/providers'
 import { downloadEncryptedUserFile } from '@repo/api'
-import { decryptFile, getEncryptionKey } from '@repo/utils'
-import { getFileType } from '@/utils/fileTypeDetection'
+import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
@@ -12,9 +10,12 @@ import {
   DialogFooter,
   DialogDescription
 } from '@repo/ui/components/base/dialog'
-import { Button } from '@repo/ui/components/base/button'
+import { decryptFile, getEncryptionKey } from '@repo/utils'
 import { Download, X, FileText, Image as ImageIcon } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+
+import { getFileType } from '@/utils/fileTypeDetection'
 
 interface FilePreviewProps {
   isOpen: boolean

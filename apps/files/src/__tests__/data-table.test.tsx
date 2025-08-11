@@ -1,11 +1,13 @@
 import '@testing-library/jest-dom'
-import React from 'react'
+import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { DataTable } from '@/features/files/tables/files-table/files-table'
-import { columns } from '@/features/files/tables/files-table/files-columns-config'
+import React from 'react'
+
 import { FilesProvider } from '@/features/files/providers/files-context-provider'
-import { UserProvider, WorkspaceProvider } from '@repo/providers'
+import { columns } from '@/features/files/tables/files-table/files-columns-config'
+import { DataTable } from '@/features/files/tables/files-table/files-table'
+
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({

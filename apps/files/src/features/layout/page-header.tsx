@@ -1,7 +1,7 @@
 'use client'
 
-import { Header } from '@repo/ui/components/header'
 import { useUser } from '@repo/providers'
+import { Header } from '@repo/ui/components/header'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 

@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useUser } from '@repo/providers'
 import { updateWorkspace } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle
 } from '@repo/ui/components/base/dialog'
-import { Button } from '@repo/ui/components/base/button'
 import {
   Form,
   FormControl,
@@ -24,6 +21,10 @@ import {
   FormMessage
 } from '@repo/ui/components/base/form'
 import { Input } from '@repo/ui/components/base/input'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
 import type { Workspace } from '@repo/types'
 
 const updateWorkspaceSchema = z.object({

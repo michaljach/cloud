@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useContext } from 'react'
+import { Button } from '@repo/ui/components/base/button'
 import { Input } from '@repo/ui/components/base/input'
 import { Search, X } from 'lucide-react'
-import { Button } from '@repo/ui/components/base/button'
+import { useState, useContext } from 'react'
+
 import { FilesContext } from '@/features/files/providers/files-context-provider'
 
 interface SearchClientProps {

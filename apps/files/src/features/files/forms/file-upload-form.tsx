@@ -1,11 +1,13 @@
 'use client'
 
-import React, { useState, useContext } from 'react'
-import { useUser, useWorkspace } from '@repo/providers'
 import { uploadFilesBatch } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/providers'
 import { encryptFile, getEncryptionKey } from '@repo/utils'
-import { FilesContext } from '@/features/files/providers/files-context-provider'
+import React, { useState, useContext } from 'react'
 import { toast } from 'sonner'
+
+import { FilesContext } from '@/features/files/providers/files-context-provider'
+
 
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
   const [files, setFiles] = useState<File[]>([])

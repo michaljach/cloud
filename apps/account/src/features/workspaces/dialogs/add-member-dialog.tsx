@@ -1,14 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { addUserToWorkspace } from '@repo/api'
 import { Button } from '@repo/ui/components/base/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@repo/ui/components/base/select'
 import {
   Dialog,
   DialogContent,
@@ -17,9 +10,17 @@ import {
   DialogHeader,
   DialogTitle
 } from '@repo/ui/components/base/dialog'
-import { addUserToWorkspace } from '@repo/api'
-import type { Workspace, WorkspaceMember, User } from '@repo/types'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@repo/ui/components/base/select'
+import { useState } from 'react'
 import { toast } from 'sonner'
+
+import type { Workspace, WorkspaceMember, User } from '@repo/types'
 
 interface AddMemberDialogProps {
   open: boolean

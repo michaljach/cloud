@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom'
 import React from 'react'
-import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { UserDropdown } from '@repo/ui/components/user-dropdown'
@@ -54,8 +53,8 @@ import {
   updateUserWorkspaceRole,
   removeUserFromWorkspace
 } from '@repo/api'
-
 import { useUser, useWorkspace } from '@repo/providers'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 
 describe('Workspace Integration Scenarios', () => {
   beforeEach(() => {

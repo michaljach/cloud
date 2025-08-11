@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
 import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
+import { Icon } from '@repo/ui/components/base/icons'
+import { useState } from 'react'
+
+import type { User } from '@repo/types'
+
 import { UsersCreateDialog } from '@/features/admin/dialogs/users-create-dialog'
 import { UsersEditDialog } from '@/features/admin/dialogs/users-edit-dialog'
 import { UsersResetPasswordDialog } from '@/features/admin/dialogs/users-reset-password-dialog'
-import { UsersTable } from '@/features/admin/tables/users-table'
-import { Button } from '@repo/ui/components/base/button'
-import { Icon } from '@repo/ui/components/base/icons'
 import { AdminUsersProvider, useAdminUsers } from '@/features/admin/providers/admin-users-provider'
-import type { User } from '@repo/types'
+import { UsersTable } from '@/features/admin/tables/users-table'
+
 
 export function AdminUsersContent() {
   const { user } = useUser()

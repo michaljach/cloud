@@ -1,23 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { getWorkspaceMembers, updateUserWorkspaceRole, removeUserFromWorkspace } from '@repo/api'
 import { Button } from '@repo/ui/components/base/button'
-import { Icon } from '@repo/ui/components/base/icons'
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell
-} from '@repo/ui/components/base/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@repo/ui/components/base/select'
 import {
   Dialog,
   DialogContent,
@@ -26,11 +10,30 @@ import {
   DialogHeader,
   DialogTitle
 } from '@repo/ui/components/base/dialog'
-import { getWorkspaceMembers, updateUserWorkspaceRole, removeUserFromWorkspace } from '@repo/api'
-import { RemoveMemberDialog } from './remove-member-dialog'
-import { AddMemberDialog } from './add-member-dialog'
-import type { Workspace, WorkspaceMember, User } from '@repo/types'
+import { Icon } from '@repo/ui/components/base/icons'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@repo/ui/components/base/select'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell
+} from '@repo/ui/components/base/table'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+
+import { AddMemberDialog } from './add-member-dialog'
+import { RemoveMemberDialog } from './remove-member-dialog'
+
+import type { Workspace, WorkspaceMember, User } from '@repo/types'
+
 
 interface WorkspaceMembersDialogProps {
   open: boolean

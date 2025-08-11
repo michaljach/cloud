@@ -1,7 +1,8 @@
-import { Building2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
 import { Badge } from '@repo/ui/components/base/badge'
 import { Button } from '@repo/ui/components/base/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/base/card'
+import { Building2 } from 'lucide-react'
+
 import type { WorkspaceMembership } from '@repo/types'
 
 interface WorkspaceInfoCardProps {

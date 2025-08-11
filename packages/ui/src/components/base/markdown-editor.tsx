@@ -1,6 +1,7 @@
 'use client'
 
 import MDEditor from '@uiw/react-md-editor'
+
 import type { FC } from 'react'
 
 interface EditorProps {

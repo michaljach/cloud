@@ -1,13 +1,15 @@
 import './globals.css'
 import '@repo/ui/styles.css'
-import type { Metadata } from 'next'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarInset, SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { AppSidebar } from '@/features/layout/page-sidebar'
-import { SearchClient } from '@/features/layout/page-search'
+import { Toaster } from '@repo/ui/components/base/sonner'
+
+import type { Metadata } from 'next'
+
 import { FilesProvider } from '@/features/files/providers/files-context-provider'
 import { HeaderUserProvider } from '@/features/layout/page-header'
-import { Toaster } from '@repo/ui/components/base/sonner'
+import { SearchClient } from '@/features/layout/page-search'
+import { AppSidebar } from '@/features/layout/page-sidebar'
 
 export const metadata: Metadata = {
   title: 'Dashboard',

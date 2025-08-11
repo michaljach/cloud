@@ -1,3 +1,5 @@
+import { Badge } from '@repo/ui/components/base/badge'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Card,
   CardContent,
@@ -5,8 +7,13 @@ import {
   CardHeader,
   CardTitle
 } from '@repo/ui/components/base/card'
-import { Badge } from '@repo/ui/components/base/badge'
-import { Button } from '@repo/ui/components/base/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@repo/ui/components/base/select'
 import {
   Table,
   TableHeader,
@@ -15,14 +22,8 @@ import {
   TableRow,
   TableCell
 } from '@repo/ui/components/base/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@repo/ui/components/base/select'
 import { Users, Crown, Shield, User } from 'lucide-react'
+
 import type { WorkspaceMembership, WorkspaceMember } from '@repo/types'
 
 interface WorkspaceMembersTableProps {

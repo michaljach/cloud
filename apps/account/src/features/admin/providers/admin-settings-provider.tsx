@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { useUser } from '@repo/providers'
 import { getPlatformSettings, updatePlatformSettings } from '@repo/api'
+import { useUser } from '@repo/providers'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+
 import type { PlatformSettings } from '@repo/types'
 
 // Form data interface for updating settings

@@ -1,7 +1,8 @@
 import './globals.css'
 import '@repo/ui/styles.css'
-import type { Metadata } from 'next'
 import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/providers'
+
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Dashboard',

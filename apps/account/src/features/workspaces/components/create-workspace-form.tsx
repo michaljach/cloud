@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useUser } from '@repo/providers'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { createWorkspace } from '@repo/api'
+import { useUser } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
 import {
   Form,
@@ -14,8 +14,8 @@ import {
 } from '@repo/ui/components/base/form'
 import { Input } from '@repo/ui/components/base/input'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 const createWorkspaceSchema = z.object({

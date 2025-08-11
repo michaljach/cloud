@@ -1,10 +1,10 @@
 'use client'
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { useUser, useWorkspace } from '@repo/providers'
 import { listFiles, searchFiles } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/providers'
 import { formatFileSize } from '@repo/utils'
 import { usePathname, useRouter } from 'next/navigation'
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 
 export type FilesContextType = {

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { SidebarClose, SidebarOpenIcon } from 'lucide-react'
 import { Toggle } from '@repo/ui/components/base/toggle'
+import { SidebarClose, SidebarOpenIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
 import { parseMarkdown } from '../../../utils/markdown'
 
 export function Editor({

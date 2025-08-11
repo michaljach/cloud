@@ -1,17 +1,21 @@
+import { AppWindow, GripHorizontal } from 'lucide-react'
 import * as React from 'react'
-import { SidebarTrigger } from './base/sidebar'
-import { Separator } from './base/separator'
+
 import { cn } from '../lib/utils'
-import { UserDropdown } from './user-dropdown'
-import { Skeleton } from './base/skeleton'
-import type { User } from '@repo/types'
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem
 } from './base/dropdown-menu'
-import { AppWindow, GripHorizontal } from 'lucide-react'
+import { Separator } from './base/separator'
+import { SidebarTrigger } from './base/sidebar'
+import { Skeleton } from './base/skeleton'
+import { UserDropdown } from './user-dropdown'
+
+import type { User } from '@repo/types'
+
 
 interface HeaderProps {
   title: React.ReactNode

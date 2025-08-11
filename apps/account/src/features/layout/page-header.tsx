@@ -1,8 +1,8 @@
 'use client'
 
-import { Header } from '@repo/ui/components/header'
-import { Icon } from '@repo/ui/components/base/icons'
 import { useUser } from '@repo/providers'
+import { Icon } from '@repo/ui/components/base/icons'
+import { Header } from '@repo/ui/components/header'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 

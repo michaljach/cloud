@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { PageHeader } from '@/features/layout/page-header'
-import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
+import { render, screen, fireEvent } from '@testing-library/react'
+import React from 'react'
+
+import { PageHeader } from '@/features/layout/page-header'
+import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
+
 
 // Mock Next.js router
 const mockPush = jest.fn()

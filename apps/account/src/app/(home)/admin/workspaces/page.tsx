@@ -1,5 +1,5 @@
-import { AdminWorkspacesProvider } from '@/features/admin/providers/admin-workspaces-provider'
 import { AdminWorkspacesContent } from '@/features/admin/components/admin-workspaces'
+import { AdminWorkspacesProvider } from '@/features/admin/providers/admin-workspaces-provider'
 
 export default function WorkspacesPage() {
   return (

@@ -1,5 +1,7 @@
 'use client'
 
+import { useWorkspace } from '@repo/providers'
+import { User as UserType } from '@repo/types'
 import { Avatar, AvatarFallback } from '@repo/ui/components/base/avatar'
 import {
   DropdownMenu,
@@ -25,8 +27,7 @@ import {
   Users,
   Check
 } from 'lucide-react'
-import { User as UserType } from '@repo/types'
-import { useWorkspace } from '@repo/providers'
+
 import type { WorkspaceMembership } from '@repo/types'
 
 export function UserDropdown({

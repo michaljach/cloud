@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom'
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
+
 import { Editor } from '../features/notes/components/editor'
 
 // Mock the markdown parser

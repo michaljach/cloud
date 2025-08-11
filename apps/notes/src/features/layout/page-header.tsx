@@ -1,9 +1,10 @@
 'use client'
 
-import { Header } from '@repo/ui/components/header'
 import { useUser } from '@repo/providers'
+import { Header } from '@repo/ui/components/header'
 import { useRouter } from 'next/navigation'
 import React from 'react'
+
 import { PageHeaderStatus } from '@/features/layout/page-header-status'
 
 const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL

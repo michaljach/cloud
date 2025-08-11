@@ -1,6 +1,8 @@
 'use client'
 
+import { Badge } from '@repo/ui/components/base/badge'
 import { Button } from '@repo/ui/components/base/button'
+import { Icon } from '@repo/ui/components/base/icons'
 import {
   Table,
   TableBody,
@@ -9,11 +11,11 @@ import {
   TableHeader,
   TableRow
 } from '@repo/ui/components/base/table'
-import { Badge } from '@repo/ui/components/base/badge'
-import { Icon } from '@repo/ui/components/base/icons'
 import { formatFileSize } from '@repo/utils'
-import { useAdminUsers } from '@/features/admin/providers/admin-users-provider'
+
 import type { User } from '@repo/types'
+
+import { useAdminUsers } from '@/features/admin/providers/admin-users-provider'
 
 interface UsersTableProps {
   onEditUser: (user: User) => void

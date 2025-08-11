@@ -1,19 +1,21 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { Editor } from './editor'
 import { downloadNote, uploadNote } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/providers'
-import { base64urlDecode, base64urlEncode } from '@repo/utils'
-import { useSaveStatus } from '@/features/notes/providers/status-provider'
-import { useSidebar } from '@repo/ui/components/base/sidebar'
-import { useNotes } from '@/features/notes/providers/notes-provider'
-import { generateFilenameFromContent } from '@/utils/markdown'
-import { DeleteNoteDialog } from '@/features/notes/dialogs/delete-note-dialog'
 import { Button } from '@repo/ui/components/base/button'
+import { useSidebar } from '@repo/ui/components/base/sidebar'
+import { base64urlDecode, base64urlEncode } from '@repo/utils'
 import { Trash2 } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
+
+import { Editor } from './editor'
+
+import { DeleteNoteDialog } from '@/features/notes/dialogs/delete-note-dialog'
+import { useNotes } from '@/features/notes/providers/notes-provider'
+import { useSaveStatus } from '@/features/notes/providers/status-provider'
+import { generateFilenameFromContent } from '@/utils/markdown'
 
 interface NoteEditorContainerProps {
   filename: string

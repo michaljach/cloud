@@ -1,8 +1,15 @@
 'use client'
 
-import * as React from 'react'
-import { Box, HardDrive, PlusCircle, Settings, Trash } from 'lucide-react'
 
+import { useWorkspace } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription
+} from '@repo/ui/components/base/dialog'
 import {
   Sidebar,
   SidebarContent,
@@ -15,18 +22,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription
-} from '@repo/ui/components/base/dialog'
-import { Button } from '@repo/ui/components/base/button'
-import { useWorkspace } from '@repo/providers'
-import { FileUpload } from '@/features/files/forms/file-upload-form'
 import { StorageQuota } from '@repo/ui/components/storage-quota'
+import { Box, HardDrive, PlusCircle, Settings, Trash } from 'lucide-react'
 import Link from 'next/link'
+import * as React from 'react'
+
+import { FileUpload } from '@/features/files/forms/file-upload-form'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [open, setOpen] = React.useState(false)

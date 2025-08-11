@@ -1,8 +1,10 @@
-import React from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
-import UsersPage from '../app/(home)/admin/users/page'
-import { UserProvider } from '@repo/providers'
 import { getUsers } from '@repo/api'
+import { UserProvider } from '@repo/providers'
+import { render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
+
+import UsersPage from '../app/(home)/admin/users/page'
+
 
 // Mock the API
 jest.mock('@repo/api', () => ({

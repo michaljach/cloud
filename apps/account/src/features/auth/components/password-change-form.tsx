@@ -1,12 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useUser } from '@repo/providers'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { changePassword } from '@repo/api'
+import { useUser } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
-import { Input } from '@repo/ui/components/base/input'
-import { Label } from '@repo/ui/components/base/label'
-import { Icon } from '@repo/ui/components/base/icons'
 import {
   Form,
   FormControl,
@@ -15,8 +12,11 @@ import {
   FormLabel,
   FormMessage
 } from '@repo/ui/components/base/form'
+import { Icon } from '@repo/ui/components/base/icons'
+import { Input } from '@repo/ui/components/base/input'
+import { Label } from '@repo/ui/components/base/label'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 
 const passwordChangeSchema = z

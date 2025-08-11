@@ -1,12 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useUser } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
-import { Input } from '@repo/ui/components/base/input'
 import {
   Card,
   CardContent,
@@ -22,6 +18,7 @@ import {
   FormLabel,
   FormMessage
 } from '@repo/ui/components/base/form'
+import { Input } from '@repo/ui/components/base/input'
 import {
   Select,
   SelectContent,
@@ -29,9 +26,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { Switch } from '@repo/ui/components/base/switch'
-import { toast } from 'sonner'
 import { Separator } from '@repo/ui/components/base/separator'
+import { Switch } from '@repo/ui/components/base/switch'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
 import { AdminSettingsProvider, useAdminSettings } from '../providers/admin-settings-provider'
 
 // Utility function to check if user is root admin

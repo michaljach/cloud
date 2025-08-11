@@ -1,7 +1,5 @@
 'use client'
 
-import * as React from 'react'
-import { Building2, PlusCircle, ShieldUser } from 'lucide-react'
 import { useUser, useWorkspace } from '@repo/providers'
 import {
   SidebarMenu,
@@ -11,7 +9,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem
 } from '@repo/ui/components/base/sidebar'
+import { Building2, PlusCircle, ShieldUser } from 'lucide-react'
 import Link from 'next/link'
+import * as React from 'react'
+
 import { PageSidebarInvitations } from './page-sidebar-invitations'
 
 // Utility functions for user permissions

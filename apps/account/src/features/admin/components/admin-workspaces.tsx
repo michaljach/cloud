@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useUser } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
+import { Icon } from '@repo/ui/components/base/icons'
 import {
   Table,
   TableHeader,
@@ -9,17 +11,17 @@ import {
   TableRow,
   TableCell
 } from '@repo/ui/components/base/table'
-import { useUser } from '@repo/providers'
-import { Button } from '@repo/ui/components/base/button'
-import { Icon } from '@repo/ui/components/base/icons'
-import { WorkspaceEditDialog } from '@/features/workspaces/dialogs/workspace-edit-dialog'
-import { CreateWorkspaceDialog } from '@/features/workspaces/dialogs/create-workspace-dialog'
-import { WorkspaceMembersDialog } from '@/features/workspaces/dialogs/workspace-members-dialog'
+import { useState } from 'react'
+
+import type { Workspace } from '@repo/types'
+
 import {
   AdminWorkspacesProvider,
   useAdminWorkspaces
 } from '@/features/admin/providers/admin-workspaces-provider'
-import type { Workspace } from '@repo/types'
+import { CreateWorkspaceDialog } from '@/features/workspaces/dialogs/create-workspace-dialog'
+import { WorkspaceEditDialog } from '@/features/workspaces/dialogs/workspace-edit-dialog'
+import { WorkspaceMembersDialog } from '@/features/workspaces/dialogs/workspace-members-dialog'
 
 // Utility function to check if user is root admin
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'

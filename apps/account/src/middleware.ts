@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 import { getServerUser } from '@repo/providers'
+import { NextResponse } from 'next/server'
+
+import type { NextRequest } from 'next/server'
 
 // Utility function to check if user is root admin
 const SYSTEM_ADMIN_WORKSPACE_ID = 'system-admin-workspace'

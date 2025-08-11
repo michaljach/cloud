@@ -1,10 +1,10 @@
 'use client'
 
+import { useInvites } from '@repo/providers'
+import { Badge } from '@repo/ui/components/base/badge'
+import { SidebarMenuSubItem, SidebarMenuSubButton } from '@repo/ui/components/base/sidebar'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
-import { SidebarMenuSubItem, SidebarMenuSubButton } from '@repo/ui/components/base/sidebar'
-import { Badge } from '@repo/ui/components/base/badge'
-import { useInvites } from '@repo/providers'
 
 export function PageSidebarInvitations() {
   const { inviteCount, loading } = useInvites()

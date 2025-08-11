@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { createWorkspaceInvite } from '@repo/api'
 import { useUser } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
 import {
@@ -23,7 +21,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '@repo/ui/components/base/select'
-import { createWorkspaceInvite } from '@repo/api'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 const inviteSchema = z.object({
   username: z.string().min(1, 'Username is required'),

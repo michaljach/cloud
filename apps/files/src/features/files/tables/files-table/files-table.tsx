@@ -1,26 +1,14 @@
 'use client'
 
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import { useContext, useMemo } from 'react'
-import { FilesContext } from '@/features/files/providers/files-context-provider'
-import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
-import React from 'react'
-import { useUser, useWorkspace } from '@repo/providers'
 import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api'
-import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
-import JSZip from 'jszip'
-import { toast } from 'sonner'
-import { FilePreview } from '@/features/files/dialogs/file-preview-dialog'
-
+import { useUser, useWorkspace } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@repo/ui/components/base/table'
-import { Skeleton } from '@repo/ui/components/base/skeleton'
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription
+} from '@repo/ui/components/base/dialog'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,14 +17,27 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from '@repo/ui/components/base/dropdown-menu'
-import { Button } from '@repo/ui/components/base/button'
-import Link from 'next/link'
+import { Skeleton } from '@repo/ui/components/base/skeleton'
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription
-} from '@repo/ui/components/base/dialog'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@repo/ui/components/base/table'
+import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import JSZip from 'jszip'
+import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
+import { useContext, useMemo } from 'react'
+import { FilesContext } from '@/features/files/providers/files-context-provider'
+import React from 'react'
+import { toast } from 'sonner'
+
+import { FilePreview } from '@/features/files/dialogs/file-preview-dialog'
+
+import Link from 'next/link'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

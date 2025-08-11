@@ -1,14 +1,16 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { NoteEditorContainer } from '../features/notes/components/note-editor-container'
-import { SaveStatusProvider, useSaveStatus } from '@/features/notes/providers/status-provider'
-import { NotesProvider } from '@/features/notes/providers/notes-provider'
+import { downloadNote, uploadNote, renameNote } from '@repo/api'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
-import { downloadNote, uploadNote, renameNote } from '@repo/api'
 import { base64urlDecode } from '@repo/utils'
+import { render, screen, waitFor, act } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import React from 'react'
+
+import { NoteEditorContainer } from '../features/notes/components/note-editor-container'
+
+import { NotesProvider } from '@/features/notes/providers/notes-provider'
+import { SaveStatusProvider, useSaveStatus } from '@/features/notes/providers/status-provider'
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({

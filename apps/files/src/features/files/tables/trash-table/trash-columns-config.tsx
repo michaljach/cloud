@@ -1,16 +1,16 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { Button } from '@repo/ui/components/base/button'
-import { useUser, useWorkspace } from '@repo/providers'
 import { restoreFileFromTrash, deleteFileFromTrash } from '@repo/api'
-import { formatFileSize, formatDate } from '@repo/utils'
-import React from 'react'
+import { useUser, useWorkspace } from '@repo/providers'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription
 } from '@repo/ui/components/base/dialog'
+import { formatFileSize, formatDate } from '@repo/utils'
+import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
+import React from 'react'
 import { toast } from 'sonner'
 
 export function getTrashColumns(refresh: () => void): ColumnDef<any, any>[] {

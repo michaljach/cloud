@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/providers'
 import { getMyInvites } from '@repo/api'
+import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/providers'
 
 // Mock the API
 jest.mock('@repo/api', () => ({

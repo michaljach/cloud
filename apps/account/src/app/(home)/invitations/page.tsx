@@ -1,4 +1,5 @@
 import { Mail } from 'lucide-react'
+
 import { InvitationsTable } from '@/features/admin/tables/invitations-table'
 
 export default function InvitationsPage() {

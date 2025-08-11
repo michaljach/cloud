@@ -1,5 +1,6 @@
 import { getServerUser } from '@repo/providers'
 import { cookies } from 'next/headers'
+
 import { AccountDetailsForm } from '@/features/account/components/account-details-form'
 
 export default async function AccountPage() {

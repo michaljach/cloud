@@ -1,7 +1,16 @@
 'use client'
 
+import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
+import { useUser } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
 import { Checkbox } from '@repo/ui/components/base/checkbox'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription
+} from '@repo/ui/components/base/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,22 +19,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@repo/ui/components/base/dropdown-menu'
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-  DialogDescription
-} from '@repo/ui/components/base/dialog'
+import { formatDate, formatFileSize, decryptFile, getEncryptionKey } from '@repo/utils'
 import { ColumnDef } from '@tanstack/react-table'
 import { Download, MoreHorizontal, Folder as FolderIcon, File as FileIcon } from 'lucide-react'
-import { useUser } from '@repo/providers'
-import { downloadEncryptedUserFile, batchMoveUserFilesToTrash } from '@repo/api'
-
-import { formatDate, formatFileSize, decryptFile, getEncryptionKey } from '@repo/utils'
 import { useContext } from 'react'
-import { FilesContext } from '@/features/files/providers/files-context-provider'
 import React from 'react'
+
+import { FilesContext } from '@/features/files/providers/files-context-provider'
 
 export type FileRow = {
   id: string

@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom'
-import React from 'react'
-import { render, screen, waitFor, act } from '@testing-library/react'
-import { PageSidebar } from '../features/layout/page-sidebar'
 import { UserProvider, WorkspaceProvider } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
+import { render, screen, waitFor, act } from '@testing-library/react'
+import React from 'react'
+
+import { PageSidebar } from '../features/layout/page-sidebar'
+
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({

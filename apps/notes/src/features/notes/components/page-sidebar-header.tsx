@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { PlusCircle } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { createEmptyNote } from '@repo/api'
+import { useUser, useWorkspace } from '@repo/providers'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,9 +9,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
-import { useUser, useWorkspace } from '@repo/providers'
-import { createEmptyNote } from '@repo/api'
 import { base64urlEncode } from '@repo/utils'
+import { PlusCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 
 interface PageSidebarHeaderProps {

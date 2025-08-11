@@ -1,5 +1,5 @@
-import { AdminUsersProvider } from '@/features/admin/providers/admin-users-provider'
 import { AdminUsersContent } from '@/features/admin/components/admin-users'
+import { AdminUsersProvider } from '@/features/admin/providers/admin-users-provider'
 
 export default function UsersPage() {
   return (

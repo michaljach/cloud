@@ -1,6 +1,7 @@
-import Link from 'next/link'
-import { ArrowLeft, Edit, UserPlus } from 'lucide-react'
 import { Button } from '@repo/ui/components/base/button'
+import { ArrowLeft, Edit, UserPlus } from 'lucide-react'
+import Link from 'next/link'
+
 import type { WorkspaceMembership } from '@repo/types'
 
 interface WorkspaceHeaderProps {

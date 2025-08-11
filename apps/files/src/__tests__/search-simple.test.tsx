@@ -1,9 +1,10 @@
 import '@testing-library/jest-dom'
-import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SearchClient } from '@/features/layout/page-search'
+import React from 'react'
+
 import { FilesProvider } from '@/features/files/providers/files-context-provider'
+import { SearchClient } from '@/features/layout/page-search'
 
 // Mock the providers
 jest.mock('@repo/providers', () => ({
