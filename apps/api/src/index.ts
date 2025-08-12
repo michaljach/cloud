@@ -10,6 +10,7 @@ import PhotosController from './controllers/photos.controller'
 import WorkspaceController from './controllers/workspace.controller'
 import WorkspaceInviteController from './controllers/workspaceInvite.controller'
 import AdminController from './controllers/admin.controller'
+import { webdavMiddleware } from './middleware/webdav'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -22,6 +23,9 @@ app.use(
 )
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
+// Add WebDAV middleware before routing-controllers
+app.use(webdavMiddleware)
 
 useExpressServer(app, {
   routePrefix: '/api',

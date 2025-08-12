@@ -85,22 +85,17 @@ export function NotesProvider({ children }: NotesProviderProps) {
     async (oldFilename: string, newFilename: string) => {
       if (!accessToken || !currentWorkspace) return
 
-      try {
-        const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-        await renameNote(oldFilename, newFilename, accessToken, workspaceId)
+      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+      await renameNote(oldFilename, newFilename, accessToken, workspaceId)
 
-        // Update the notes list with the new filename
-        setNotes((prevNotes) =>
-          prevNotes.map((note) =>
-            note.filename === oldFilename
-              ? { ...note, filename: newFilename, title: extractTitleFromFilename(newFilename) }
-              : note
-          )
+      // Update the notes list with the new filename
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.filename === oldFilename
+            ? { ...note, filename: newFilename, title: extractTitleFromFilename(newFilename) }
+            : note
         )
-      } catch (err) {
-        console.error('Failed to rename note:', err)
-        throw err
-      }
+      )
     },
     [accessToken, currentWorkspace, extractTitleFromFilename]
   )

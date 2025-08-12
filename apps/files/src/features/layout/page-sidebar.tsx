@@ -1,6 +1,5 @@
 'use client'
 
-
 import { useWorkspace } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
 import {
@@ -23,7 +22,7 @@ import {
   SidebarMenuItem
 } from '@repo/ui/components/base/sidebar'
 import { StorageQuota } from '@repo/ui/components/storage-quota'
-import { Box, HardDrive, PlusCircle, Settings, Trash } from 'lucide-react'
+import { Box, HardDrive, PlusCircle, Settings, Trash, Smartphone } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 
@@ -87,6 +86,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/settings">
                 <Settings className="w-4 h-4" />
                 <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+            <SidebarMenuButton asChild className="flex items-center gap-2 px-2 w-full">
+              <Link href="/webdav-setup">
+                <Smartphone className="w-4 h-4" />
+                <span>WebDAV Setup</span>
               </Link>
             </SidebarMenuButton>
           </SidebarGroupContent>

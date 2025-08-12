@@ -149,9 +149,8 @@ export function NoteEditorContainer({ filename }: NoteEditorContainerProps) {
               setLastSavedContent(newContent)
               setSaveStatus('saved')
               setSaveStatusText('Saved and renamed')
-            } catch (renameErr) {
+            } catch {
               // If rename fails, just save with the current filename
-              console.error('Failed to rename note:', renameErr)
               await uploadNote(contentBuffer, currentFilename, accessToken, workspaceId)
               setLastSavedContent(newContent)
               setSaveStatus('saved')
