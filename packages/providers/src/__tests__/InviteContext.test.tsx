@@ -76,6 +76,10 @@ describe('InviteContext', () => {
     useUser.mockReturnValue(mockUserContext)
   })
 
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   describe('InviteProvider', () => {
     it('should render children', () => {
       render(

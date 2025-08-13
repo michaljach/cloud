@@ -52,7 +52,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setStorageQuota(null)
       setError(null)
-      Cookies.remove('accessToken', { path: '/' })
+      Cookies.remove('accessToken', {
+        path: '/',
+        secure: false,
+        sameSite: 'lax'
+      })
       router.push('/auth/signin')
     }
   }, [accessToken, router])
@@ -120,7 +124,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const result = await loginUser(username, passwordInput)
       setAccessToken(result.accessToken)
-      let cookieOptions: any = { path: '/' }
+      let cookieOptions: any = {
+        path: '/',
+        secure: false, // Set to true in production with HTTPS
+        sameSite: 'lax'
+      }
       if (result.accessTokenExpiresAt) {
         const exp = new Date(result.accessTokenExpiresAt).getTime()
         setAccessTokenExpiresAt(exp)

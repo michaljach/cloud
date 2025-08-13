@@ -22,22 +22,7 @@ export async function getCurrentUser(accessToken: string): Promise<{
     }
   }
 }> {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  })
-  const json: ApiResponse<{
-    user: User
-    storageQuota: {
-      totalUsage: { bytes: number; megabytes: number }
-      breakdown: {
-        files: { bytes: number; megabytes: number }
-        notes: { bytes: number; megabytes: number }
-        photos: { bytes: number; megabytes: number }
-      }
-    }
-  }> = await res.json()
-  if (!json.success) throw new Error(json.error || 'Failed to fetch user info')
-  return json.data
+  return apiClient.get('/api/auth/me', accessToken)
 }
 
 export async function registerUser(username: string, password: string): Promise<User> {

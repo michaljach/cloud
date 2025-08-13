@@ -31,8 +31,8 @@ export function LoginForm({
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
   const { login } = useUser()
-  const form = useForm<{ email: string; password: string }>({
-    defaultValues: { email: '', password: '' }
+  const form = useForm<{ username: string; password: string }>({
+    defaultValues: { username: '', password: '' }
   })
   const {
     handleSubmit,
@@ -40,14 +40,14 @@ export function LoginForm({
     setError
   } = form
 
-  async function onSubmit(values: { email: string; password: string }) {
+  async function onSubmit(values: { username: string; password: string }) {
     try {
-      await login(values.email, values.password)
+      await login(values.username, values.password)
       window.location.href = redirect
     } catch (err: unknown) {
       let message = 'Login failed'
       if (err instanceof Error) message = err.message
-      setError('email', { message })
+      setError('username', { message })
       setError('password', { message })
     }
   }
@@ -57,7 +57,7 @@ export function LoginForm({
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardDescription>Enter your username below to login to your account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -65,14 +65,14 @@ export function LoginForm({
               <div className="flex flex-col gap-6">
                 <FormField
                   control={form.control}
-                  name="email"
+                  name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Username</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
-                          placeholder="m@example.com"
+                          placeholder="admin"
                           required
                           {...field}
                           disabled={isSubmitting}

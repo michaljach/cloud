@@ -257,7 +257,11 @@ describe('UserContext', () => {
       })
 
       await waitFor(() => {
-        expect(mockCookies.remove).toHaveBeenCalledWith('accessToken', { path: '/' })
+        expect(mockCookies.remove).toHaveBeenCalledWith('accessToken', { 
+          path: '/',
+          secure: false,
+          sameSite: 'lax'
+        })
       })
 
       await waitFor(() => {
@@ -288,7 +292,11 @@ describe('UserContext', () => {
 
       // Should still clear local state even if API call fails
       await waitFor(() => {
-        expect(mockCookies.remove).toHaveBeenCalledWith('accessToken', { path: '/' })
+        expect(mockCookies.remove).toHaveBeenCalledWith('accessToken', { 
+          path: '/',
+          secure: false,
+          sameSite: 'lax'
+        })
       })
     })
   })
