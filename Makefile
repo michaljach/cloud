@@ -8,6 +8,8 @@ help: ## Show this help message
 
 dev: ## Start development environment
 	docker-compose -f docker-compose.dev.yml up -d
+	@echo "Development environment started!"
+	@echo "Run 'make setup-dev' to run migrations and seed the database"
 
 dev-build: ## Build and start development environment
 	docker-compose -f docker-compose.dev.yml up -d --build
@@ -49,6 +51,18 @@ seed: ## Seed the database
 
 seed-dev: ## Seed the database in development
 	docker-compose -f docker-compose.dev.yml exec api npm run seed --workspace=api
+
+setup-dev: ## Run migrations and seed database in development
+	@echo "Running database migrations..."
+	docker-compose -f docker-compose.dev.yml exec api npm run prisma:migrate --workspace=api
+	@echo "Seeding database..."
+	docker-compose -f docker-compose.dev.yml exec api npm run seed --workspace=api
+	@echo "Database setup complete!"
+
+setup: ## Run migrations in production
+	@echo "Running database migrations..."
+	docker-compose exec api npm run prisma:migrate --workspace=api
+	@echo "Database setup complete!"
 
 test: ## Run tests
 	docker-compose exec api npm test

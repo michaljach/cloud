@@ -34,14 +34,18 @@ export function getEncryptionKey(): Uint8Array {
  */
 export async function encryptFile(input: Uint8Array | File, key: Uint8Array): Promise<Uint8Array> {
   const iv = crypto.getRandomValues(new Uint8Array(12))
-  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, [
-    'encrypt'
-  ])
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    key as BufferSource,
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt']
+  )
   let data: ArrayBuffer
   if (input instanceof File) {
     data = await input.arrayBuffer()
   } else {
-    data = input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength)
+    data = input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength) as ArrayBuffer
   }
   const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, data)
   const result = new Uint8Array(iv.length + encrypted.byteLength)
@@ -59,9 +63,13 @@ export async function encryptFile(input: Uint8Array | File, key: Uint8Array): Pr
 export async function decryptFile(encrypted: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
   const iv = encrypted.slice(0, 12)
   const data = encrypted.slice(12)
-  const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, [
-    'decrypt'
-  ])
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    key as BufferSource,
+    { name: 'AES-GCM' },
+    false,
+    ['decrypt']
+  )
   const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, data)
   return new Uint8Array(decrypted)
 }
