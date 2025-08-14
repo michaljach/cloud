@@ -13,13 +13,11 @@ export const metadata: Metadata = {
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <PageSidebar />
-        <SidebarInset>
-          <PageHeader title="Account" />
-          <main className="flex-1 overflow-auto">{children}</main>
-        </SidebarInset>
-      </div>
+      <PageSidebar />
+      <SidebarInset>
+        <PageHeader title="Account" />
+        <main className="flex-1 overflow-auto">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
