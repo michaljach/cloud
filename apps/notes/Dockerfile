@@ -37,6 +37,9 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/apps ./apps
 COPY --from=base /app/packages ./packages
 
+# Set build-time environment variables
+ENV NEXT_PUBLIC_API_URL=http://localhost:4000
+
 # Build the notes app
 RUN npm run build --filter=notes
 
@@ -46,8 +49,9 @@ FROM node:22-alpine AS production
 WORKDIR /app
 
 # Copy built app and dependencies
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/turbo.json ./
 COPY --from=builder /app/apps/notes/.next ./apps/notes/.next
-COPY --from=builder /app/apps/notes/public ./apps/notes/public
 COPY --from=builder /app/apps/notes/package*.json ./apps/notes/
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages

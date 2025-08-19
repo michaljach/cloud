@@ -13,7 +13,7 @@ import AdminController from './controllers/admin.controller'
 import { webdavMiddleware } from './middleware/webdav'
 
 const app = express()
-const PORT = process.env.PORT || 8000
+const PORT = process.env.PORT || 4000
 
 app.use(
   cors({
