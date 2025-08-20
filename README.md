@@ -10,18 +10,19 @@
 .
 ├── apps/
 │   ├── api/         # Express API (OAuth2, Prisma, Postgres)
-│   └── dashboard/   # Next.js dashboard app
+│   ├── account/     # Account management app
+│   ├── files/       # File management app
+│   └── notes/       # Notes app
 ├── packages/
 │   ├── ui/              # Shared React UI components
 │   ├── typescript-config/ # Shared TypeScript configs
 │   └── eslint-config/     # Shared ESLint configs
-├── docker-compose.yml         # Local dev Docker Compose
-├── docker-compose.prod.yml    # Production Docker Compose
-├── package.json               # Root package/workspaces
-└── README.md                  # This file
+├── apps/*/Dockerfile      # Production Dockerfiles for each service
+├── package.json           # Root package/workspaces
+└── README.md              # This file
 ```
 
-A modern monorepo with Next.js (dashboard), Express API (OAuth2), and shared Postgres. Powered by Turborepo.
+A modern monorepo with Next.js apps, Express API (OAuth2), and shared Postgres. Powered by Turborepo.
 
 ---
 
@@ -56,15 +57,53 @@ A modern monorepo with Next.js (dashboard), Express API (OAuth2), and shared Pos
 
 ## Production
 
-1. Build images:
+This project uses standalone Docker containers for production deployment. Each service can be run independently.
+
+### Quick Start
+
+1. Set up environment variables:
+
    ```sh
-   docker build -t myapp-api:latest ./apps/api
-   docker build -t myapp-dashboard:latest ./apps/dashboard
+   cp env.production.example .env.production
+   # Edit .env.production with your values
    ```
-2. Start all services:
+
+2. Build and run all services:
    ```sh
-   docker-compose -f docker-compose.prod.yml up -d
+   make build
+   DATABASE_URL=your-db-url JWT_SECRET=your-secret make run
    ```
+
+### Individual Services
+
+Build specific services:
+
+```sh
+make build-api      # Build API only
+make build-account  # Build Account app only
+make build-files    # Build Files app only
+make build-notes    # Build Notes app only
+```
+
+Run specific services:
+
+```sh
+make run-api        # Run API only
+make run-account    # Run Account app only
+make run-files      # Run Files app only
+make run-notes      # Run Notes app only
+```
+
+### Management Commands
+
+```sh
+make status         # Show container status
+make logs           # Show all logs
+make clean          # Stop and remove all containers
+make restart        # Restart all containers
+```
+
+For more details, see [README-DOCKER.md](README-DOCKER.md).
 
 ---
 

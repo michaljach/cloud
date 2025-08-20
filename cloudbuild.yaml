@@ -2,14 +2,7 @@ steps:
   # Build API
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      [
-        'build',
-        '-f',
-        'apps/api/Dockerfile.prod',
-        '-t',
-        'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
-        '.'
-      ]
+      ['build', '-f', 'apps/api/Dockerfile', '-t', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA', '.']
 
   # Build Account
   - name: 'gcr.io/cloud-builders/docker'
@@ -17,7 +10,7 @@ steps:
       [
         'build',
         '-f',
-        'apps/account/Dockerfile.prod',
+        'apps/account/Dockerfile',
         '-t',
         'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
         '.'
@@ -29,7 +22,7 @@ steps:
       [
         'build',
         '-f',
-        'apps/files/Dockerfile.prod',
+        'apps/files/Dockerfile',
         '-t',
         'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
         '.'
@@ -41,7 +34,7 @@ steps:
       [
         'build',
         '-f',
-        'apps/notes/Dockerfile.prod',
+        'apps/notes/Dockerfile',
         '-t',
         'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
         '.'

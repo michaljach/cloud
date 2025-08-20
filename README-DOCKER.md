@@ -1,268 +1,133 @@
-# Docker Setup for Cloud Monorepo
+# Docker Production Setup
 
-This document describes how to run the cloud monorepo using Docker for both development and production environments.
-
-## Prerequisites
-
-- Docker and Docker Compose installed
-- Make (optional, for using the Makefile commands)
-
-## Quick Start
-
-### Development Environment
-
-1. **Start development environment:**
-
-   ```bash
-   make dev
-   # or
-   docker-compose -f docker-compose.dev.yml up -d
-   ```
-
-2. **Build and start development environment:**
-
-   ```bash
-   make dev-build
-   # or
-   docker-compose -f docker-compose.dev.yml up -d --build
-   ```
-
-3. **Run database migrations:**
-
-   ```bash
-   make migrate-dev
-   # or
-   docker-compose -f docker-compose.dev.yml exec api npm run prisma:migrate --workspace=api
-   ```
-
-4. **Seed the database:**
-   ```bash
-   make seed-dev
-   # or
-   docker-compose -f docker-compose.dev.yml exec api npm run seed --workspace=api
-   ```
-
-### Production Environment
-
-1. **Start production environment:**
-
-   ```bash
-   make prod
-   # or
-   docker-compose up -d
-   ```
-
-2. **Build and start production environment:**
-   ```bash
-   make prod-build
-   # or
-   docker-compose up -d --build
-   ```
+This project now uses standalone Docker containers for production deployment. Each service can be run independently without Docker Compose.
 
 ## Services
 
-### Development Services
+- **API**: Backend API service (Port 8080)
+- **Account**: Account management frontend (Port 3000)
+- **Files**: File management frontend (Port 3001)
+- **Notes**: Notes management frontend (Port 3002)
 
-- **PostgreSQL**: `localhost:5432`
-- **API**: `localhost:4000`
-- **Account App**: `localhost:3000`
-- **Files App**: `localhost:3001`
-- **Notes App**: `localhost:3002`
+## Building Images
 
-### Production Services
+Each service has its own Dockerfile in the `apps/{service}/` directory:
 
-- **PostgreSQL**: `localhost:5432`
-- **API**: `localhost:4000`
-- **Account App**: `localhost:3000`
-- **Files App**: `localhost:3001`
-- **Notes App**: `localhost:3002`
-- **Nginx**: `localhost:80` (reverse proxy)
+```bash
+# Build API
+docker build -f apps/api/Dockerfile -t cloud-api .
+
+# Build Account
+docker build -f apps/account/Dockerfile -t cloud-account .
+
+# Build Files
+docker build -f apps/files/Dockerfile -t cloud-files .
+
+# Build Notes
+docker build -f apps/notes/Dockerfile -t cloud-notes .
+```
+
+## Running Containers
+
+Each container can be run independently. You'll need to provide the necessary environment variables:
+
+### API Service
+
+```bash
+docker run -d \
+  --name cloud-api \
+  -p 8080:8080 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL=postgresql://user:password@host:5432/database \
+  -e JWT_SECRET=your-jwt-secret \
+  -e OAUTH_CLIENT_ID=your-oauth-client-id \
+  -e OAUTH_CLIENT_SECRET=your-oauth-client-secret \
+  cloud-api
+```
+
+### Frontend Services
+
+```bash
+# Account
+docker run -d \
+  --name cloud-account \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e NEXT_PUBLIC_API_URL=http://your-api-url:8080 \
+  cloud-account
+
+# Files
+docker run -d \
+  --name cloud-files \
+  -p 3001:3001 \
+  -e NODE_ENV=production \
+  -e NEXT_PUBLIC_API_URL=http://your-api-url:8080 \
+  cloud-files
+
+# Notes
+docker run -d \
+  --name cloud-notes \
+  -p 3002:3002 \
+  -e NODE_ENV=production \
+  -e NEXT_PUBLIC_API_URL=http://your-api-url:8080 \
+  cloud-notes
+```
 
 ## Environment Variables
 
-Copy `env.example` to `.env` and configure the following variables:
+### API Service
 
-```bash
-# Database Configuration
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=cloud
-DATABASE_URL=postgresql://postgres:postgres@postgres:5432/cloud
+- `NODE_ENV`: Set to `production`
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Secret key for JWT tokens
+- `OAUTH_CLIENT_ID`: OAuth client ID
+- `OAUTH_CLIENT_SECRET`: OAuth client secret
+- `PORT`: Port to run on (default: 8080)
 
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-here
+### Frontend Services
 
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:4000
+- `NODE_ENV`: Set to `production`
+- `NEXT_PUBLIC_API_URL`: URL of the API service
+- `PORT`: Port to run on (Account: 3000, Files: 3001, Notes: 3002)
 
-# Node Environment
-NODE_ENV=development
+## Health Checks
 
-# Ports
-PORT=4000
-```
+All containers include health checks:
 
-## Available Commands
-
-### Development Commands
-
-```bash
-make dev              # Start development environment
-make dev-build        # Build and start development environment
-make logs-dev         # Show development logs
-make shell-api-dev    # Open shell in development API container
-make migrate-dev      # Run database migrations in development
-make seed-dev         # Seed the database in development
-make test-dev         # Run tests in development
-make restart-dev      # Restart development services
-make status-dev       # Show status of development containers
-```
-
-### Production Commands
-
-```bash
-make prod             # Start production environment
-make prod-build       # Build and start production environment
-make logs             # Show production logs
-make shell-api        # Open shell in production API container
-make migrate          # Run database migrations
-make seed             # Seed the database
-make test             # Run tests
-make restart          # Restart all services
-make status           # Show status of all containers
-```
-
-### General Commands
-
-```bash
-make build            # Build all Docker images
-make clean            # Stop and remove all containers, networks, and volumes
-make help             # Show this help message
-```
-
-## Docker Images
-
-### Base Image
-
-- **Node**: 22-alpine
-- **Architecture**: Multi-stage builds for optimized production images
-
-### Individual App Images
-
-Each app has its own Dockerfile with optimized builds:
-
-- `apps/account/Dockerfile` - Account management app
-- `apps/api/Dockerfile` - Backend API with Prisma
-- `apps/files/Dockerfile` - File management app
-- `apps/notes/Dockerfile` - Notes app
-
-## Network Configuration
-
-### Development Network
-
-- **Network**: `cloud-network-dev`
-- **Services**: All services communicate via internal Docker network
-- **External Access**: Services exposed on localhost ports
-
-### Production Network
-
-- **Network**: `cloud-network`
-- **Services**: All services communicate via internal Docker network
-- **Nginx**: Reverse proxy for external access
-- **SSL**: Configured for HTTPS (requires SSL certificates)
-
-## Volumes
-
-### Development Volumes
-
-- `postgres_data_dev`: PostgreSQL data
-- `uploads_dev`: File uploads
-- Source code mounted for hot reloading
-
-### Production Volumes
-
-- `postgres_data`: PostgreSQL data
-- `uploads`: File uploads
-- Built applications (no source mounting)
-
-## Nginx Configuration
-
-The production setup includes an Nginx reverse proxy with:
-
-- Rate limiting
-- Gzip compression
-- Security headers
-- Load balancing
-- SSL termination (configure SSL certificates)
-
-### Virtual Hosts
-
-- `api.localhost` → API service
-- `account.localhost` → Account app
-- `files.localhost` → Files app
-- `notes.localhost` → Notes app
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Port conflicts**: Ensure ports 3000-3002, 4000, 5432, 80, 443 are available
-2. **Database connection**: Wait for PostgreSQL to fully start before running migrations
-3. **Build failures**: Check Node.js version compatibility (requires Node 22)
-4. **Permission issues**: Ensure Docker has proper permissions
-
-### Debugging
-
-1. **View logs:**
-
-   ```bash
-   make logs-dev    # Development
-   make logs        # Production
-   ```
-
-2. **Access container shell:**
-
-   ```bash
-   make shell-api-dev    # Development API
-   make shell-api        # Production API
-   ```
-
-3. **Check container status:**
-   ```bash
-   make status-dev    # Development
-   make status        # Production
-   ```
-
-### Cleanup
-
-```bash
-make clean    # Remove all containers, networks, and volumes
-```
-
-## Development Workflow
-
-1. Start development environment: `make dev`
-2. Run migrations: `make migrate-dev`
-3. Seed database: `make seed-dev`
-4. Access applications at their respective ports
-5. Make code changes (hot reloading enabled)
-6. Run tests: `make test-dev`
-7. Stop environment: `docker-compose -f docker-compose.dev.yml down`
+- API: `http://localhost:8080/health`
+- Account: `http://localhost:3000`
+- Files: `http://localhost:3001`
+- Notes: `http://localhost:3002`
 
 ## Production Deployment
 
-1. Configure environment variables in `.env`
-2. Build and start: `make prod-build`
-3. Run migrations: `make migrate`
-4. Seed database: `make seed`
-5. Configure SSL certificates for Nginx
-6. Access via configured domain names
+For production deployment, you can use:
 
-## Security Considerations
+1. **Google Cloud Run** (recommended)
+2. **Kubernetes**
+3. **Docker Swarm**
+4. **Standalone Docker hosts**
 
-- Change default passwords in production
-- Use strong JWT secrets
-- Configure SSL certificates
-- Set up proper firewall rules
-- Regular security updates
-- Monitor logs for suspicious activity
+Each service is designed to be stateless and can be scaled independently.
+
+## Database
+
+The API service requires a PostgreSQL database. You can run it separately:
+
+```bash
+docker run -d \
+  --name postgres \
+  -e POSTGRES_USER=your-user \
+  -e POSTGRES_PASSWORD=your-password \
+  -e POSTGRES_DB=your-database \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+## Reverse Proxy
+
+For production, you'll want to set up a reverse proxy (like Nginx) to route traffic to the appropriate services based on domain or path.
+
+## Monitoring
+
+Each container exposes health check endpoints that can be used for monitoring and load balancer health checks.
