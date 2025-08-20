@@ -7,8 +7,7 @@ WORKDIR /app
 
 # Copy root package files
 COPY package*.json ./
-# Copy turbo.json if it exists, otherwise create an empty one
-COPY turbo.json ./ 2>/dev/null || echo '{}' > turbo.json
+COPY turbo.json ./
 
 # Copy workspace package.json files
 COPY apps/*/package*.json ./apps/
