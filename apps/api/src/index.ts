@@ -24,6 +24,15 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  })
+})
+
 // Add WebDAV middleware before routing-controllers
 app.use(webdavMiddleware)
 
