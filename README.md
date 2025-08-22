@@ -77,8 +77,17 @@ This is a monorepo built with **Turborepo** containing multiple applications and
 
 3. **Start PostgreSQL (using Docker):**
 
+   **Option A: Using Docker Compose (Recommended):**
+
    ```sh
-   docker run --name cloud-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=cloud -p 5432:5432 -d postgres:15
+   # Start PostgreSQL (volume will be created automatically)
+   docker-compose up -d postgres
+   ```
+
+   **Option B: Using Docker run:**
+
+   ```sh
+   docker run --name cloud-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=cloud -p 5432:5432 -v cloud-postgres-data:/var/lib/postgresql/data -d postgres:15
    ```
 
 4. **Set up the database:**
@@ -121,14 +130,20 @@ npm run format       # Format code with Prettier
 
 ### Using Docker Compose
 
-For a complete development environment with Docker:
+For PostgreSQL development environment:
 
 ```sh
-# Start all services including PostgreSQL
-docker-compose up -d
+# Start PostgreSQL only
+docker-compose up -d postgres
 
-# View logs
-docker-compose logs -f
+# View PostgreSQL logs
+docker-compose logs -f postgres
+
+# Stop PostgreSQL
+docker-compose down postgres
+
+# Start all services (when more services are added)
+docker-compose up -d
 
 # Stop all services
 docker-compose down
