@@ -78,7 +78,7 @@ This is a monorepo built with **Turborepo** containing multiple applications and
 3. **Start PostgreSQL (using Docker):**
 
    ```sh
-   docker run --name cloud-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=cloud -p 5432:5432 -d postgres:15
+   docker run --name cloud-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=cloud -p 5432:5432 -d postgres:15
    ```
 
 4. **Set up the database:**
@@ -98,7 +98,7 @@ This is a monorepo built with **Turborepo** containing multiple applications and
 
 ### Development URLs
 
-- **API**: http://localhost:8080
+- **API**: http://localhost:4000
 - **Account App**: http://localhost:3000
 - **Files App**: http://localhost:3001
 - **Notes App**: http://localhost:3002

@@ -15,7 +15,7 @@ import { Separator } from '@repo/ui/components/base/separator'
 import { Copy, ExternalLink, Smartphone, Monitor } from 'lucide-react'
 
 export default function WebDAVSetupPage() {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
   const webdavUrl = `${baseUrl}/webdav`
 
   const copyToClipboard = (text: string) => {

@@ -78,14 +78,14 @@ npm run format    # If you have Prettier setup
 ### Get an access token (password grant)
 
 ```sh
-curl -X POST http://localhost:8000/api/token \
+curl -X POST http://localhost:4000/api/token \
   -d "grant_type=password&username=user&password=pass&client_id=client1&client_secret=secret"
 ```
 
 ### Access a protected route
 
 ```sh
-curl http://localhost:8000/api/users \
+curl http://localhost:4000/api/users \
   -H "Authorization: Bearer <accessToken>"
 ```
 
