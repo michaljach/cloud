@@ -66,6 +66,8 @@ This is a monorepo built with **Turborepo** containing multiple applications and
    npm install
    ```
 
+   > **Note**: The API build process uses `tsconfig-paths` for runtime path resolution instead of `tsc-alias`. This allows the compiled JavaScript to resolve TypeScript path aliases at runtime.
+
 2. **Set up environment variables:**
 
    ```sh
