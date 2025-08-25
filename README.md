@@ -124,6 +124,31 @@ npm run check-types  # Type check all TypeScript code
 npm run format       # Format code with Prettier
 ```
 
+### Makefile Commands
+
+For convenience, you can also use the included Makefile:
+
+```sh
+make help           # Show all available commands
+make dev            # Start development environment (Docker + install + dev)
+make prod           # Start production environment (Docker + install + build + start)
+make build          # Build all applications
+make start          # Start all applications
+make lint           # Run linting
+make test           # Run tests
+make clean          # Clean build artifacts and node_modules
+make install        # Install dependencies
+make seed           # Seed database
+make docker-up      # Start Docker services
+make docker-down    # Stop Docker services
+```
+
+**Quick Start with Makefile:**
+
+```sh
+make dev            # One command to start everything for development
+```
+
 ---
 
 ## 🐳 Docker Development
