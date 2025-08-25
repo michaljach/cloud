@@ -62,7 +62,7 @@ curl -X PROPFIND \
     <displayname/>
   </prop>
 </propfind>' \
-  http://localhost:8000/webdav
+  http://localhost:4000/webdav
 ```
 
 ### 2. Download File (GET)
@@ -70,7 +70,7 @@ curl -X PROPFIND \
 ```bash
 curl -X GET \
   -H "Authorization: Bearer <token>" \
-  http://localhost:8000/webdav/document.pdf
+  http://localhost:4000/webdav/document.pdf
 ```
 
 ### 3. Upload File (PUT)
@@ -80,7 +80,7 @@ curl -X PUT \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/pdf" \
   --data-binary @document.pdf \
-  http://localhost:8000/webdav/document.pdf
+  http://localhost:4000/webdav/document.pdf
 ```
 
 ### 4. Create Directory (MKCOL)
@@ -88,7 +88,7 @@ curl -X PUT \
 ```bash
 curl -X MKCOL \
   -H "Authorization: Bearer <token>" \
-  http://localhost:8000/webdav/new-folder
+  http://localhost:4000/webdav/new-folder
 ```
 
 ### 5. Delete File (DELETE)
@@ -96,7 +96,7 @@ curl -X MKCOL \
 ```bash
 curl -X DELETE \
   -H "Authorization: Bearer <token>" \
-  http://localhost:8000/webdav/document.pdf
+  http://localhost:4000/webdav/document.pdf
 ```
 
 ## iOS Files App Setup
@@ -104,7 +104,7 @@ curl -X DELETE \
 1. Open the Files app on your iOS device
 2. Tap the three dots menu (⋯) in the top right
 3. Select "Connect to Server"
-4. Enter the WebDAV URL: `http://localhost:8000/webdav`
+4. Enter the WebDAV URL: `http://localhost:4000/webdav`
 5. Enter your email address and password
 6. Your cloud storage will appear under "Locations"
 
