@@ -199,7 +199,7 @@ async function main() {
   })
 
   const token = await new Promise((resolve) => {
-    rl.question('Enter your JWT token (optional, press Enter to skip): ', (answer) => {
+    rl.question('Enter your OAuth2 token (optional, press Enter to skip): ', (answer) => {
       resolve(answer.trim() || '')
     })
   })

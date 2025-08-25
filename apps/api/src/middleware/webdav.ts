@@ -51,9 +51,9 @@ export function webdavMiddleware(req: Request, res: Response, next: NextFunction
 
   // For now, we'll skip detailed token validation in WebDAV middleware
   // and let the individual handlers deal with authentication
-  // In production, you should validate the JWT token here
+  // In production, you should validate the OAuth2 token here
 
-  const user = { id: 'temp-user' } // Placeholder - implement proper JWT validation
+  const user = { id: 'temp-user' } // Placeholder - implement proper OAuth2 validation
 
   // Extract path from URL
   const requestPath = req.path.replace('/webdav', '') || '/'

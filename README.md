@@ -15,7 +15,7 @@ This is a monorepo built with **Turborepo** containing multiple applications and
 - **`api/`** - Express.js API server with OAuth2, Prisma ORM, and PostgreSQL
   - RESTful API endpoints for all services
   - WebDAV protocol support for native iOS integration
-  - JWT-based authentication
+  - OAuth2-based authentication
   - File upload/download handling
   - Database migrations and seeding
 
@@ -72,7 +72,7 @@ This is a monorepo built with **Turborepo** containing multiple applications and
 
    ```sh
    cp env.example .env
-   # Edit .env with your database and JWT secret
+   # Edit .env with your database configuration
    ```
 
 3. **Start PostgreSQL (using Docker):**
@@ -191,7 +191,7 @@ docker run -d --name cloud-notes -p 3002:3002 cloud-notes
 
    ```sh
    make build
-   DATABASE_URL=your-db-url JWT_SECRET=your-secret make run
+   DATABASE_URL=your-db-url make run
    ```
 
 ### Manual Production Deployment
@@ -220,7 +220,7 @@ docker run -d \
   -p 8080:8080 \
   -e NODE_ENV=production \
   -e DATABASE_URL=postgresql://user:password@host:5432/database \
-  -e JWT_SECRET=your-jwt-secret \
+
   -e OAUTH_CLIENT_ID=your-oauth-client-id \
   -e OAUTH_CLIENT_SECRET=your-oauth-client-secret \
   cloud-api
@@ -280,7 +280,7 @@ make setup           # Run migrations and seed database
 
 - `NODE_ENV`: Set to `production`
 - `DATABASE_URL`: PostgreSQL connection string
-- `JWT_SECRET`: Secret key for JWT tokens
+
 - `OAUTH_CLIENT_ID`: OAuth client ID
 - `OAUTH_CLIENT_SECRET`: OAuth client secret
 - `PORT`: Port to run on (default: 8080)
@@ -420,7 +420,7 @@ docker push your-registry/cloud-notes:latest
 
 ### Authentication & Authorization
 
-- JWT-based authentication
+- OAuth2-based authentication
 - OAuth2 server implementation
 - Role-based access control
 - Workspace-based permissions
@@ -540,7 +540,7 @@ docker volume prune -f
 - **Prisma** - Database ORM
 - **PostgreSQL** - Database
 - **OAuth2 Server** - Authentication
-- **JWT** - Token-based auth
+- **OAuth2** - Token-based auth
 
 ### Development
 

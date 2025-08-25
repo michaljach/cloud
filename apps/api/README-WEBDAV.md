@@ -33,10 +33,10 @@ This API now supports WebDAV (Web Distributed Authoring and Versioning) protocol
 
 ### Authentication
 
-All WebDAV requests require authentication using the existing JWT token system. Include the Authorization header:
+All WebDAV requests require authentication using the existing OAuth2 token system. Include the Authorization header:
 
 ```
-Authorization: Bearer <your-jwt-token>
+Authorization: Bearer <your-oauth2-token>
 ```
 
 ### Query Parameters
@@ -113,7 +113,7 @@ curl -X DELETE \
 ### Production Deployment
 
 - **HTTPS Required**: Always use HTTPS in production to protect data in transit
-- **Token Expiration**: JWT tokens have expiration times for security
+- **Token Expiration**: OAuth2 tokens have expiration times for security
 - **Input Validation**: All file paths are validated to prevent directory traversal attacks
 - **File Size Limits**: Implement appropriate file size limits based on your requirements
 
@@ -165,7 +165,7 @@ This will test:
 ### Common Issues
 
 1. **Authentication Failed**
-   - Verify your JWT token is valid and not expired
+   - Verify your OAuth2 token is valid and not expired
    - Check that you're using the correct email/password
 
 2. **Connection Refused**
