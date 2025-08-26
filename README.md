@@ -186,7 +186,7 @@ docker build -f apps/files/Dockerfile -t cloud-files .
 docker build -f apps/notes/Dockerfile -t cloud-notes .
 
 # Run individual services
-docker run -d --name cloud-api -p 8080:8080 cloud-api
+docker run -d --name cloud-api -p 4000:4000 cloud-api
 docker run -d --name cloud-account -p 3000:3000 cloud-account
 docker run -d --name cloud-files -p 3001:3001 cloud-files
 docker run -d --name cloud-notes -p 3002:3002 cloud-notes
