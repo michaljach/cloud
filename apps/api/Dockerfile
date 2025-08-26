@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies for native modules
 RUN apk add --no-cache libc6-compat
@@ -32,7 +32,7 @@ RUN cd packages/ui && npm run build
 RUN cd apps/api && npm run build
 
 # Production stage
-FROM node:22-alpine AS production
+FROM node:20-alpine AS production
 
 WORKDIR /app
 

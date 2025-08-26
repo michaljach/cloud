@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies for native modules
 RUN apk add --no-cache libc6-compat
@@ -26,7 +26,7 @@ RUN npm install
 RUN npm install -g next
 
 # Build stage
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -44,7 +44,7 @@ ENV NEXT_PUBLIC_API_URL=http://localhost:4000
 RUN npm run build --filter=notes
 
 # Production stage
-FROM node:22-alpine AS production
+FROM node:20-alpine AS production
 
 WORKDIR /app
 
