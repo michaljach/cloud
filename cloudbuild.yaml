@@ -1,43 +1,67 @@
 steps:
+  # Create logs bucket if it doesn't exist
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gsutil ls gs://$PROJECT_ID-cloudbuild-logs || gsutil mb gs://$PROJECT_ID-cloudbuild-logs
+
   # Build API service
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-f', 'apps/api/Dockerfile.cloudrun',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-api:latest',
-      '.'
-    ]
+    args:
+      [
+        'build',
+        '-f',
+        'apps/api/Dockerfile.cloudrun',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-api:latest',
+        '.'
+      ]
 
   # Build Account service
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-f', 'apps/account/Dockerfile.cloudrun',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-account:latest',
-      '.'
-    ]
+    args:
+      [
+        'build',
+        '-f',
+        'apps/account/Dockerfile.cloudrun',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-account:latest',
+        '.'
+      ]
 
   # Build Files service
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-f', 'apps/files/Dockerfile.cloudrun',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-files:latest',
-      '.'
-    ]
+    args:
+      [
+        'build',
+        '-f',
+        'apps/files/Dockerfile.cloudrun',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-files:latest',
+        '.'
+      ]
 
   # Build Notes service
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-f', 'apps/notes/Dockerfile.cloudrun',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
-      '-t', 'gcr.io/$PROJECT_ID/cloud-notes:latest',
-      '.'
-    ]
+    args:
+      [
+        'build',
+        '-f',
+        'apps/notes/Dockerfile.cloudrun',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
+        '-t',
+        'gcr.io/$PROJECT_ID/cloud-notes:latest',
+        '.'
+      ]
 
   # Push images to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
@@ -60,59 +84,104 @@ steps:
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'cloud-api',
-      '--image', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '512Mi',
-      '--cpu', '1',
-      '--max-instances', '10',
-      '--set-env-vars', 'NODE_ENV=production'
-    ]
+    args:
+      [
+        'run',
+        'deploy',
+        'cloud-api',
+        '--image',
+        'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
+        '--region',
+        'us-central1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated',
+        '--memory',
+        '512Mi',
+        '--cpu',
+        '1',
+        '--max-instances',
+        '10',
+        '--set-env-vars',
+        'NODE_ENV=production'
+      ]
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'cloud-account',
-      '--image', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '512Mi',
-      '--cpu', '1',
-      '--max-instances', '10',
-      '--set-env-vars', 'NODE_ENV=production'
-    ]
+    args:
+      [
+        'run',
+        'deploy',
+        'cloud-account',
+        '--image',
+        'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
+        '--region',
+        'us-central1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated',
+        '--memory',
+        '512Mi',
+        '--cpu',
+        '1',
+        '--max-instances',
+        '10',
+        '--set-env-vars',
+        'NODE_ENV=production'
+      ]
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'cloud-files',
-      '--image', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '512Mi',
-      '--cpu', '1',
-      '--max-instances', '10',
-      '--set-env-vars', 'NODE_ENV=production'
-    ]
+    args:
+      [
+        'run',
+        'deploy',
+        'cloud-files',
+        '--image',
+        'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
+        '--region',
+        'us-central1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated',
+        '--memory',
+        '512Mi',
+        '--cpu',
+        '1',
+        '--max-instances',
+        '10',
+        '--set-env-vars',
+        'NODE_ENV=production'
+      ]
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'cloud-notes',
-      '--image', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '512Mi',
-      '--cpu', '1',
-      '--max-instances', '10',
-      '--set-env-vars', 'NODE_ENV=production'
-    ]
+    args:
+      [
+        'run',
+        'deploy',
+        'cloud-notes',
+        '--image',
+        'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
+        '--region',
+        'us-central1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated',
+        '--memory',
+        '512Mi',
+        '--cpu',
+        '1',
+        '--max-instances',
+        '10',
+        '--set-env-vars',
+        'NODE_ENV=production'
+      ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  defaultLogsBucket: gs://$PROJECT_ID-cloudbuild-logs
+  timeout: '1800s'
 
 images:
   - 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA'
