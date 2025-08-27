@@ -5,8 +5,8 @@
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/index.ts",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
-    "build": "tsc",
-    "serve": "node -r tsconfig-paths/register dist/index.js",
+    "build": "tsc && tsc-alias",
+    "serve": "node dist/index.js",
     "test": "jest",
     "test:webdav": "node scripts/test-webdav-connection.js",
     "seed": "ts-node prisma/seed.ts",
@@ -28,6 +28,7 @@
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^3.15.0",
+    "tsc-alias": "^1.8.8",
     "typescript": "^5.8.3"
   },
   "dependencies": {
