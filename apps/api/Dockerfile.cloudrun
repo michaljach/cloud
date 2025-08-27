@@ -31,6 +31,9 @@ RUN cd packages/ui && npm run build
 # Build API
 RUN cd apps/api && npm run build
 
+# Ensure Prisma directories exist
+RUN mkdir -p apps/api/node_modules/.prisma apps/api/node_modules/@prisma
+
 # Production stage
 FROM node:20-alpine AS production
 
@@ -51,15 +54,12 @@ COPY --from=base /app/apps/api/src/lib ./apps/api/src/lib
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages ./packages
 
-# Copy Prisma generated client
-COPY --from=base /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
-COPY --from=base /app/apps/api/node_modules/@prisma ./apps/api/node_modules/@prisma
+
 
 # Create uploads directory with proper permissions
 RUN mkdir -p /app/apps/api/uploads && chown -R nextjs:nodejs /app
 
-# Generate Prisma client in production stage
-RUN cd apps/api && npx prisma generate
+
 
 # Set environment
 ENV NODE_ENV=production
