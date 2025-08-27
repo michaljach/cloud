@@ -71,7 +71,7 @@ steps:
     waitFor: ['build-notes']
     id: 'push-notes'
 
-  # Deploy all services
+  # Deploy API service first
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -96,6 +96,20 @@ steps:
         'NODE_ENV=production'
       ]
     waitFor: ['push-api']
+    id: 'deploy-api'
+
+  # Get API service URL
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        API_URL=$(gcloud run services describe cloud-api --region=us-central1 --format="value(status.url)")
+        echo "API_URL=$API_URL" >> /workspace/api_url.txt
+    waitFor: ['deploy-api']
+    id: 'get-api-url'
+
+  # Deploy frontend services with API URL
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -117,9 +131,10 @@ steps:
         '--max-instances',
         '10',
         '--set-env-vars',
-        'NODE_ENV=production'
+        'NODE_ENV=production,NEXT_PUBLIC_API_URL=https://cloud-api-$(gcloud config get-value project).a.run.app'
       ]
-    waitFor: ['push-account']
+    waitFor: ['push-account', 'get-api-url']
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -141,9 +156,10 @@ steps:
         '--max-instances',
         '10',
         '--set-env-vars',
-        'NODE_ENV=production'
+        'NODE_ENV=production,NEXT_PUBLIC_API_URL=https://cloud-api-$(gcloud config get-value project).a.run.app'
       ]
-    waitFor: ['push-files']
+    waitFor: ['push-files', 'get-api-url']
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -165,9 +181,9 @@ steps:
         '--max-instances',
         '10',
         '--set-env-vars',
-        'NODE_ENV=production'
+        'NODE_ENV=production,NEXT_PUBLIC_API_URL=https://cloud-api-$(gcloud config get-value project).a.run.app'
       ]
-    waitFor: ['push-notes']
+    waitFor: ['push-notes', 'get-api-url']
 
 options:
   logging: CLOUD_LOGGING_ONLY
