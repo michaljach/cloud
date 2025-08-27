@@ -1,0 +1,125 @@
+steps:
+  # Build API service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'apps/api/Dockerfile.cloudrun',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-api:latest',
+      '.'
+    ]
+
+  # Build Account service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'apps/account/Dockerfile.cloudrun',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-account:latest',
+      '.'
+    ]
+
+  # Build Files service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'apps/files/Dockerfile.cloudrun',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-files:latest',
+      '.'
+    ]
+
+  # Build Notes service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'apps/notes/Dockerfile.cloudrun',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/cloud-notes:latest',
+      '.'
+    ]
+
+  # Push images to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-api:latest']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-account:latest']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-files:latest']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/cloud-notes:latest']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'cloud-api',
+      '--image', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'cloud-account',
+      '--image', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'cloud-files',
+      '--image', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'cloud-notes',
+      '--image', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '512Mi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+
+images:
+  - 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/cloud-api:latest'
+  - 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/cloud-account:latest'
+  - 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/cloud-files:latest'
+  - 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/cloud-notes:latest'
