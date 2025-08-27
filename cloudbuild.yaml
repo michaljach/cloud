@@ -1,9 +1,11 @@
 steps:
-  # Build and push all services in parallel
+  # Build and push all services in parallel with caching
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
+        '--cache-from',
+        'gcr.io/$PROJECT_ID/cloud-api:latest',
         '-f',
         'apps/api/Dockerfile.cloudrun',
         '-t',
@@ -15,6 +17,8 @@ steps:
     args:
       [
         'build',
+        '--cache-from',
+        'gcr.io/$PROJECT_ID/cloud-account:latest',
         '-f',
         'apps/account/Dockerfile.cloudrun',
         '-t',
@@ -26,6 +30,8 @@ steps:
     args:
       [
         'build',
+        '--cache-from',
+        'gcr.io/$PROJECT_ID/cloud-files:latest',
         '-f',
         'apps/files/Dockerfile.cloudrun',
         '-t',
@@ -37,6 +43,8 @@ steps:
     args:
       [
         'build',
+        '--cache-from',
+        'gcr.io/$PROJECT_ID/cloud-notes:latest',
         '-f',
         'apps/notes/Dockerfile.cloudrun',
         '-t',
@@ -163,8 +171,10 @@ steps:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: '100'
 
-timeout: '1800s'
+timeout: '3600s'
 
 images:
   - 'gcr.io/$PROJECT_ID/cloud-api:latest'

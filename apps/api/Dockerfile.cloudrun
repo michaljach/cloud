@@ -16,8 +16,10 @@ COPY packages/*/package*.json ./packages/
 # Install dependencies (including dev dependencies for build)
 RUN npm ci --include=dev
 
-# Copy source code
-COPY . .
+# Copy source code (optimized for caching)
+COPY apps/api/ ./apps/api/
+COPY packages/ ./packages/
+COPY turbo.json ./
 
 # Ensure workspace links are properly created
 RUN npm install
