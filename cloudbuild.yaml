@@ -1,13 +1,5 @@
 steps:
-  # Create logs bucket if it doesn't exist
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        gsutil ls gs://$PROJECT_ID-cloudbuild-logs || gsutil mb gs://$PROJECT_ID-cloudbuild-logs
-
-  # Build API service
+  # Build and push all services in parallel
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -15,13 +7,10 @@ steps:
         '-f',
         'apps/api/Dockerfile.cloudrun',
         '-t',
-        'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
-        '-t',
         'gcr.io/$PROJECT_ID/cloud-api:latest',
         '.'
       ]
-
-  # Build Account service
+    id: 'build-api'
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -29,13 +18,10 @@ steps:
         '-f',
         'apps/account/Dockerfile.cloudrun',
         '-t',
-        'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
-        '-t',
         'gcr.io/$PROJECT_ID/cloud-account:latest',
         '.'
       ]
-
-  # Build Files service
+    id: 'build-account'
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -43,13 +29,10 @@ steps:
         '-f',
         'apps/files/Dockerfile.cloudrun',
         '-t',
-        'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
-        '-t',
         'gcr.io/$PROJECT_ID/cloud-files:latest',
         '.'
       ]
-
-  # Build Notes service
+    id: 'build-files'
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -57,31 +40,30 @@ steps:
         '-f',
         'apps/notes/Dockerfile.cloudrun',
         '-t',
-        'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
-        '-t',
         'gcr.io/$PROJECT_ID/cloud-notes:latest',
         '.'
       ]
+    id: 'build-notes'
 
-  # Push images to Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA']
+  # Push all images
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/cloud-api:latest']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA']
+    waitFor: ['build-api']
+    id: 'push-api'
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/cloud-account:latest']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA']
+    waitFor: ['build-account']
+    id: 'push-account'
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/cloud-files:latest']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA']
+    waitFor: ['build-files']
+    id: 'push-files'
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/cloud-notes:latest']
+    waitFor: ['build-notes']
+    id: 'push-notes'
 
-  # Deploy to Cloud Run
+  # Deploy all services
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -90,7 +72,7 @@ steps:
         'deploy',
         'cloud-api',
         '--image',
-        'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA',
+        'gcr.io/$PROJECT_ID/cloud-api:latest',
         '--region',
         'us-central1',
         '--platform',
@@ -105,7 +87,7 @@ steps:
         '--set-env-vars',
         'NODE_ENV=production'
       ]
-
+    waitFor: ['push-api']
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -114,7 +96,7 @@ steps:
         'deploy',
         'cloud-account',
         '--image',
-        'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA',
+        'gcr.io/$PROJECT_ID/cloud-account:latest',
         '--region',
         'us-central1',
         '--platform',
@@ -129,7 +111,7 @@ steps:
         '--set-env-vars',
         'NODE_ENV=production'
       ]
-
+    waitFor: ['push-account']
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -138,7 +120,7 @@ steps:
         'deploy',
         'cloud-files',
         '--image',
-        'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA',
+        'gcr.io/$PROJECT_ID/cloud-files:latest',
         '--region',
         'us-central1',
         '--platform',
@@ -153,7 +135,7 @@ steps:
         '--set-env-vars',
         'NODE_ENV=production'
       ]
-
+    waitFor: ['push-files']
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -162,7 +144,7 @@ steps:
         'deploy',
         'cloud-notes',
         '--image',
-        'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA',
+        'gcr.io/$PROJECT_ID/cloud-notes:latest',
         '--region',
         'us-central1',
         '--platform',
@@ -177,6 +159,7 @@ steps:
         '--set-env-vars',
         'NODE_ENV=production'
       ]
+    waitFor: ['push-notes']
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -184,11 +167,7 @@ options:
 timeout: '1800s'
 
 images:
-  - 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/cloud-api:latest'
-  - 'gcr.io/$PROJECT_ID/cloud-account:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/cloud-account:latest'
-  - 'gcr.io/$PROJECT_ID/cloud-files:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/cloud-files:latest'
-  - 'gcr.io/$PROJECT_ID/cloud-notes:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/cloud-notes:latest'
