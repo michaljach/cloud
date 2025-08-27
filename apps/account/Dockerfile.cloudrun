@@ -53,7 +53,6 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/turbo.json ./
 COPY --from=builder /app/apps/account/.next ./apps/account/.next
-COPY --from=builder /app/apps/account/public ./apps/account/public
 COPY --from=builder /app/apps/account/package*.json ./apps/account/
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
