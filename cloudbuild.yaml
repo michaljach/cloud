@@ -181,7 +181,8 @@ steps:
 options:
   logging: CLOUD_LOGGING_ONLY
   defaultLogsBucket: gs://$PROJECT_ID-cloudbuild-logs
-  timeout: '1800s'
+
+timeout: '1800s'
 
 images:
   - 'gcr.io/$PROJECT_ID/cloud-api:$COMMIT_SHA'
