@@ -19,6 +19,8 @@ steps:
         'build',
         '--cache-from',
         'gcr.io/$PROJECT_ID/cloud-account:latest',
+        '--build-arg',
+        'NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL',
         '-f',
         'apps/account/Dockerfile.cloudrun',
         '-t',
@@ -32,6 +34,8 @@ steps:
         'build',
         '--cache-from',
         'gcr.io/$PROJECT_ID/cloud-files:latest',
+        '--build-arg',
+        'NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL',
         '-f',
         'apps/files/Dockerfile.cloudrun',
         '-t',
@@ -45,6 +49,8 @@ steps:
         'build',
         '--cache-from',
         'gcr.io/$PROJECT_ID/cloud-notes:latest',
+        '--build-arg',
+        'NEXT_PUBLIC_API_URL=$_NEXT_PUBLIC_API_URL',
         '-f',
         'apps/notes/Dockerfile.cloudrun',
         '-t',
@@ -178,3 +184,6 @@ images:
   - 'gcr.io/$PROJECT_ID/cloud-account:latest'
   - 'gcr.io/$PROJECT_ID/cloud-files:latest'
   - 'gcr.io/$PROJECT_ID/cloud-notes:latest'
+
+substitutions:
+  _NEXT_PUBLIC_API_URL: 'https://cloud-api-$PROJECT_ID.a.run.app'

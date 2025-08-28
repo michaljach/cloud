@@ -37,7 +37,8 @@ COPY --from=base /app/apps ./apps
 COPY --from=base /app/packages ./packages
 
 # Set build-time environment variables
-ENV NEXT_PUBLIC_API_URL=http://localhost:8080
+ARG NEXT_PUBLIC_API_URL=http://localhost:8080
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build the files app
 RUN npm run build --filter=files
@@ -63,7 +64,6 @@ COPY --from=builder /app/packages ./packages
 RUN chown -R nextjs:nodejs /app
 
 # Set environment
-ENV NODE_ENV=production
 ENV PORT=8080
 
 # Cloud Run requires port 8080
