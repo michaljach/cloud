@@ -16,13 +16,13 @@ import { UserDropdown } from './user-dropdown'
 
 import type { User } from '@repo/types'
 
-
 interface HeaderProps {
   title: React.ReactNode
   children?: React.ReactNode // For things like search bar
   user: User | null
   onLogout?: () => void
   onAccountClick?: () => void
+  onAdminClick?: () => void
   className?: string
   loading?: boolean
   appsLinks?: Array<{
@@ -38,6 +38,7 @@ export function Header({
   user,
   onLogout,
   onAccountClick,
+  onAdminClick,
   className,
   loading,
   appsLinks = []
@@ -83,7 +84,12 @@ export function Header({
             <Skeleton className="h-4 w-4 rounded ml-auto" />
           </div>
         ) : (
-          <UserDropdown user={user} onLogout={onLogout} onAccountClick={onAccountClick} />
+          <UserDropdown
+            user={user}
+            onLogout={onLogout}
+            onAccountClick={onAccountClick}
+            onAdminClick={onAdminClick}
+          />
         )}
       </div>
     </header>

@@ -27,6 +27,10 @@ export function PageHeader({ title, children }: PageHeaderProps) {
     router.push(`${accountUrl}/auth/signin`)
   }
 
+  function handleAdminClick() {
+    router.push(`${accountUrl}/admin`)
+  }
+
   if (!user && !loading) {
     return null
   }
@@ -38,6 +42,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
       loading={loading}
       onLogout={handleLogoutClick}
       onAccountClick={handleAccountClick}
+      onAdminClick={handleAdminClick}
       appsLinks={[
         { label: 'Notes', href: process.env.NEXT_PUBLIC_NOTES_APP_URL || '/notes' },
         { label: 'Files', href: process.env.NEXT_PUBLIC_FILES_APP_URL || '/files' },

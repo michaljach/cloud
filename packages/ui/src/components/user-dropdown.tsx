@@ -14,8 +14,6 @@ import {
 } from '@repo/ui/components/base/dropdown-menu'
 import { SidebarMenuButton } from '@repo/ui/components/base/sidebar'
 import {
-  Bell,
-  CreditCard,
   LogOut,
   MoreVertical,
   Settings,
@@ -33,11 +31,13 @@ import type { WorkspaceMembership } from '@repo/types'
 export function UserDropdown({
   user,
   onLogout,
-  onAccountClick
+  onAccountClick,
+  onAdminClick
 }: {
   user: UserType | null
   onLogout?: () => void
   onAccountClick?: () => void
+  onAdminClick?: () => void
 }) {
   const { currentWorkspace, availableWorkspaces, switchToWorkspace } = useWorkspace()
 
@@ -179,30 +179,17 @@ export function UserDropdown({
             <Settings className="h-4 w-4" />
             Account settings
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard className="h-4 w-4" />
-            Billing
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Bell className="h-4 w-4" />
-            Notifications
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        {/* Admin Section */}
-        {user?.workspaces?.some(
-          (uw) => uw.role === 'owner' && uw.workspace.id === 'system-admin-workspace'
-        ) && (
-          <>
-            <DropdownMenuItem>
+          {user?.workspaces?.some(
+            (uw) => uw.role === 'owner' && uw.workspace.id === 'system-admin-workspace'
+          ) && (
+            <DropdownMenuItem onClick={onAdminClick}>
               <ShieldUser className="h-4 w-4" />
               Administration panel
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
+          )}
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
 
         {/* Logout */}
         <DropdownMenuItem onClick={onLogout}>

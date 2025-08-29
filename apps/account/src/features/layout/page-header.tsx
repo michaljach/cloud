@@ -24,6 +24,10 @@ export function PageHeader({ title, children }: PageHeaderProps) {
     router.push('/account')
   }
 
+  function handleAdminClick() {
+    router.push('/admin')
+  }
+
   if (!user && !loading) {
     return null
   }
@@ -35,6 +39,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
       loading={loading}
       onLogout={handleLogout}
       onAccountClick={handleAccountClick}
+      onAdminClick={handleAdminClick}
       appsLinks={[
         {
           label: 'Notes',
