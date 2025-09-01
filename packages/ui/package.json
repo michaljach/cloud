@@ -15,9 +15,9 @@
     "./hooks/*": "./src/hooks/*.tsx"
   },
   "scripts": {
-    "build": "node build.js",
+    "build": "mkdir -p dist && tailwindcss -i ./src/styles.css -o ./dist/styles.css",
     "lint": "eslint src/",
-    "dev": "mkdir -p dist && ../../node_modules/.bin/tailwindcss -i ./src/styles.css -o ./dist/styles.css --watch",
+    "dev": "mkdir -p dist && tailwindcss -i ./src/styles.css -o ./dist/styles.css --watch",
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
