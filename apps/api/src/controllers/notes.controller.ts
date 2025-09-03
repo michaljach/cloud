@@ -20,44 +20,20 @@ import {
 } from '@utils/storageUtils'
 
 import { base64urlDecode } from '@repo/utils'
-import { z } from 'zod'
 import { CurrentUser } from '../decorators/currentUser'
-import multer from 'multer'
 import { authenticate } from '@middleware/authenticate'
 import fs from 'fs'
 import path from 'path'
-
-// Special workspace ID for personal space
-const PERSONAL_WORKSPACE_ID = 'personal'
-
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(process.cwd(), 'uploads')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadsDir)
-    },
-    filename: (req, file, cb) => {
-      // Generate unique filename to avoid conflicts
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-      cb(null, `${uniqueSuffix}-${file.originalname}`)
-    }
-  }),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit per file
-    files: 1 // Maximum 1 file per request for notes
-  }
-})
-
-const noteSchema = z.object({
-  originalname: z.string().min(1, 'Filename is required'),
-  path: z.string().min(1, 'File path is required'),
-  size: z.number().min(0, 'File size must be non-negative')
-})
+import { z } from 'zod'
+import {
+  notesUpload,
+  noteSchema,
+  getWorkspaceContext,
+  sendErrorResponse,
+  sendSuccessResponse,
+  sendValidationErrorResponse,
+  sendNotFoundResponse
+} from '../utils'
 
 @JsonController('/notes')
 export default class NotesController {
@@ -67,25 +43,25 @@ export default class NotesController {
    */
   @Post('/')
   @UseBefore(authenticate)
-  @UseBefore(upload.single('note'))
+  @UseBefore(notesUpload.single('note'))
   async uploadNote(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     if (!req.file) {
-      return res.status(400).json({ success: false, data: null, error: 'No note uploaded' })
+      return sendErrorResponse(res, 'No note uploaded', 400)
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     // Validate file using Zod schema
     const result = noteSchema.safeParse(req.file)
     if (!result.success) {
-      return res.status(400).json({ success: false, data: null, error: result.error.message })
+      return sendValidationErrorResponse(res, result.error)
     }
 
     try {
       // Read file from disk
       const fileBuffer = fs.readFileSync(req.file.path)
 
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage with encryption
         saveNote(fileBuffer, req.file.originalname, user.id)
       } else {
@@ -98,17 +74,16 @@ export default class NotesController {
       // Clean up temporary file
       fs.unlinkSync(req.file.path)
 
-      return res.json({
-        success: true,
-        data: { filename: req.file.originalname },
-        error: null
+      return sendSuccessResponse(res, {
+        filename: req.file.originalname,
+        message: 'Note uploaded successfully'
       })
     } catch (err: any) {
       // Clean up temporary file on error
       if (fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path)
       }
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendErrorResponse(res, err.message, 500)
     }
   }
 
@@ -120,10 +95,10 @@ export default class NotesController {
   @UseBefore(authenticate)
   async listNotes(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     try {
-      const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+      const workspaceId = getWorkspaceContext(req.query)
 
       let notes: string[]
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage (existing encrypted storage)
         notes = listFilesForContext(user.id, 'personal', 'notes')
       } else {
@@ -131,9 +106,9 @@ export default class NotesController {
         notes = listFilesForContext(user.id, workspaceId, 'notes')
       }
 
-      return res.json({ success: true, data: notes, error: null })
+      return sendSuccessResponse(res, notes)
     } catch (e) {
-      return res.status(500).json({ success: false, data: null, error: 'Failed to list notes' })
+      return sendErrorResponse(res, 'Failed to list notes', 500)
     }
   }
 
@@ -149,31 +124,23 @@ export default class NotesController {
     @Req() req: Request,
     @Res() res: Response
   ) {
-    const paramSchema = z.object({ filename: z.string().min(1, 'Filename is required') })
-    const params = paramSchema.safeParse({ filename })
-    if (!params.success) {
-      return res.status(400).json({ success: false, data: null, error: params.error.message })
-    }
-
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     try {
       let data: Buffer
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage with decryption
-        data = readNote(params.data.filename, user.id)
+        data = readNote(filename, user.id)
       } else {
         // Use workspace storage (separate from user storage)
-        const filePath = getFilePathForContext(user.id, workspaceId, 'notes', params.data.filename)
+        const filePath = getFilePathForContext(user.id, workspaceId, 'notes', filename)
         data = fs.readFileSync(filePath)
       }
 
-      res.setHeader('Content-Disposition', `attachment; filename="${params.data.filename}"`)
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
       return res.send(data)
     } catch (e) {
-      return res
-        .status(404)
-        .json({ success: false, data: null, error: 'Note not found or decryption failed' })
+      return sendNotFoundResponse(res, 'Note not found or decryption failed')
     }
   }
 
@@ -201,10 +168,10 @@ export default class NotesController {
       return res.status(400).json({ success: false, data: null, error: body.error.message })
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     try {
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage with encryption
         const oldFilePath = getFilePathForContext(
           user.id,
@@ -286,10 +253,10 @@ export default class NotesController {
       return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     try {
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage with encryption
         const filePath = getFilePathForContext(user.id, 'personal', 'notes', params.data.filename)
 

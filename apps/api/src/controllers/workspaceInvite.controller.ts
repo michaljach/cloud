@@ -3,7 +3,6 @@ import type { Request, Response } from 'express'
 import { authenticate } from '../middleware/authenticate'
 import { validate } from '../middleware/validate'
 import { CurrentUser } from '../decorators/currentUser'
-import { z } from 'zod'
 import type { User } from '@repo/types'
 import { getUserById } from '../services/users.service'
 import { getWorkspaceWithMembers } from '../services/workspace.service'
@@ -16,6 +15,14 @@ import {
   declineWorkspaceInvite,
   cancelWorkspaceInvite
 } from '../services/workspaceInvite.service'
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendNotFoundResponse,
+  sendForbiddenResponse,
+  sendServerErrorResponse,
+  validationSchemas
+} from '../utils'
 
 @Controller('/workspace-invites')
 export default class WorkspaceInviteController {
@@ -28,14 +35,14 @@ export default class WorkspaceInviteController {
   async getMyInvites(@CurrentUser() oauthUser: User, @Res() res: Response) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const invites = await getUserInvites(user.id)
-      return res.json({ success: true, data: invites, error: null })
+      return sendSuccessResponse(res, invites)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -52,28 +59,26 @@ export default class WorkspaceInviteController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
       }
 
       const invites = await getWorkspaceInvites(workspaceId)
-      return res.json({ success: true, data: invites, error: null })
+      return sendSuccessResponse(res, invites)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -83,15 +88,7 @@ export default class WorkspaceInviteController {
    */
   @Post('/')
   @UseBefore(authenticate)
-  @UseBefore(
-    validate(
-      z.object({
-        workspaceId: z.string().min(1, 'Workspace ID is required'),
-        invitedUsername: z.string().min(1, 'Username is required'),
-        role: z.enum(['owner', 'admin', 'member']).default('member')
-      })
-    )
-  )
+  @UseBefore(validate(validationSchemas.createWorkspaceInvite))
   async createInvite(@CurrentUser() oauthUser: User, @Req() req: Request, @Res() res: Response) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
@@ -103,15 +100,13 @@ export default class WorkspaceInviteController {
 
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
       }
 
@@ -120,15 +115,13 @@ export default class WorkspaceInviteController {
         (uw) => uw.user.username === invitedUsername
       )
       if (existingMember) {
-        return res
-          .status(400)
-          .json({ success: false, data: null, error: 'User is already a member of this workspace' })
+        return sendErrorResponse(res, 'User is already a member of this workspace', 400)
       }
 
       const invite = await createWorkspaceInvite(workspaceId, user.id, invitedUsername, role)
-      return res.status(201).json({ success: true, data: invite, error: null })
+      return sendSuccessResponse(res, invite, 201)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -145,14 +138,14 @@ export default class WorkspaceInviteController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const result = await acceptWorkspaceInvite(inviteId, user.id)
-      return res.json({ success: true, data: result, error: null })
+      return sendSuccessResponse(res, result)
     } catch (err: any) {
-      return res.status(400).json({ success: false, data: null, error: err.message })
+      return sendErrorResponse(res, err.message, 400)
     }
   }
 
@@ -169,14 +162,14 @@ export default class WorkspaceInviteController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const invite = await declineWorkspaceInvite(inviteId, user.id)
-      return res.json({ success: true, data: invite, error: null })
+      return sendSuccessResponse(res, invite)
     } catch (err: any) {
-      return res.status(400).json({ success: false, data: null, error: err.message })
+      return sendErrorResponse(res, err.message, 400)
     }
   }
 
@@ -193,14 +186,14 @@ export default class WorkspaceInviteController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const invite = await cancelWorkspaceInvite(inviteId, user.id)
-      return res.json({ success: true, data: invite, error: null })
+      return sendSuccessResponse(res, invite)
     } catch (err: any) {
-      return res.status(400).json({ success: false, data: null, error: err.message })
+      return sendErrorResponse(res, err.message, 400)
     }
   }
 }

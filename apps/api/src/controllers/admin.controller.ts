@@ -6,18 +6,14 @@ import type { User } from '@repo/types'
 import { isRootAdmin } from '../utils'
 import { prisma } from '../lib/prisma'
 import { z } from 'zod'
-import { handleError } from '../utils/handleError'
-
-const platformSettingsSchema = z.object({
-  title: z.string().min(1, 'Platform title is required'),
-  timezone: z.string().min(1, 'Timezone is required'),
-  maintenanceMode: z.boolean(),
-  registrationEnabled: z.boolean(),
-  defaultStorageLimit: z.number().min(0, 'Default storage limit must be non-negative'),
-  maxFileSize: z.number().min(1, 'Max file size must be at least 1 MB'),
-  supportEmail: z.string().email('Invalid email address').optional().or(z.literal('')),
-  companyName: z.string().optional().or(z.literal(''))
-})
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendNotFoundResponse,
+  sendForbiddenResponse,
+  sendServerErrorResponse,
+  validationSchemas
+} from '../utils'
 
 @JsonController('/admin')
 @UseBefore(authenticate)
@@ -47,7 +43,7 @@ export default class AdminController {
       })
 
       if (!user) {
-        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       // Convert to the expected User type format
@@ -61,11 +57,10 @@ export default class AdminController {
 
       // Check if user is root admin
       if (!isRootAdmin(completeUser)) {
-        return res.status(403).json({
-          success: false,
-          data: null,
-          error: 'Forbidden: Only root administrators can access platform settings'
-        })
+        return sendForbiddenResponse(
+          res,
+          'Forbidden: Only root administrators can access platform settings'
+        )
       }
 
       const settings = await prisma.platformSettings.findUnique({
@@ -87,12 +82,12 @@ export default class AdminController {
             companyName: 'Your Company'
           }
         })
-        return res.json({ success: true, data: defaultSettings, error: null })
+        return sendSuccessResponse(res, defaultSettings)
       }
 
-      return res.json({ success: true, data: settings, error: null })
+      return sendSuccessResponse(res, settings)
     } catch (err) {
-      return handleError(res, err, 500)
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -121,7 +116,7 @@ export default class AdminController {
       })
 
       if (!user) {
-        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       // Convert to the expected User type format
@@ -135,15 +130,14 @@ export default class AdminController {
 
       // Check if user is root admin
       if (!isRootAdmin(completeUser)) {
-        return res.status(403).json({
-          success: false,
-          data: null,
-          error: 'Forbidden: Only root administrators can modify platform settings'
-        })
+        return sendForbiddenResponse(
+          res,
+          'Forbidden: Only root administrators can modify platform settings'
+        )
       }
 
       // Validate the request body
-      const validatedData = platformSettingsSchema.parse(body)
+      const validatedData = validationSchemas.platformSettings.parse(body)
 
       // Convert empty strings to null for optional fields
       const dataToUpdate = {
@@ -161,9 +155,9 @@ export default class AdminController {
         }
       })
 
-      return res.json({ success: true, data: updatedSettings, error: null })
+      return sendSuccessResponse(res, updatedSettings)
     } catch (err) {
-      return handleError(res, err, 500)
+      return sendServerErrorResponse(res, err)
     }
   }
 }

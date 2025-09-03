@@ -25,8 +25,15 @@ import {
 } from '../services/workspace.service'
 import { getUserById } from '../services/users.service'
 import { isRootAdmin } from '../utils'
-import { z } from 'zod'
 import { validate } from '@middleware/validate'
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendNotFoundResponse,
+  sendForbiddenResponse,
+  sendServerErrorResponse,
+  validationSchemas
+} from '../utils'
 
 @JsonController('/workspaces')
 export default class WorkspaceController {
@@ -39,18 +46,18 @@ export default class WorkspaceController {
   async list(@CurrentUser() oauthUser: User, @Res() res: Response) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (!isRootAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
 
     try {
       const workspaces = await listWorkspaces()
-      return res.json({ success: true, data: workspaces, error: null })
+      return sendSuccessResponse(res, workspaces)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -67,27 +74,25 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Not a member of this workspace' })
+          return sendForbiddenResponse(res, 'Not a member of this workspace')
         }
       }
 
-      return res.json({ success: true, data: workspace.userWorkspaces, error: null })
+      return sendSuccessResponse(res, workspace.userWorkspaces)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -97,7 +102,7 @@ export default class WorkspaceController {
    */
   @Put('/:id')
   @UseBefore(authenticate)
-  @UseBefore(validate(z.object({ name: z.string().min(1, 'Workspace name is required') })))
+  @UseBefore(validate(validationSchemas.updateWorkspace))
   async update(
     @CurrentUser() oauthUser: User,
     @Param('id') workspaceId: string,
@@ -106,30 +111,28 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       // Check permissions: root admin can edit any workspace, admin can only edit workspaces they're admin/owner of
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
       }
 
       const { name } = req.body
       const updatedWorkspace = await updateWorkspace(workspaceId, name)
-      return res.json({ success: true, data: updatedWorkspace, error: null })
+      return sendSuccessResponse(res, updatedWorkspace)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -139,11 +142,11 @@ export default class WorkspaceController {
    */
   @Post('/')
   @UseBefore(authenticate)
-  @UseBefore(validate(z.object({ name: z.string().min(1, 'Workspace name is required') })))
+  @UseBefore(validate(validationSchemas.createWorkspace))
   async create(@CurrentUser() oauthUser: User, @Req() req: Request, @Res() res: Response) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     const { name } = req.body
@@ -154,9 +157,9 @@ export default class WorkspaceController {
       // Add the creator as the owner of the workspace
       await addUserToWorkspace(user.id, workspace.id, 'owner')
 
-      return res.status(201).json({ success: true, data: workspace, error: null })
+      return sendSuccessResponse(res, workspace, 201)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -166,14 +169,7 @@ export default class WorkspaceController {
    */
   @Post('/:id/members')
   @UseBefore(authenticate)
-  @UseBefore(
-    validate(
-      z.object({
-        userId: z.string().min(1, 'User ID is required'),
-        role: z.enum(['owner', 'admin', 'member']).default('member')
-      })
-    )
-  )
+  @UseBefore(validate(validationSchemas.addUserToWorkspace))
   async addMember(
     @CurrentUser() oauthUser: User,
     @Param('id') workspaceId: string,
@@ -182,29 +178,27 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
       }
 
       const { userId, role } = req.body
       const userWorkspace = await addUserToWorkspace(userId, workspaceId, role)
-      return res.status(201).json({ success: true, data: userWorkspace, error: null })
+      return sendSuccessResponse(res, userWorkspace, 201)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -214,13 +208,7 @@ export default class WorkspaceController {
    */
   @Put('/:id/members/:userId')
   @UseBefore(authenticate)
-  @UseBefore(
-    validate(
-      z.object({
-        role: z.enum(['owner', 'admin', 'member'])
-      })
-    )
-  )
+  @UseBefore(validate(validationSchemas.updateUserRole))
   async updateMemberRole(
     @CurrentUser() oauthUser: User,
     @Param('id') workspaceId: string,
@@ -230,21 +218,19 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
       }
 
@@ -255,24 +241,22 @@ export default class WorkspaceController {
       if (targetMembership?.role === 'owner' && role !== 'owner') {
         const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
         if (owners.length === 1) {
-          return res.status(400).json({
-            success: false,
-            data: null,
-            error: 'Cannot remove the last owner. There must always be at least one owner.'
-          })
+          return sendErrorResponse(
+            res,
+            'Cannot remove the last owner. There must always be at least one owner.',
+            400
+          )
         }
       }
 
       const userWorkspace = await updateUserWorkspaceRole(targetUserId, workspaceId, role)
       if (!userWorkspace) {
-        return res
-          .status(404)
-          .json({ success: false, data: null, error: 'User not found in workspace' })
+        return sendNotFoundResponse(res, 'User not found in workspace')
       }
 
-      return res.json({ success: true, data: userWorkspace, error: null })
+      return sendSuccessResponse(res, userWorkspace)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -290,21 +274,19 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       if (!isRootAdmin(user)) {
         const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
         if (!userMembership || !['owner', 'admin'].includes(userMembership.role)) {
-          return res
-            .status(403)
-            .json({ success: false, data: null, error: 'Insufficient permissions' })
+          return sendForbiddenResponse(res, 'Insufficient permissions')
         }
 
         // Prevent removing the last owner
@@ -312,23 +294,19 @@ export default class WorkspaceController {
         if (targetMembership?.role === 'owner') {
           const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
           if (owners.length === 1) {
-            return res
-              .status(400)
-              .json({ success: false, data: null, error: 'Cannot remove the last owner' })
+            return sendErrorResponse(res, 'Cannot remove the last owner', 400)
           }
         }
       }
 
       const success = await removeUserFromWorkspace(targetUserId, workspaceId)
       if (!success) {
-        return res
-          .status(404)
-          .json({ success: false, data: null, error: 'User not found in workspace' })
+        return sendNotFoundResponse(res, 'User not found in workspace')
       }
 
-      return res.json({ success: true, data: null, error: null })
+      return sendSuccessResponse(res, null)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -345,46 +323,41 @@ export default class WorkspaceController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     try {
       const workspace = await getWorkspaceWithMembers(workspaceId)
       if (!workspace) {
-        return res.status(404).json({ success: false, data: null, error: 'Workspace not found' })
+        return sendNotFoundResponse(res, 'Workspace not found')
       }
 
       // Check if user is a member of this workspace
       const userMembership = workspace.userWorkspaces?.find((uw) => uw.userId === user.id)
       if (!userMembership) {
-        return res
-          .status(404)
-          .json({ success: false, data: null, error: 'You are not a member of this workspace' })
+        return sendNotFoundResponse(res, 'You are not a member of this workspace')
       }
 
       // Prevent leaving if user is the last owner
       if (userMembership.role === 'owner') {
         const owners = workspace.userWorkspaces?.filter((uw) => uw.role === 'owner') || []
         if (owners.length === 1) {
-          return res.status(400).json({
-            success: false,
-            data: null,
-            error:
-              'Cannot leave workspace. You are the last owner. Please transfer ownership or delete the workspace.'
-          })
+          return sendErrorResponse(
+            res,
+            'Cannot leave workspace. You are the last owner. Please transfer ownership or delete the workspace.',
+            400
+          )
         }
       }
 
       const success = await removeUserFromWorkspace(user.id, workspaceId)
       if (!success) {
-        return res
-          .status(404)
-          .json({ success: false, data: null, error: 'User not found in workspace' })
+        return sendNotFoundResponse(res, 'User not found in workspace')
       }
 
-      return res.json({ success: true, data: null, error: null })
+      return sendSuccessResponse(res, null)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 }

@@ -14,42 +14,18 @@ import {
 import { getUserFilesStorageUsage } from '../services/files.service'
 import { searchFilesForContext } from '../utils/storageUtils'
 
-import { z } from 'zod'
-import multer from 'multer'
+import { getStorageDir, listFolderContentsWithMetadataForContext } from '@utils/storageUtils'
 import fs from 'fs'
 import path from 'path'
-import { getStorageDir, listFolderContentsWithMetadataForContext } from '@utils/storageUtils'
-
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(process.cwd(), 'uploads')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadsDir)
-    },
-    filename: (req, file, cb) => {
-      // Generate unique filename to avoid conflicts
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-      cb(null, `${uniqueSuffix}-${file.originalname}`)
-    }
-  }),
-  limits: {
-    fileSize: 10000 * 1024 * 1024, // 100MB limit per file
-    files: 10 // Maximum 10 files per request
-  }
-})
-
-const fileSchema = z.object({
-  originalname: z.string().min(1, 'Filename is required'),
-  path: z.string().min(1, 'File path is required'),
-  size: z.number().min(1, 'File size must be greater than 0')
-})
-
-const PERSONAL_WORKSPACE_ID = 'personal'
+import { z } from 'zod'
+import {
+  filesUpload,
+  fileSchema,
+  getWorkspaceContext,
+  sendErrorResponse,
+  sendSuccessResponse,
+  sendValidationErrorResponse
+} from '../utils'
 
 @JsonController('/files')
 export default class UnifiedFilesController {
@@ -59,13 +35,13 @@ export default class UnifiedFilesController {
    */
   @Post('/batch')
   @UseBefore(authenticate)
-  @UseBefore(upload.array('files'))
+  @UseBefore(filesUpload.array('files'))
   async uploadFilesBatch(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
-      return res.status(400).json({ success: false, data: null, error: 'No files uploaded' })
+      return sendErrorResponse(res, 'No files uploaded', 400)
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     const results = []
     for (const file of req.files) {
@@ -79,7 +55,7 @@ export default class UnifiedFilesController {
         // Read file from disk
         const fileBuffer = fs.readFileSync(file.path)
 
-        if (workspaceId === PERSONAL_WORKSPACE_ID) {
+        if (workspaceId === 'personal') {
           // Use personal storage (client-side encrypted data)
           saveUserFile(fileBuffer, file.originalname, user.id)
         } else {
@@ -123,10 +99,10 @@ export default class UnifiedFilesController {
   async listFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     try {
       const filePath = typeof req.query.path === 'string' ? req.query.path : ''
-      const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+      const workspaceId = getWorkspaceContext(req.query)
 
       let items
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage (existing encrypted storage)
         items = listFolderContentsWithMetadataForContext(user.id, 'personal', 'files', filePath)
       } else {
@@ -170,7 +146,7 @@ export default class UnifiedFilesController {
   async searchFiles(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     try {
       const query = typeof req.query.q === 'string' ? req.query.q : ''
-      const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+      const workspaceId = getWorkspaceContext(req.query)
 
       if (!query.trim()) {
         return res.json({ success: true, data: [], error: null })
@@ -190,10 +166,10 @@ export default class UnifiedFilesController {
   @Get('/trash')
   @UseBefore(authenticate)
   async listTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     let files
-    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+    if (workspaceId === 'personal') {
       // Use personal storage trash
       files = listUserTrashedFiles(user.id)
     } else {
@@ -246,11 +222,11 @@ export default class UnifiedFilesController {
       return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     try {
       let data: Buffer
-      if (workspaceId === PERSONAL_WORKSPACE_ID) {
+      if (workspaceId === 'personal') {
         // Use personal storage with decryption
         data = readUserFile(params.data.filename, user.id)
       } else {
@@ -277,7 +253,7 @@ export default class UnifiedFilesController {
   @UseBefore(authenticate)
   async batchMoveToTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     const { filenames } = req.body
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
       return res
@@ -286,7 +262,7 @@ export default class UnifiedFilesController {
     }
 
     let results
-    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+    if (workspaceId === 'personal') {
       // Use personal storage trash
       results = batchMoveUserFilesToTrash(user.id, filenames)
     } else {
@@ -331,14 +307,14 @@ export default class UnifiedFilesController {
   @UseBefore(authenticate)
   async restoreFromTrash(@CurrentUser() user: User, @Req() req: Request, @Res() res: Response) {
     const { filename } = req.body
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     if (!filename) {
       return res.status(400).json({ success: false, data: null, error: 'Filename required' })
     }
 
     let ok: boolean
-    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+    if (workspaceId === 'personal') {
       // Use personal storage trash
       ok = restoreUserFileFromTrash(user.id, filename)
     } else {
@@ -389,10 +365,10 @@ export default class UnifiedFilesController {
       return res.status(400).json({ success: false, data: null, error: params.error.message })
     }
 
-    const workspaceId = (req.query.workspaceId as string) || PERSONAL_WORKSPACE_ID
+    const workspaceId = getWorkspaceContext(req.query)
 
     let ok: boolean
-    if (workspaceId === PERSONAL_WORKSPACE_ID) {
+    if (workspaceId === 'personal') {
       // Use personal storage trash
       ok = deleteUserFileFromTrash(user.id, params.data.filename)
     } else {

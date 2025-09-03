@@ -14,9 +14,17 @@ import {
   getUserByUsername
 } from '../services/users.service'
 import { isRootAdmin, isAdmin, getAdminWorkspaces } from '../utils'
-import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@lib/prisma'
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+  sendNotFoundResponse,
+  sendForbiddenResponse,
+  sendConflictResponse,
+  sendServerErrorResponse,
+  validationSchemas
+} from '../utils'
 
 @JsonController('/users')
 export default class UsersController {
@@ -31,12 +39,12 @@ export default class UsersController {
     const user = await getUserById(oauthUser.id)
 
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (isRootAdmin(user)) {
       const users = await listUsers()
-      return res.json({ success: true, data: users, error: null })
+      return sendSuccessResponse(res, users)
     } else if (isAdmin(user)) {
       // Get users from all workspaces where the user is admin/owner
       const adminWorkspaces = getAdminWorkspaces(user)
@@ -51,9 +59,9 @@ export default class UsersController {
         })
       }
 
-      return res.json({ success: true, data: Array.from(allUsers.values()), error: null })
+      return sendSuccessResponse(res, Array.from(allUsers.values()))
     } else {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
   }
 
@@ -63,28 +71,15 @@ export default class UsersController {
    */
   @Post('/')
   @UseBefore(authenticate)
-  @UseBefore(
-    validate(
-      z.object({
-        username: z.string().min(1, 'Username is required'),
-        password: z.string().min(6, 'Password must be at least 6 characters'),
-        fullName: z.string().optional(),
-        storageLimitMB: z
-          .number()
-          .min(1, 'Storage limit must be at least 1 MB')
-          .max(1000000, 'Storage limit cannot exceed 1000GB')
-          .optional()
-      })
-    )
-  )
+  @UseBefore(validate(validationSchemas.createUser))
   async create(@CurrentUser() oauthUser: User, @Req() req: Request, @Res() res: Response) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (!isRootAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
 
     const { username, password, fullName, storageLimitMB = 1024 } = req.body
@@ -93,9 +88,7 @@ export default class UsersController {
       // Check if username already exists
       const existingUser = await getUserByUsername(username)
       if (existingUser) {
-        return res
-          .status(409)
-          .json({ success: false, data: null, error: 'Username already exists' })
+        return sendConflictResponse(res, 'Username already exists')
       }
 
       // Hash the password
@@ -126,13 +119,9 @@ export default class UsersController {
       // Get the complete user data
       const completeUser = await getUserById(newUser.id)
 
-      return res.status(201).json({
-        success: true,
-        data: { user: completeUser },
-        error: null
-      })
+      return sendSuccessResponse(res, { user: completeUser }, 201)
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -149,26 +138,22 @@ export default class UsersController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (!isRootAdmin(user) && !isAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
 
     try {
       const storageLimit = await getUserStorageLimit(userId)
-      return res.json({
-        success: true,
-        data: {
-          userId,
-          storageLimit,
-          storageLimitMB: Math.round((storageLimit / (1024 * 1024)) * 100) / 100
-        },
-        error: null
+      return sendSuccessResponse(res, {
+        userId,
+        storageLimit,
+        storageLimitMB: Math.round((storageLimit / (1024 * 1024)) * 100) / 100
       })
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -186,11 +171,11 @@ export default class UsersController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (!isRootAdmin(user) && !isAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
 
     const body = req.body as {
@@ -201,7 +186,7 @@ export default class UsersController {
     // Get the target user to check workspace permissions
     const targetUser = await getUserById(userId)
     if (!targetUser) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     // Workspace security check: admin can only edit users in the same workspaces
@@ -219,7 +204,7 @@ export default class UsersController {
       })
 
       if (!targetUserWithWorkspaces) {
-        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       // Check if there's any overlap in workspaces where current user is admin/owner
@@ -228,26 +213,13 @@ export default class UsersController {
       const hasOverlap = currentAdminWorkspaceIds.some((id) => targetWorkspaceIds.includes(id))
 
       if (!hasOverlap) {
-        return res.status(403).json({
-          success: false,
-          data: null,
-          error: 'Admin can only edit users in the same workspaces'
-        })
+        return sendForbiddenResponse(res, 'Admin can only edit users in the same workspaces')
       }
     }
 
-    const schema = z.object({
-      fullName: z.string().min(1).optional(),
-      storageLimitMB: z
-        .number()
-        .min(1, 'Storage limit must be at least 1 MB')
-        .max(1000000, 'Storage limit cannot exceed 1000GB')
-        .optional()
-    })
-
-    const validation = schema.safeParse(body)
+    const validation = validationSchemas.updateUser.safeParse(body)
     if (!validation.success) {
-      return res.status(400).json({ success: false, data: null, error: validation.error.message })
+      return sendErrorResponse(res, validation.error.message, 400)
     }
 
     try {
@@ -259,13 +231,9 @@ export default class UsersController {
       }
 
       const updatedUser = await updateUser(userId, updateData)
-      return res.json({
-        success: true,
-        data: { user: updatedUser },
-        error: null
-      })
+      return sendSuccessResponse(res, { user: updatedUser })
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 
@@ -275,13 +243,7 @@ export default class UsersController {
    */
   @Post('/:userId/reset-password')
   @UseBefore(authenticate)
-  @UseBefore(
-    validate(
-      z.object({
-        password: z.string().min(6, 'Password must be at least 6 characters')
-      })
-    )
-  )
+  @UseBefore(validate(validationSchemas.resetPassword))
   async resetPassword(
     @CurrentUser() oauthUser: User,
     @Param('userId') userId: string,
@@ -290,11 +252,11 @@ export default class UsersController {
   ) {
     const user = await getUserById(oauthUser.id)
     if (!user) {
-      return res.status(404).json({ success: false, data: null, error: 'User not found' })
+      return sendNotFoundResponse(res, 'User not found')
     }
 
     if (!isRootAdmin(user)) {
-      return res.status(403).json({ success: false, data: null, error: 'Forbidden' })
+      return sendForbiddenResponse(res, 'Forbidden')
     }
 
     const { password } = req.body
@@ -303,7 +265,7 @@ export default class UsersController {
       // Check if target user exists
       const targetUser = await getUserById(userId)
       if (!targetUser) {
-        return res.status(404).json({ success: false, data: null, error: 'User not found' })
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       // Hash the new password
@@ -318,13 +280,9 @@ export default class UsersController {
       // Get the updated user data
       const updatedUser = await getUserById(userId)
 
-      return res.json({
-        success: true,
-        data: { user: updatedUser },
-        error: null
-      })
+      return sendSuccessResponse(res, { user: updatedUser })
     } catch (err: any) {
-      return res.status(500).json({ success: false, data: null, error: err.message })
+      return sendServerErrorResponse(res, err)
     }
   }
 }
