@@ -7,7 +7,7 @@ import { Toaster } from '@repo/ui/components/base/sonner'
 import type { Metadata } from 'next'
 
 import { FilesProvider } from '@/features/files/providers/files-context-provider'
-import { HeaderUserProvider } from '@/features/layout/page-header'
+import { FilesPageHeader } from '@/features/layout/page-header'
 import { SearchClient } from '@/features/layout/page-search'
 import { AppSidebar } from '@/features/layout/page-sidebar'
 
@@ -26,9 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SidebarProvider>
                 <AppSidebar />
                 <SidebarInset>
-                  <HeaderUserProvider title="Files">
+                  <FilesPageHeader title="Files">
                     <SearchClient placeholder="Search files..." className="w-full max-w-sm ml-4" />
-                  </HeaderUserProvider>
+                  </FilesPageHeader>
                   <main className="p-8">{children}</main>
                   <Toaster />
                 </SidebarInset>

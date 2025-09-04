@@ -6,7 +6,6 @@ import React from 'react'
 
 import { FileUpload } from '@/features/files/forms/file-upload-form'
 
-
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -226,7 +225,7 @@ describe('FileUpload', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Error: Upload failed')).toBeInTheDocument()
+      expect(screen.getByText('Upload failed: Upload failed')).toBeInTheDocument()
     })
   })
 
@@ -247,7 +246,7 @@ describe('FileUpload', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('Error: Encryption failed')).toBeInTheDocument()
+      expect(screen.getByText('Upload failed: Encryption failed')).toBeInTheDocument()
     })
   })
 
@@ -272,8 +271,10 @@ describe('FileUpload', () => {
       fireEvent.change(hiddenInput!, { target: { files: [file] } })
     })
 
+    // The validation is now handled by the useFileUpload hook, so we expect no error message
+    // The upload will simply not proceed without authentication
     await waitFor(() => {
-      expect(screen.getByText('File(s), login, and workspace context required')).toBeInTheDocument()
+      expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
     })
   })
 

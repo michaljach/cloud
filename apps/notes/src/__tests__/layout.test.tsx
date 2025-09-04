@@ -10,7 +10,7 @@ jest.mock('@/features/layout/page-sidebar', () => ({
 }))
 
 jest.mock('@/features/layout/page-header', () => ({
-  PageHeader: ({ title, children }: { title: string; children?: React.ReactNode }) => (
+  NotesPageHeader: ({ title, children }: { title: string; children?: React.ReactNode }) => (
     <div data-testid="page-header">
       <span>Header: {title}</span>
       {children}

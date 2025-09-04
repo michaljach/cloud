@@ -12,7 +12,10 @@
     "./styles.css": "./dist/styles.css",
     "./*": "./src/*.tsx",
     "./lib/*": "./src/lib/*.ts",
-    "./hooks/*": "./src/hooks/*.tsx"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./components/common/*": "./src/components/common/*.tsx"
   },
   "scripts": {
     "build": "mkdir -p dist && tailwindcss -i ./src/styles.css -o ./dist/styles.css",

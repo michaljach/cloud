@@ -4,9 +4,8 @@ import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 
-import { PageHeader } from '@/features/layout/page-header'
+import { NotesPageHeader } from '@/features/layout/page-header'
 import { SaveStatusProvider } from '@/features/notes/providers/status-provider'
-
 
 // Mock Next.js router
 const mockPush = jest.fn()
@@ -74,20 +73,20 @@ describe('PageHeader', () => {
   }
 
   it('renders header with title', () => {
-    renderWithProviders(<PageHeader title="Test Title" />)
+    renderWithProviders(<NotesPageHeader title="Test Title" />)
 
     expect(screen.getByText('Test Title')).toBeInTheDocument()
   })
 
   it('renders save status indicator', () => {
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     // Should show the default save status
     expect(screen.getByText('All changes saved')).toBeInTheDocument()
   })
 
   it('renders user dropdown when user is available', () => {
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     // Should show user information (this would be in the UserDropdown component)
     // The actual user dropdown rendering is tested in the UI package
@@ -102,7 +101,7 @@ describe('PageHeader', () => {
       logout: jest.fn()
     })
 
-    const { container } = renderWithProviders(<PageHeader title="Notes" />)
+    const { container } = renderWithProviders(<NotesPageHeader title="Notes" />)
 
     // The PageHeader should not render anything (return null)
     // But the SidebarProvider wrapper will still be present
@@ -119,13 +118,13 @@ describe('PageHeader', () => {
       logout: jest.fn()
     })
 
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     expect(screen.getByText('Notes')).toBeInTheDocument()
   })
 
   it('handles account click navigation', () => {
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     // The account click functionality would be tested in the UserDropdown component
     // This test ensures the component renders without errors
@@ -133,7 +132,7 @@ describe('PageHeader', () => {
   })
 
   it('handles logout click navigation', () => {
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     // The logout functionality would be tested in the UserDropdown component
     // This test ensures the component renders without errors
@@ -142,9 +141,9 @@ describe('PageHeader', () => {
 
   it('renders with custom children', () => {
     renderWithProviders(
-      <PageHeader title="Notes">
+      <NotesPageHeader title="Notes">
         <div data-testid="custom-child">Custom Content</div>
-      </PageHeader>
+      </NotesPageHeader>
     )
 
     expect(screen.getByTestId('custom-child')).toBeInTheDocument()
@@ -152,7 +151,7 @@ describe('PageHeader', () => {
   })
 
   it('has correct header structure', () => {
-    renderWithProviders(<PageHeader title="Notes" />)
+    renderWithProviders(<NotesPageHeader title="Notes" />)
 
     const header = screen.getByText('Notes').closest('header')
     expect(header).toHaveClass(

@@ -1,53 +1,20 @@
 'use client'
 
-import { useUser } from '@repo/providers'
-import { Header } from '@repo/ui/components/header'
-import { useRouter } from 'next/navigation'
+import { PageHeader } from '@repo/ui/components/common/PageHeader'
+import { getAppConfigForApp } from '@repo/ui/utils/appConfig'
 import React from 'react'
 
-const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
-
-interface HeaderUserProviderProps {
+interface FilesPageHeaderProps {
   title: React.ReactNode
   children?: React.ReactNode
 }
 
-export function HeaderUserProvider({ title, children }: HeaderUserProviderProps) {
-  const { user, loading, logout } = useUser()
-  const router = useRouter()
-
-  function handleAccountClick() {
-    router.push(`${accountUrl}/account`)
-  }
-
-  function handleLogoutClick() {
-    logout()
-    router.push(`${accountUrl}/auth/signin`)
-  }
-
-  function handleAdminClick() {
-    router.push(`${accountUrl}/admin`)
-  }
-
-  if (!user && !loading) {
-    return null
-  }
+export function FilesPageHeader({ title, children }: FilesPageHeaderProps) {
+  const config = getAppConfigForApp('files')
 
   return (
-    <Header
-      title={title}
-      user={user}
-      loading={loading}
-      onLogout={handleLogoutClick}
-      onAccountClick={handleAccountClick}
-      onAdminClick={handleAdminClick}
-      appsLinks={[
-        { label: 'Notes', href: process.env.NEXT_PUBLIC_NOTES_APP_URL || '/notes' },
-        { label: 'Files', href: process.env.NEXT_PUBLIC_FILES_APP_URL || '/files' },
-        { label: 'Account', href: accountUrl || '/account' }
-      ]}
-    >
+    <PageHeader title={title} config={config}>
       {children}
-    </Header>
+    </PageHeader>
   )
 }

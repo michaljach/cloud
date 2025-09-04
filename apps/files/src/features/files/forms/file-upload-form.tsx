@@ -2,29 +2,20 @@
 
 import { uploadFilesBatch } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/providers'
-import { encryptFile, getEncryptionKey } from '@repo/utils'
-import React, { useState, useContext } from 'react'
+import { useFileUpload } from '@repo/ui/hooks/useFileUpload'
+import { useDragAndDrop } from '@repo/ui/hooks/useDragAndDrop'
+import React, { useContext, useRef } from 'react'
 import { toast } from 'sonner'
 
 import { FilesContext } from '@/features/files/providers/files-context-provider'
 
-
 export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
-  const [files, setFiles] = useState<File[]>([])
-  const [status, setStatus] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const inputRef = React.useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const { accessToken, refreshStorageQuota, user, storageQuota } = useUser()
   const { currentWorkspace } = useWorkspace()
   const { refreshFiles } = useContext(FilesContext)
 
-  const handleUpload = async (selectedFiles: File[]) => {
-    if (!selectedFiles.length || !accessToken || !currentWorkspace) {
-      setStatus('File(s), login, and workspace context required')
-      return
-    }
-
-    // Check storage limit before uploading
+  const checkStorageQuota = (selectedFiles: File[]) => {
     if (user && storageQuota) {
       const totalFileSizeMB =
         selectedFiles.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024)
@@ -33,77 +24,49 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
 
       if (currentUsageMB + totalFileSizeMB > storageLimitMB) {
         const availableSpaceMB = storageLimitMB - currentUsageMB
-        setStatus(`Error: Not enough storage space. Available: ${availableSpaceMB.toFixed(1)} MB`)
-        return
+        return `Error: Not enough storage space. Available: ${availableSpaceMB.toFixed(1)} MB`
       }
     }
+    return true
+  }
 
-    setStatus('Encrypting...')
-    try {
-      const encryptionKey = getEncryptionKey()
-      const encryptedFiles = await Promise.all(
-        selectedFiles.map(async (file) => {
-          const encrypted = await encryptFile(file, encryptionKey)
-          return { file: encrypted, filename: file.name }
-        })
-      )
-      setStatus('Uploading...')
-
-      // Use workspace-aware upload
-
-      const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
-      await uploadFilesBatch(encryptedFiles, accessToken, workspaceId)
-
-      setStatus('Upload successful!')
-      setFiles([])
+  const { files, status, isUploading, setFiles, uploadFiles } = useFileUpload({
+    onSuccess: () => {
       refreshFiles()
-      // Refresh storage quota
       refreshStorageQuota()
       if (onUploaded) onUploaded()
-    } catch (err: any) {
-      toast.error('Upload failed: ' + err.message)
-      setStatus('Error: ' + err.message)
-    }
-  }
+    },
+    onError: (error: string) => {
+      toast.error('Upload failed: ' + error)
+    },
+    checkStorageQuota
+  })
 
-  // Drag and drop handlers
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(true)
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // This is required to allow dropping
-    e.dataTransfer.dropEffect = 'copy'
-    setDragActive(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // Only set dragActive to false if we're leaving the drop zone
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setDragActive(false)
-    }
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFiles = Array.from(e.dataTransfer.files)
+  const { isDragActive, getDropZoneProps } = useDragAndDrop({
+    onFilesDrop: (droppedFiles: File[]) => {
       setFiles(droppedFiles)
       handleUpload(droppedFiles)
     }
+  })
+
+  const handleUpload = async (selectedFiles: File[]) => {
+    if (!selectedFiles.length || !accessToken || !currentWorkspace) {
+      return
+    }
+
+    await uploadFiles(
+      selectedFiles,
+      async (encryptedFiles: Array<{ file: File; filename: string }>) => {
+        const workspaceId = currentWorkspace.id === 'personal' ? undefined : currentWorkspace.id
+        await uploadFilesBatch(encryptedFiles, accessToken, workspaceId)
+      }
+    )
   }
+
   const handleClick = () => {
     inputRef.current?.click()
   }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files ? Array.from(e.target.files) : []
     if (selected.length > 0) {
@@ -114,11 +77,8 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-2 border-2 rounded p-8 cursor-pointer transition-colors select-none text-center min-h-[200px] ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-dashed border-muted'}`}
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      className={`flex flex-col items-center justify-center gap-2 border-2 rounded p-8 cursor-pointer transition-colors select-none text-center min-h-[200px] ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-dashed border-muted'}`}
+      {...getDropZoneProps()}
       onClick={handleClick}
       tabIndex={0}
       role="button"
@@ -133,9 +93,9 @@ export function FileUpload({ onUploaded }: { onUploaded?: () => void }) {
         accept="*/*"
       />
       <div className="flex flex-col items-center gap-2">
-        <div className="text-4xl">{dragActive ? '📂' : '📁'}</div>
+        <div className="text-4xl">{isDragActive ? '📂' : '📁'}</div>
         <div className="text-sm text-muted-foreground">
-          {dragActive
+          {isDragActive
             ? 'Drop files here to upload'
             : status || 'Drop files here or click to browse'}
         </div>

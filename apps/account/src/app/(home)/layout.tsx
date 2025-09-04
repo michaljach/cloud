@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarInset } from '@repo/ui/components/base/sidebar'
 
 import type { Metadata } from 'next'
 
-import { PageHeader } from '@/features/layout/page-header'
+import { AccountPageHeader } from '@/features/layout/page-header'
 import { PageSidebar } from '@/features/layout/page-sidebar'
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     <SidebarProvider>
       <PageSidebar />
       <SidebarInset>
-        <PageHeader title="Account" />
+        <AccountPageHeader title="Account" />
         <main className="flex-1 overflow-auto">{children}</main>
       </SidebarInset>
     </SidebarProvider>

@@ -1,56 +1,22 @@
 'use client'
 
-import { useUser } from '@repo/providers'
-import { Header } from '@repo/ui/components/header'
-import { useRouter } from 'next/navigation'
+import { PageHeader } from '@repo/ui/components/common/PageHeader'
+import { getAppConfigForApp } from '@repo/ui/utils/appConfig'
 import React from 'react'
 
 import { PageHeaderStatus } from '@/features/layout/page-header-status'
 
-const accountUrl = process.env.NEXT_PUBLIC_ACCOUNT_APP_URL
-
-interface PageHeaderProps {
+interface NotesPageHeaderProps {
   title: React.ReactNode
   children?: React.ReactNode
 }
 
-export function PageHeader({ title, children }: PageHeaderProps) {
-  const { user, loading, logout } = useUser()
-  const router = useRouter()
-
-  function handleAccountClick() {
-    router.push(`${accountUrl}/account`)
-  }
-
-  function handleLogoutClick() {
-    logout()
-    router.push(`${accountUrl}/auth/signin`)
-  }
-
-  function handleAdminClick() {
-    router.push(`${accountUrl}/admin`)
-  }
-
-  if (!user && !loading) {
-    return null
-  }
+export function NotesPageHeader({ title, children }: NotesPageHeaderProps) {
+  const config = getAppConfigForApp('notes')
 
   return (
-    <Header
-      title={title}
-      user={user}
-      loading={loading}
-      onLogout={handleLogoutClick}
-      onAccountClick={handleAccountClick}
-      onAdminClick={handleAdminClick}
-      appsLinks={[
-        { label: 'Notes', href: process.env.NEXT_PUBLIC_NOTES_APP_URL || '/notes' },
-        { label: 'Files', href: process.env.NEXT_PUBLIC_FILES_APP_URL || '/files' },
-        { label: 'Account', href: accountUrl || '/account' }
-      ]}
-    >
-      <PageHeaderStatus />
+    <PageHeader title={title} config={config} showStatus={true} StatusComponent={PageHeaderStatus}>
       {children}
-    </Header>
+    </PageHeader>
   )
 }
