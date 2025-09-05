@@ -1,5 +1,5 @@
-import { useRouter } from 'next/navigation'
 import { useUser } from '@repo/providers'
+import { useRouter } from 'next/navigation'
 
 export interface AppNavigationConfig {
   accountAppUrl: string

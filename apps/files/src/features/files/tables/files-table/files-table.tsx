@@ -1,5 +1,13 @@
 'use client'
 
+import Link from 'next/link'
+import { useContext } from 'react'
+import React from 'react'
+import { toast } from 'sonner'
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import JSZip from 'jszip'
+import { Download } from 'lucide-react'
+
 import { uploadFilesBatch, batchMoveFilesToTrash, downloadFile } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/providers'
 import { Button } from '@repo/ui/components/base/button'
@@ -27,17 +35,9 @@ import {
   TableRow
 } from '@repo/ui/components/base/table'
 import { encryptFile, decryptFile, getEncryptionKey } from '@repo/utils'
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import JSZip from 'jszip'
-import { Folder, File as FileIcon, ArrowLeft, Download } from 'lucide-react'
-import { useContext, useMemo } from 'react'
-import { FilesContext } from '@/features/files/providers/files-context-provider'
-import React from 'react'
-import { toast } from 'sonner'
 
 import { FilePreview } from '@/features/files/dialogs/file-preview-dialog'
-
-import Link from 'next/link'
+import { FilesContext } from '@/features/files/providers/files-context-provider'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

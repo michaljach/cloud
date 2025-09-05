@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
-import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { UserProvider, WorkspaceProvider, InviteProvider } from '@repo/providers'
-import { useInvites } from '@repo/providers'
+import React from 'react'
+
+import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/providers'
 import { SidebarProvider } from '@repo/ui/components/base/sidebar'
 
 import { PageSidebarInvitations } from '@/features/layout/page-sidebar-invitations'

@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
-import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
+import React from 'react'
+
 import { getMyInvites } from '@repo/api'
 import { UserProvider, WorkspaceProvider, InviteProvider, useInvites } from '@repo/providers'
 

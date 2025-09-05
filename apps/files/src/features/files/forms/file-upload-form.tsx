@@ -2,8 +2,8 @@
 
 import { uploadFilesBatch } from '@repo/api'
 import { useUser, useWorkspace } from '@repo/providers'
-import { useFileUpload } from '@repo/ui/hooks/useFileUpload'
 import { useDragAndDrop } from '@repo/ui/hooks/useDragAndDrop'
+import { useFileUpload } from '@repo/ui/hooks/useFileUpload'
 import React, { useContext, useRef } from 'react'
 import { toast } from 'sonner'
 

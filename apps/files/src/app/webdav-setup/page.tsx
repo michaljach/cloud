@@ -1,5 +1,7 @@
 'use client'
 
+import { Badge } from '@repo/ui/components/base/badge'
+import { Button } from '@repo/ui/components/base/button'
 import {
   Card,
   CardContent,
@@ -7,8 +9,6 @@ import {
   CardHeader,
   CardTitle
 } from '@repo/ui/components/base/card'
-import { Badge } from '@repo/ui/components/base/badge'
-import { Button } from '@repo/ui/components/base/button'
 import { Input } from '@repo/ui/components/base/input'
 import { Label } from '@repo/ui/components/base/label'
 import { Separator } from '@repo/ui/components/base/separator'
